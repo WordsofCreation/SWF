@@ -125,6 +125,22 @@
         notes: "Type/subtype markers are included as explicit placeholders, pending confirmed dnd5e value vocabulary."
       }),
       createTraceEntry({
+        manifestField: "(deferred feat classification category)",
+        sourceValue: null,
+        targetPath: "classification.featCategory → system.type.value",
+        targetValue: getValueAtPath(stub, "classification.featCategory"),
+        status: TRACE_STATUS.PROVISIONAL,
+        notes: "Classification category is tracked as a read-only planning value and intentionally left unset until manifest vocabulary is introduced."
+      }),
+      createTraceEntry({
+        manifestField: "(deferred feat classification subcategory)",
+        sourceValue: null,
+        targetPath: "classification.featSubcategory → system.type.subtype",
+        targetValue: getValueAtPath(stub, "classification.featSubcategory"),
+        status: TRACE_STATUS.PROVISIONAL,
+        notes: "Classification subcategory is tracked separately from category to keep future taxonomy decisions explicit."
+      }),
+      createTraceEntry({
         manifestField: "description",
         sourceValue: manifest.description,
         targetPath: "system.description.value",
@@ -197,6 +213,22 @@
         targetValue: getValueAtPath(stub, "system.prerequisites.level"),
         status: TRACE_STATUS.PROVISIONAL,
         notes: "Minimal structured prerequisite level is tracked for inspection while additional prerequisite fields stay intentionally deferred."
+      }),
+      createTraceEntry({
+        manifestField: "(deferred repeatable flag)",
+        sourceValue: null,
+        targetPath: "classification.repeatable → system.prerequisites.repeatable",
+        targetValue: getValueAtPath(stub, "system.prerequisites.repeatable"),
+        status: TRACE_STATUS.PROVISIONAL,
+        notes: "Repeatability is modeled as a conservative placeholder and intentionally left unset while dnd5e path confirmation remains provisional."
+      }),
+      createTraceEntry({
+        manifestField: "(deferred acquisition mode)",
+        sourceValue: null,
+        targetPath: "classification.acquisitionMode",
+        targetValue: getValueAtPath(stub, "classification.acquisitionMode"),
+        status: TRACE_STATUS.OMITTED,
+        notes: "Acquisition metadata is represented as a read-only placeholder with no manifest input in this step."
       })
     ];
 

@@ -236,10 +236,20 @@
       <p class="swf-tool-shell__hint">{{manifests.detail.featTargetStubSummary}}</p>
       <p class="swf-tool-shell__hint">Presentation Cluster: {{manifests.detail.featPresentationSummary}}</p>
       <p class="swf-tool-shell__hint">Prerequisites Cluster: {{manifests.detail.featPrerequisitesSummary}}</p>
+      <p class="swf-tool-shell__hint">Classification Cluster: {{manifests.detail.featClassificationSummary}}</p>
+      {{#if manifests.detail.featClassificationCluster}}
+        <ul class="swf-tool-shell__status">
+          <li>Feat Category: {{manifests.detail.featClassificationCluster.featCategory}}</li>
+          <li>Feat Subcategory: {{manifests.detail.featClassificationCluster.featSubcategory}}</li>
+          <li>Repeatable: {{manifests.detail.featClassificationCluster.repeatable}}</li>
+          <li>Acquisition Mode: {{manifests.detail.featClassificationCluster.acquisitionMode}}</li>
+        </ul>
+      {{/if}}
       {{#if manifests.detail.featPrerequisitesCluster}}
         <ul class="swf-tool-shell__status">
           <li>Requirements Text: {{manifests.detail.featTargetStub.system.requirements}}</li>
           <li>Minimum Level: {{manifests.detail.featPrerequisitesCluster.level}}</li>
+          <li>Repeatable (provisional): {{manifests.detail.featPrerequisitesCluster.repeatable}}</li>
         </ul>
       {{/if}}
       <p class="swf-tool-shell__hint">Intentionally omitted unresolved targets: {{manifests.detail.featTargetStubOmittedCount}}</p>

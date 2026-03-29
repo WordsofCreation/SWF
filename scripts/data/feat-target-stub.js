@@ -7,7 +7,7 @@
 (() => {
   const { manifestValidation, confirmedMappingSnapshot, fieldTargetMap } = globalThis.SWF;
 
-  const STUB_VERSION = 4;
+  const STUB_VERSION = 5;
   const DEFAULT_FEAT_IMG = "icons/svg/book.svg";
 
   function isFeatManifest(manifest) {
@@ -114,6 +114,28 @@
         source: "dnd5e-feat-feature-pattern-deep-dive"
       }
     };
+    const classificationMapping = {
+      category: {
+        status: "provisional",
+        targetPath: "system.type.value",
+        source: "dnd5e-feat-feature-pattern-deep-dive"
+      },
+      subcategory: {
+        status: "provisional",
+        targetPath: "system.type.subtype",
+        source: "dnd5e-feat-feature-pattern-deep-dive"
+      },
+      repeatable: {
+        status: "provisional",
+        targetPath: "system.prerequisites.repeatable",
+        source: "dnd5e-feat-feature-pattern-deep-dive"
+      },
+      acquisitionMode: {
+        status: "deferred",
+        targetPath: "(no manifest field in this slice)",
+        source: "swf-module-manifest-discipline"
+      }
+    };
 
     const stub = {
       stubKind: "swf.feat-item-target",
@@ -122,6 +144,12 @@
       itemType: "feat",
       name: manifest.name,
       img: DEFAULT_FEAT_IMG,
+      classification: {
+        featCategory: null,
+        featSubcategory: null,
+        repeatable: null,
+        acquisitionMode: null
+      },
       system: {
         type: {
           value: null,
@@ -135,7 +163,8 @@
         },
         requirements: requirementsText,
         prerequisites: {
-          level: prerequisiteLevel
+          level: prerequisiteLevel,
+          repeatable: null
         }
       },
       flags: {
@@ -156,7 +185,8 @@
           source: sourceMapping,
           featType: featTypeMapping,
           img: imgMapping,
-          prerequisites: prerequisitesMapping
+          prerequisites: prerequisitesMapping,
+          classification: classificationMapping
         },
         intentionallyOmittedTargets: [
           {
@@ -171,8 +201,13 @@
           },
           {
             manifestField: "(prerequisites cluster remainder)",
-            targetPath: "system.prerequisites.items/system.prerequisites.repeatable",
-            reason: "Only a minimal prerequisites slice is modeled in this step; additional eligibility fields remain deferred."
+            targetPath: "system.prerequisites.items",
+            reason: "Only level + repeatable are modeled in this step; additional eligibility fields remain deferred."
+          },
+          {
+            manifestField: "(no manifest field yet)",
+            targetPath: "(feat acquisition mode metadata)",
+            reason: "Acquisition metadata remains deferred until manifest vocabulary exists for feat gain source."
           }
         ],
         safety: [
@@ -226,11 +261,26 @@
     return `Requirements Text: ${requirements} | Minimum Level: ${levelLabel}`;
   }
 
+  function summarizeFeatClassification(stub) {
+    if (!stub || stub.itemType !== "feat") {
+      return "No feat classification cluster available.";
+    }
+
+    const category = stub.classification?.featCategory ?? "(deferred)";
+    const subcategory = stub.classification?.featSubcategory ?? "(deferred)";
+    const repeatable = stub.classification?.repeatable;
+    const acquisitionMode = stub.classification?.acquisitionMode ?? "(deferred)";
+    const repeatableLabel = typeof repeatable === "boolean" ? String(repeatable) : "(deferred)";
+
+    return `Category: ${category} | Subcategory: ${subcategory} | Repeatable: ${repeatableLabel} | Acquisition: ${acquisitionMode}`;
+  }
+
   globalThis.SWF.featTargetStub = {
     buildFeatTargetStub,
     isFeatManifest,
     summarizeFeatTargetStub,
     summarizeFeatPresentationFields,
-    summarizeFeatPrerequisites
+    summarizeFeatPrerequisites,
+    summarizeFeatClassification
   };
 })();
