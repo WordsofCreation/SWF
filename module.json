@@ -26,6 +26,7 @@
   "scripts": [
     "scripts/constants.js",
     "scripts/data/manifest-validation.js",
+    "scripts/data/manifest-builders.js",
     "scripts/data/manifest-registry.js",
     "scripts/data/manifest-loader.js",
     "scripts/tool-shell.js",
