@@ -2,7 +2,7 @@
  * Minimal GM-facing tool shell launcher and placeholder application.
  */
 (() => {
-  const { MODULE_ID, log } = globalThis.SWF;
+  const { MODULE_ID, log, manifestRegistry } = globalThis.SWF;
 
   class SWFToolShellApp extends FormApplication {
     static get defaultOptions() {
@@ -22,11 +22,16 @@
 
     getData() {
       const setting = (key) => game.settings.get(MODULE_ID, key) === true;
+      const manifestStats = manifestRegistry.getStats();
+
       return {
         settings: {
           debugLogging: setting("debugLogging"),
           enableDevTools: setting("enableDevTools"),
           futureContentToolsEnabled: setting("futureContentToolsEnabled")
+        },
+        manifests: {
+          total: manifestStats.total
         }
       };
     }

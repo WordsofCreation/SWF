@@ -25,6 +25,8 @@
   },
   "scripts": [
     "scripts/constants.js",
+    "scripts/data/manifest-registry.js",
+    "scripts/data/manifest-loader.js",
     "scripts/tool-shell.js",
     "scripts/settings.js",
     "scripts/module.js"

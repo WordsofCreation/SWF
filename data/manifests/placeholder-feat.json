@@ -1,0 +1,8 @@
+{
+  "id": "placeholder-feat-beta",
+  "type": "feat",
+  "name": "Placeholder Feat Beta",
+  "version": "0.0.1",
+  "description": "Placeholder-only manifest entry for future safe content-tooling slices.",
+  "status": "draft"
+}
