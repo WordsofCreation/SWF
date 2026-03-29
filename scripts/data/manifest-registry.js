@@ -36,7 +36,11 @@
   }
 
   function getInvalidEntries() {
-    return invalidEntries.map((entry) => ({ ...entry, issues: [...entry.issues] }));
+    return invalidEntries.map((entry) => ({
+      ...entry,
+      manifest: entry.manifest ? { ...entry.manifest } : null,
+      issues: [...entry.issues]
+    }));
   }
 
   function setLastLoadReport(report) {

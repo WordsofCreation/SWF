@@ -32,6 +32,9 @@
       {{#each manifests.entries}}
         <li>
           <strong>{{this.name}}</strong>
+          <button type="button" class="swf-tool-shell__view-button {{#if this.isSelected}}is-selected{{/if}}" data-manifest-key="{{this.selectionKey}}">
+            {{#if this.isSelected}}Viewing{{else}}View{{/if}}
+          </button>
           <div class="swf-tool-shell__manifest-meta">
             <span>ID: <code>{{this.id}}</code></span>
             <span>Type: {{this.type}}</span>
@@ -52,6 +55,9 @@
       {{#each manifests.invalidEntries}}
         <li>
           <strong>{{this.id}}</strong>
+          <button type="button" class="swf-tool-shell__view-button {{#if this.isSelected}}is-selected{{/if}}" data-manifest-key="{{this.selectionKey}}">
+            {{#if this.isSelected}}Viewing{{else}}View{{/if}}
+          </button>
           <div class="swf-tool-shell__manifest-meta">
             <span>Type: {{this.type}}</span>
             <span>Issues: {{this.issueCount}}</span>
@@ -60,5 +66,43 @@
         </li>
       {{/each}}
     </ul>
+  {{/if}}
+
+  <h3>Manifest Detail (Read-Only)</h3>
+  {{#if manifests.detail.hasSelection}}
+    <ul class="swf-tool-shell__status">
+      <li>Source: {{manifests.detail.source}}</li>
+      {{#if manifests.detail.path}}<li>Path: <code>{{manifests.detail.path}}</code></li>{{/if}}
+      <li>ID: <code>{{manifests.detail.id}}</code></li>
+      <li>Type: {{manifests.detail.type}}</li>
+      <li>Name: {{manifests.detail.name}}</li>
+      <li>Version: {{manifests.detail.version}}</li>
+      <li>Status: {{manifests.detail.status}}</li>
+      <li>Description: {{manifests.detail.description}}</li>
+      <li>Validation: {{manifests.detail.validationSummary}}</li>
+    </ul>
+
+    {{#if manifests.detail.hasTypeSpecificFields}}
+      <h4>Type-Specific Fields</h4>
+      <ul class="swf-tool-shell__status">
+        {{#each manifests.detail.typeSpecificFields}}
+          <li>{{this.key}}: {{this.value}}</li>
+        {{/each}}
+      </ul>
+    {{/if}}
+
+    {{#if manifests.detail.hasIssues}}
+      <h4>Validation Issues</h4>
+      <ul class="swf-tool-shell__manifest-list">
+        {{#each manifests.detail.issues}}
+          <li>
+            <span><strong>{{this.severity}}</strong> · <code>{{this.code}}</code>{{#if this.field}} · field: <code>{{this.field}}</code>{{/if}}</span>
+            <div class="swf-tool-shell__hint">{{this.message}}</div>
+          </li>
+        {{/each}}
+      </ul>
+    {{/if}}
+  {{else}}
+    <p class="swf-tool-shell__empty">Select a manifest from the lists above to inspect normalized fields and validation details.</p>
   {{/if}}
 </section>
