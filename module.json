@@ -26,6 +26,7 @@
   "scripts": [
     "scripts/constants.js",
     "scripts/data/manifest-validation.js",
+    "scripts/data/canonical-field-inventory.js",
     "scripts/data/manifest-builders.js",
     "scripts/data/manifest-compare.js",
     "scripts/data/manifest-registry.js",
