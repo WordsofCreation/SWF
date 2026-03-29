@@ -223,6 +223,22 @@
         notes: "Repeatability is modeled as a conservative placeholder and intentionally left unset while dnd5e path confirmation remains provisional."
       }),
       createTraceEntry({
+        manifestField: "source",
+        sourceValue: manifest.source,
+        targetPath: "classification.groupingLabel",
+        targetValue: getValueAtPath(stub, "classification.groupingLabel"),
+        status: TRACE_STATUS.NORMALIZED,
+        notes: "A compact grouping label is derived from manifest source for read-only organization and remains separate from dnd5e feat taxonomy fields."
+      }),
+      createTraceEntry({
+        manifestField: "(classification mapping hints)",
+        sourceValue: null,
+        targetPath: "classification.mappingHints.*",
+        targetValue: JSON.stringify(getValueAtPath(stub, "classification.mappingHints")),
+        status: TRACE_STATUS.PROVISIONAL,
+        notes: "Mapping hints keep uncertain category/repeatable target paths explicit instead of silently treating them as confirmed."
+      }),
+      createTraceEntry({
         manifestField: "status",
         sourceValue: manifest.status,
         targetPath: "classification.acquisition.manifestStatus",
@@ -253,6 +269,16 @@
         targetValue: getValueAtPath(stub, "classification.acquisition.hasPrerequisiteGate"),
         status: TRACE_STATUS.NORMALIZED,
         notes: "A simple boolean acquisition gate marker is derived from prerequisite text or minimum level presence."
+      }),
+      createTraceEntry({
+        manifestField: "prerequisiteText/prerequisiteLevel",
+        sourceValue:
+          (typeof manifest.prerequisiteText === "string" && manifest.prerequisiteText.length > 0) ||
+          Number.isInteger(manifest.prerequisiteLevel),
+        targetPath: "classification.acquisition.traitSummary",
+        targetValue: getValueAtPath(stub, "classification.acquisition.traitSummary"),
+        status: TRACE_STATUS.NORMALIZED,
+        notes: "Acquisition trait summary is a compact read-only label derived from prerequisite gate presence."
       }),
       createTraceEntry({
         manifestField: "(deferred acquisition mode)",
