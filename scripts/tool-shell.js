@@ -12,7 +12,8 @@
     fieldTargetMap,
     unresolvedMappingTracker,
     confirmedMappingSnapshot,
-    mappingCoverageReport
+    mappingCoverageReport,
+    shapeConsistencyChecker
   } = globalThis.SWF;
 
   class SWFToolShellApp extends FormApplication {
@@ -44,6 +45,7 @@
       const loadReport = manifestRegistry.getLastLoadReport();
       const mappingCoverage = mappingCoverageReport.getCoverageReport();
       const mappingCoverageSummary = mappingCoverageReport.getCoverageSummary();
+      const shapeConsistencySummary = shapeConsistencyChecker.getShapeConsistencySummary();
       const manifestEntries = manifestRegistry.getAll().map((manifest) => {
         const selectionKey = this.#toValidSelectionKey(manifest.id);
         return {
@@ -96,6 +98,11 @@
           entries: mappingCoverage,
           summary: mappingCoverageSummary,
           hasEntries: mappingCoverage.length > 0
+        },
+        shapeConsistency: {
+          summary: shapeConsistencySummary,
+          statuses: shapeConsistencySummary.statuses,
+          hasEntries: shapeConsistencySummary.totalTypes > 0
         }
       };
     }
