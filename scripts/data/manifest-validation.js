@@ -35,6 +35,8 @@
     }
 
     if (raw && Object.hasOwn(raw, "example")) {
+      // `example` is fixture/sample tagging metadata.
+      // Canonical designation is documented separately and is not implied for all examples.
       base.example = raw.example === true;
     }
 

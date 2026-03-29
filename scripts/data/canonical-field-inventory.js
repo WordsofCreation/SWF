@@ -60,7 +60,7 @@
   );
 
   // Intentionally excluded from canonical inventory for now:
-  // `example` appears only in canonical sample manifests and is treated as fixture metadata.
+  // `example` is fixture/sample metadata and may exist on canonical or non-canonical examples.
   // It is not currently required for runtime starter manifests or validation.
 
   function getCommonCanonicalFields() {
