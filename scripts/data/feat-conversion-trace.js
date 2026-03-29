@@ -223,6 +223,38 @@
         notes: "Repeatability is modeled as a conservative placeholder and intentionally left unset while dnd5e path confirmation remains provisional."
       }),
       createTraceEntry({
+        manifestField: "status",
+        sourceValue: manifest.status,
+        targetPath: "classification.acquisition.manifestStatus",
+        targetValue: getValueAtPath(stub, "classification.acquisition.manifestStatus"),
+        status: determineStatus({
+          sourceValue: manifest.status,
+          targetValue: getValueAtPath(stub, "classification.acquisition.manifestStatus")
+        }),
+        notes: "Manifest workflow status is retained as read-only acquisition context metadata in the stub."
+      }),
+      createTraceEntry({
+        manifestField: "source",
+        sourceValue: manifest.source,
+        targetPath: "classification.acquisition.sourceTag",
+        targetValue: getValueAtPath(stub, "classification.acquisition.sourceTag"),
+        status: determineStatus({
+          sourceValue: manifest.source,
+          targetValue: getValueAtPath(stub, "classification.acquisition.sourceTag")
+        }),
+        notes: "Source tag is mirrored into acquisition context for inspection-only categorization planning."
+      }),
+      createTraceEntry({
+        manifestField: "prerequisiteText/prerequisiteLevel",
+        sourceValue:
+          (typeof manifest.prerequisiteText === "string" && manifest.prerequisiteText.length > 0) ||
+          Number.isInteger(manifest.prerequisiteLevel),
+        targetPath: "classification.acquisition.hasPrerequisiteGate",
+        targetValue: getValueAtPath(stub, "classification.acquisition.hasPrerequisiteGate"),
+        status: TRACE_STATUS.NORMALIZED,
+        notes: "A simple boolean acquisition gate marker is derived from prerequisite text or minimum level presence."
+      }),
+      createTraceEntry({
         manifestField: "(deferred acquisition mode)",
         sourceValue: null,
         targetPath: "classification.acquisitionMode",

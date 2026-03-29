@@ -7,7 +7,7 @@
 (() => {
   const { manifestValidation, confirmedMappingSnapshot, fieldTargetMap } = globalThis.SWF;
 
-  const STUB_VERSION = 5;
+  const STUB_VERSION = 6;
   const DEFAULT_FEAT_IMG = "icons/svg/book.svg";
 
   function isFeatManifest(manifest) {
@@ -77,6 +77,23 @@
     };
   }
 
+  function buildFeatClassificationCluster({ manifest, requirementsText, prerequisiteLevel }) {
+    const hasPrerequisiteGate = requirementsText.length > 0 || Number.isInteger(prerequisiteLevel);
+
+    return {
+      featCategory: null,
+      featSubcategory: null,
+      groupingLabel: "(deferred)",
+      repeatable: null,
+      acquisitionMode: null,
+      acquisition: {
+        manifestStatus: manifest.status,
+        sourceTag: manifest.source,
+        hasPrerequisiteGate
+      }
+    };
+  }
+
   function buildFeatTargetStub(manifest) {
     if (!isFeatManifest(manifest)) {
       return buildUnsupportedTypeResult(manifest);
@@ -137,6 +154,12 @@
       }
     };
 
+    const classificationCluster = buildFeatClassificationCluster({
+      manifest,
+      requirementsText,
+      prerequisiteLevel
+    });
+
     const stub = {
       stubKind: "swf.feat-item-target",
       stubVersion: STUB_VERSION,
@@ -144,12 +167,7 @@
       itemType: "feat",
       name: manifest.name,
       img: DEFAULT_FEAT_IMG,
-      classification: {
-        featCategory: null,
-        featSubcategory: null,
-        repeatable: null,
-        acquisitionMode: null
-      },
+      classification: classificationCluster,
       system: {
         type: {
           value: null,
@@ -164,7 +182,7 @@
         requirements: requirementsText,
         prerequisites: {
           level: prerequisiteLevel,
-          repeatable: null
+          repeatable: classificationCluster.repeatable
         }
       },
       flags: {
@@ -207,7 +225,12 @@
           {
             manifestField: "(no manifest field yet)",
             targetPath: "(feat acquisition mode metadata)",
-            reason: "Acquisition metadata remains deferred until manifest vocabulary exists for feat gain source."
+            reason: "Acquisition mode remains deferred until manifest vocabulary exists for feat gain source."
+          },
+          {
+            manifestField: "status/source/prerequisiteText/prerequisiteLevel",
+            targetPath: "classification.acquisition",
+            reason: "Acquisition context is tracked module-side for inspection and is not yet mapped to a dnd5e Item system path."
           }
         ],
         safety: [
@@ -268,11 +291,14 @@
 
     const category = stub.classification?.featCategory ?? "(deferred)";
     const subcategory = stub.classification?.featSubcategory ?? "(deferred)";
+    const groupingLabel = stub.classification?.groupingLabel ?? "(deferred)";
     const repeatable = stub.classification?.repeatable;
     const acquisitionMode = stub.classification?.acquisitionMode ?? "(deferred)";
+    const hasPrerequisiteGate = stub.classification?.acquisition?.hasPrerequisiteGate;
     const repeatableLabel = typeof repeatable === "boolean" ? String(repeatable) : "(deferred)";
+    const hasPrerequisiteGateLabel = typeof hasPrerequisiteGate === "boolean" ? String(hasPrerequisiteGate) : "(deferred)";
 
-    return `Category: ${category} | Subcategory: ${subcategory} | Repeatable: ${repeatableLabel} | Acquisition: ${acquisitionMode}`;
+    return `Category: ${category} | Subcategory: ${subcategory} | Group: ${groupingLabel} | Repeatable: ${repeatableLabel} | Acquisition: ${acquisitionMode} | Prerequisite Gate: ${hasPrerequisiteGateLabel}`;
   }
 
   globalThis.SWF.featTargetStub = {
