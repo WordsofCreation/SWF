@@ -5,8 +5,9 @@
   const { MODULE_ID, log, manifestRegistry, manifestValidation } = globalThis.SWF;
 
   const MANIFEST_PATHS = [
-    `modules/${MODULE_ID}/data/manifests/placeholder-feature.json`,
-    `modules/${MODULE_ID}/data/manifests/placeholder-feat.json`
+    `modules/${MODULE_ID}/data/manifests/canonical-feature.json`,
+    `modules/${MODULE_ID}/data/manifests/canonical-feat.json`,
+    `modules/${MODULE_ID}/data/manifests/canonical-subclass.json`
   ];
 
   async function fetchManifest(path) {

@@ -34,6 +34,10 @@
       base.classIdentifier = normalizeString(raw.classIdentifier);
     }
 
+    if (raw && Object.hasOwn(raw, "example")) {
+      base.example = raw.example === true;
+    }
+
     return base;
   }
 

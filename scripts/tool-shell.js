@@ -42,6 +42,7 @@
           name: manifest.name,
           version: manifest.version,
           status: manifest.status,
+          isCanonicalExample: manifest.example === true,
           validationState: "valid"
         };
       });
@@ -120,6 +121,7 @@
           version: manifest.version,
           status: manifest.status,
           description: manifest.description,
+          isCanonicalExample: manifest.example === true,
           typeSpecificFields,
           hasTypeSpecificFields: typeSpecificFields.length > 0,
           validationSummary: "Valid (0 issues)",
