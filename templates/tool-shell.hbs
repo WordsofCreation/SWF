@@ -45,6 +45,24 @@
     <p class="swf-tool-shell__empty">No mapping coverage data is available yet.</p>
   {{/if}}
 
+
+  <h3>Shape Consistency (Read-Only)</h3>
+  {{#if shapeConsistency.hasEntries}}
+    <ul class="swf-tool-shell__status">
+      <li>Types: {{shapeConsistency.summary.totalTypes}}</li>
+      <li>Consistent: {{shapeConsistency.summary.consistentCount}}</li>
+      <li>Drift: {{shapeConsistency.summary.driftCount}}</li>
+      <li>Warning: {{shapeConsistency.summary.warningCount}}</li>
+    </ul>
+    <ul class="swf-tool-shell__manifest-list">
+      {{#each shapeConsistency.statuses}}
+        <li><strong>{{this.manifestType}}</strong> · <span>Status: {{this.status}}</span></li>
+      {{/each}}
+    </ul>
+  {{else}}
+    <p class="swf-tool-shell__empty">No shape-consistency data is available yet.</p>
+  {{/if}}
+
   <h3>Manifest Browser (Read-Only)</h3>
   <p class="swf-tool-shell__hint">Showing module-owned manifest metadata from the in-memory registry.</p>
 
