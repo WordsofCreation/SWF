@@ -27,6 +27,13 @@
         notes: "Tracked as a source reference note; exact dnd5e source-shape mapping remains unsettled."
       }),
       Object.freeze({
+        manifestField: "featCategory",
+        intendedTargetPath: "system.type.value",
+        targetDocumentType: "Item (dnd5e feat)",
+        status: "provisional",
+        notes: "Optional normalized vocabulary field for read-only classification planning; allowed values are intentionally provisional in this slice."
+      }),
+      Object.freeze({
         manifestField: "status",
         intendedTargetPath: "(module workflow metadata)",
         targetDocumentType: "SWF module manifest lifecycle",

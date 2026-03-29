@@ -8,9 +8,11 @@
     feat: ["source"],
     subclass: ["classIdentifier"]
   };
+  const PROVISIONAL_FEAT_CATEGORY_VOCABULARY = Object.freeze(["general", "origin"]);
 
   const normalizeString = (value) => (typeof value === "string" ? value.trim() : "");
   const toId = (value) => normalizeString(value).toLowerCase();
+  const normalizeFeatCategory = (value) => toId(value);
 
   function createIssue({ severity = "error", code, field = null, message }) {
     return { severity, code, field, message };
@@ -36,6 +38,10 @@
 
     if (raw && Object.hasOwn(raw, "prerequisiteLevel")) {
       base.prerequisiteLevel = raw.prerequisiteLevel;
+    }
+
+    if (raw && Object.hasOwn(raw, "featCategory")) {
+      base.featCategory = normalizeFeatCategory(raw.featCategory);
     }
 
     if (raw && Object.hasOwn(raw, "classIdentifier")) {
@@ -103,6 +109,28 @@
       }));
     }
 
+    if (manifest.type === "feat" && Object.hasOwn(manifest, "featCategory")) {
+      if (typeof manifest.featCategory !== "string") {
+        issues.push(createIssue({
+          severity: "warning",
+          code: "invalid_optional_field_type",
+          field: "featCategory",
+          message: "Optional field 'featCategory' should be a string when provided."
+        }));
+      } else if (
+        manifest.featCategory.length > 0 &&
+        !PROVISIONAL_FEAT_CATEGORY_VOCABULARY.includes(manifest.featCategory)
+      ) {
+        issues.push(createIssue({
+          severity: "warning",
+          code: "unrecognized_optional_vocabulary",
+          field: "featCategory",
+          message:
+            "Optional field 'featCategory' is outside the current provisional vocabulary; value retained for inspection only."
+        }));
+      }
+    }
+
     return {
       issues,
       errors: issues.filter((issue) => issue.severity === "error"),
@@ -114,6 +142,8 @@
   globalThis.SWF.manifestValidation = {
     COMMON_REQUIRED_FIELDS,
     TYPE_REQUIRED_FIELDS,
+    PROVISIONAL_FEAT_CATEGORY_VOCABULARY,
+    normalizeFeatCategory,
     normalizeManifest,
     validateManifest,
     createIssue
