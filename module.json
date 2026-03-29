@@ -1,0 +1,39 @@
+{
+  "id": "swf-module",
+  "title": "SWF Module (Scaffold)",
+  "description": "Starter scaffold for a Foundry VTT v13 add-on module that extends the dnd5e system.",
+  "version": "0.0.1",
+  "authors": [
+    {
+      "name": "SWF Contributors"
+    }
+  ],
+  "compatibility": {
+    "minimum": "13",
+    "verified": "13"
+  },
+  "relationships": {
+    "systems": [
+      {
+        "id": "dnd5e",
+        "type": "system",
+        "compatibility": {
+          "minimum": "4"
+        }
+      }
+    ]
+  },
+  "scripts": [
+    "scripts/main.js"
+  ],
+  "styles": [
+    "styles/module.css"
+  ],
+  "packs": [],
+  "languages": [],
+  "url": "",
+  "manifest": "",
+  "download": "",
+  "license": "MIT",
+  "readme": "README.md"
+}
