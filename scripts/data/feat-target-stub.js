@@ -7,7 +7,8 @@
 (() => {
   const { manifestValidation, confirmedMappingSnapshot, fieldTargetMap } = globalThis.SWF;
 
-  const STUB_VERSION = 2;
+  const STUB_VERSION = 3;
+  const DEFAULT_FEAT_IMG = "icons/svg/book.svg";
 
   function isFeatManifest(manifest) {
     return manifest?.type === "feat";
@@ -89,6 +90,16 @@
     const nameMapping = getMappingStatus("name");
     const descriptionMapping = getMappingStatus("description");
     const sourceMapping = getMappingStatus("source");
+    const featTypeMapping = {
+      status: "provisional",
+      targetPath: "system.type.value/system.type.subtype",
+      source: "dnd5e-feat-pattern-analysis"
+    };
+    const imgMapping = {
+      status: "provisional",
+      targetPath: "img",
+      source: "dnd5e-item-pattern-analysis"
+    };
 
     const stub = {
       stubKind: "swf.feat-item-target",
@@ -96,9 +107,17 @@
       documentType: "Item",
       itemType: "feat",
       name: manifest.name,
+      img: DEFAULT_FEAT_IMG,
       system: {
+        type: {
+          value: null,
+          subtype: null
+        },
         description: {
           value: manifest.description
+        },
+        source: {
+          custom: manifest.source
         }
       },
       flags: {
@@ -116,18 +135,20 @@
           description: descriptionMapping
         },
         provisionalMappings: {
-          source: sourceMapping
+          source: sourceMapping,
+          featType: featTypeMapping,
+          img: imgMapping
         },
         intentionallyOmittedTargets: [
-          {
-            manifestField: "source",
-            targetPath: "system.source.custom",
-            reason: "Mapping is still provisional; omitted from system data in this read-only slice."
-          },
           {
             manifestField: "status",
             targetPath: "(module workflow metadata)",
             reason: "Planning/workflow metadata remains module-only for now."
+          },
+          {
+            manifestField: "(no manifest field yet)",
+            targetPath: "system.type.value/system.type.subtype",
+            reason: "Feat-type taxonomy is intentionally deferred until manifest vocabulary is introduced."
           }
         ],
         safety: [
@@ -156,9 +177,23 @@
     ].join(" | ");
   }
 
+  function summarizeFeatPresentationFields(stub) {
+    if (!stub || stub.itemType !== "feat") {
+      return "No feat presentation cluster available.";
+    }
+
+    const sourceCustom = stub.system?.source?.custom;
+    const typeValue = stub.system?.type?.value ?? "(deferred)";
+    const subtypeValue = stub.system?.type?.subtype ?? "(deferred)";
+    const sourceLabel = sourceCustom || "(empty)";
+
+    return `Name: ${stub.name} | Item Type: ${stub.itemType} | Feat Type: ${typeValue}/${subtypeValue} | Img: ${stub.img} | Source: ${sourceLabel}`;
+  }
+
   globalThis.SWF.featTargetStub = {
     buildFeatTargetStub,
     isFeatManifest,
-    summarizeFeatTargetStub
+    summarizeFeatTargetStub,
+    summarizeFeatPresentationFields
   };
 })();

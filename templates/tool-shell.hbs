@@ -234,6 +234,7 @@
     {{#if manifests.detail.hasFeatTargetStub}}
       <h4>Intended Feat Item Stub (Read-Only)</h4>
       <p class="swf-tool-shell__hint">{{manifests.detail.featTargetStubSummary}}</p>
+      <p class="swf-tool-shell__hint">Presentation Cluster: {{manifests.detail.featPresentationSummary}}</p>
       <p class="swf-tool-shell__hint">Intentionally omitted unresolved targets: {{manifests.detail.featTargetStubOmittedCount}}</p>
       <pre class="swf-tool-shell__hint"><code>{{manifests.detail.featTargetStubJson}}</code></pre>
     {{/if}}

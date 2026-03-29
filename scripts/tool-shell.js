@@ -149,6 +149,8 @@
         const confirmedMappingCoverage = confirmedMappingSnapshot.getConfirmedCoverageForType(manifest.type);
         const featStubResult = manifest.type === "feat" ? featTargetStub.buildFeatTargetStub(manifest) : null;
         const featStubSummary = featStubResult ? featTargetStub.summarizeFeatTargetStub(featStubResult) : null;
+        const featPresentationSummary =
+          featStubResult?.ok === true ? featTargetStub.summarizeFeatPresentationFields(featStubResult.stub) : null;
         const featTraceResult =
           manifest.type === "feat" && featStubResult?.ok === true
             ? featConversionTrace.buildFeatConversionTrace(manifest, featStubResult.stub)
@@ -183,6 +185,7 @@
           featTargetStub: featStubResult?.stub ?? null,
           featTargetStubJson: featStubResult?.stub ? JSON.stringify(featStubResult.stub, null, 2) : "",
           featTargetStubSummary: featStubSummary,
+          featPresentationSummary,
           featTargetStubOmittedCount: featStubResult?.stub?.sourceNotes?.intentionallyOmittedTargets?.length ?? 0,
           featTargetDiagnostics: featStubResult?.diagnostics ?? [],
           hasFeatTargetStub: featStubResult?.ok === true && !!featStubResult.stub,
