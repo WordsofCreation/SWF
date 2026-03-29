@@ -32,6 +32,7 @@
     "scripts/data/type-target-map.js",
     "scripts/data/field-target-map.js",
     "scripts/data/unresolved-mapping-tracker.js",
+    "scripts/data/confirmed-mapping-snapshot.js",
     "scripts/data/manifest-loader.js",
     "scripts/tool-shell.js",
     "scripts/settings.js",
