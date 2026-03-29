@@ -2,7 +2,7 @@
  * Minimal GM-facing tool shell launcher and placeholder application.
  */
 (() => {
-  const { MODULE_ID, log, manifestRegistry, manifestValidation } = globalThis.SWF;
+  const { MODULE_ID, log, manifestRegistry, manifestValidation, typeTargetMap } = globalThis.SWF;
 
   class SWFToolShellApp extends FormApplication {
     #selectedManifestKey = null;
@@ -112,6 +112,7 @@
         }
 
         const typeSpecificFields = this.#collectTypeSpecificFields(manifest);
+        const intendedTarget = typeTargetMap.getTargetInfo(manifest.type);
         return {
           hasSelection: true,
           source: "valid",
@@ -125,6 +126,8 @@
           typeSpecificFields,
           hasTypeSpecificFields: typeSpecificFields.length > 0,
           validationSummary: "Valid (0 issues)",
+          intendedTarget,
+          hasIntendedTarget: intendedTarget !== null,
           hasIssues: false,
           issues: []
         };
@@ -146,6 +149,7 @@
         const errors = entry.issues.filter((issue) => issue.severity === "error").length;
         const warnings = entry.issues.filter((issue) => issue.severity === "warning").length;
         const validationSummary = `Invalid (${entry.issues.length} issues: ${errors} errors, ${warnings} warnings)`;
+        const intendedTarget = typeTargetMap.getTargetInfo(normalizedManifest.type);
 
         return {
           hasSelection: true,
@@ -160,6 +164,8 @@
           typeSpecificFields,
           hasTypeSpecificFields: typeSpecificFields.length > 0,
           validationSummary,
+          intendedTarget,
+          hasIntendedTarget: intendedTarget !== null,
           hasIssues: entry.issues.length > 0,
           issues: entry.issues
         };
