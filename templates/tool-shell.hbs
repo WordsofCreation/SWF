@@ -244,9 +244,14 @@
           <li>Grouping Label: {{manifests.detail.featClassificationCluster.groupingLabel}}</li>
           <li>Repeatable: {{manifests.detail.featClassificationCluster.repeatable}}</li>
           <li>Acquisition Mode: {{manifests.detail.featClassificationCluster.acquisitionMode}}</li>
+          <li>Mapping Hint Status: {{manifests.detail.featClassificationCluster.mappingHints.status}}</li>
+          <li>Category Target Hint: {{manifests.detail.featClassificationCluster.mappingHints.featCategoryTargetPath}}</li>
+          <li>Subcategory Target Hint: {{manifests.detail.featClassificationCluster.mappingHints.featSubcategoryTargetPath}}</li>
+          <li>Repeatable Target Hint: {{manifests.detail.featClassificationCluster.mappingHints.repeatableTargetPath}}</li>
           <li>Acquisition Source Tag: {{manifests.detail.featClassificationCluster.acquisition.sourceTag}}</li>
           <li>Acquisition Manifest Status: {{manifests.detail.featClassificationCluster.acquisition.manifestStatus}}</li>
           <li>Has Prerequisite Gate: {{manifests.detail.featClassificationCluster.acquisition.hasPrerequisiteGate}}</li>
+          <li>Acquisition Trait Summary: {{manifests.detail.featClassificationCluster.acquisition.traitSummary}}</li>
         </ul>
       {{/if}}
       {{#if manifests.detail.featPrerequisitesCluster}}

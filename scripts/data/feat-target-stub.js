@@ -79,17 +79,26 @@
 
   function buildFeatClassificationCluster({ manifest, requirementsText, prerequisiteLevel }) {
     const hasPrerequisiteGate = requirementsText.length > 0 || Number.isInteger(prerequisiteLevel);
+    const hasSourceTag = typeof manifest.source === "string" && manifest.source.length > 0;
+    const organizationLabel = hasSourceTag ? `source:${manifest.source}` : "(deferred)";
 
     return {
       featCategory: null,
       featSubcategory: null,
-      groupingLabel: "(deferred)",
+      groupingLabel: organizationLabel,
       repeatable: null,
       acquisitionMode: null,
+      mappingHints: {
+        featCategoryTargetPath: "system.type.value",
+        featSubcategoryTargetPath: "system.type.subtype",
+        repeatableTargetPath: "system.prerequisites.repeatable",
+        status: "provisional"
+      },
       acquisition: {
         manifestStatus: manifest.status,
         sourceTag: manifest.source,
-        hasPrerequisiteGate
+        hasPrerequisiteGate,
+        traitSummary: hasPrerequisiteGate ? "gated-by-prerequisite" : "no-prerequisite-gate"
       }
     };
   }
@@ -231,6 +240,11 @@
             manifestField: "status/source/prerequisiteText/prerequisiteLevel",
             targetPath: "classification.acquisition",
             reason: "Acquisition context is tracked module-side for inspection and is not yet mapped to a dnd5e Item system path."
+          },
+          {
+            manifestField: "source",
+            targetPath: "classification.groupingLabel",
+            reason: "Grouping label is a module-side inspection convenience and does not imply a confirmed dnd5e taxonomy field."
           }
         ],
         safety: [
@@ -295,10 +309,11 @@
     const repeatable = stub.classification?.repeatable;
     const acquisitionMode = stub.classification?.acquisitionMode ?? "(deferred)";
     const hasPrerequisiteGate = stub.classification?.acquisition?.hasPrerequisiteGate;
+    const traitSummary = stub.classification?.acquisition?.traitSummary ?? "(deferred)";
     const repeatableLabel = typeof repeatable === "boolean" ? String(repeatable) : "(deferred)";
     const hasPrerequisiteGateLabel = typeof hasPrerequisiteGate === "boolean" ? String(hasPrerequisiteGate) : "(deferred)";
 
-    return `Category: ${category} | Subcategory: ${subcategory} | Group: ${groupingLabel} | Repeatable: ${repeatableLabel} | Acquisition: ${acquisitionMode} | Prerequisite Gate: ${hasPrerequisiteGateLabel}`;
+    return `Category: ${category} | Subcategory: ${subcategory} | Group: ${groupingLabel} | Repeatable: ${repeatableLabel} | Acquisition: ${acquisitionMode} | Prerequisite Gate: ${hasPrerequisiteGateLabel} | Trait: ${traitSummary}`;
   }
 
   globalThis.SWF.featTargetStub = {
