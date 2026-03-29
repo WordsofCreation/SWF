@@ -5,33 +5,46 @@
   const { log } = globalThis.SWF;
 
   const manifestsById = new Map();
+  let invalidEntries = [];
   let lastLoadReport = {
     attempted: 0,
     loaded: 0,
-    failed: 0
+    failed: 0,
+    warnings: 0
   };
 
   function clear() {
     manifestsById.clear();
+    invalidEntries = [];
     lastLoadReport = {
       attempted: 0,
       loaded: 0,
-      failed: 0
+      failed: 0,
+      warnings: 0
     };
   }
 
   function setAll(manifests) {
-    clear();
+    manifestsById.clear();
     for (const manifest of manifests) {
       manifestsById.set(manifest.id, manifest);
     }
+  }
+
+  function setInvalidEntries(entries) {
+    invalidEntries = Array.isArray(entries) ? entries : [];
+  }
+
+  function getInvalidEntries() {
+    return invalidEntries.map((entry) => ({ ...entry, issues: [...entry.issues] }));
   }
 
   function setLastLoadReport(report) {
     lastLoadReport = {
       attempted: Number(report?.attempted) || 0,
       loaded: Number(report?.loaded) || 0,
-      failed: Number(report?.failed) || 0
+      failed: Number(report?.failed) || 0,
+      warnings: Number(report?.warnings) || 0
     };
   }
 
@@ -52,18 +65,24 @@
   }
 
   function getStats() {
-    const all = getAll();
-    const byType = all.reduce((acc, manifest) => {
+    const valid = getAll();
+    const byType = valid.reduce((acc, manifest) => {
       acc[manifest.type] = (acc[manifest.type] ?? 0) + 1;
       return acc;
     }, {});
 
-    return { total: all.length, byType };
+    return {
+      total: valid.length,
+      invalid: invalidEntries.length,
+      byType
+    };
   }
 
   globalThis.SWF.manifestRegistry = {
     clear,
     setAll,
+    setInvalidEntries,
+    getInvalidEntries,
     setLastLoadReport,
     getLastLoadReport,
     getAll,
