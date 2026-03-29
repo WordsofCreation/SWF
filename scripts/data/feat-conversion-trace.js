@@ -94,6 +94,7 @@
     }
 
     const descriptionMapping = confirmedMappingSnapshot.getConfirmedMapping("feat", "description");
+    const sourceMapping = confirmedMappingSnapshot.getConfirmedMapping("feat", "source");
     const entries = [
       createTraceEntry({
         manifestField: "name",
@@ -102,6 +103,26 @@
         targetValue: stub.name,
         status: determineStatus({ sourceValue: manifest.name, targetValue: stub.name }),
         notes: "Copied directly into the stub Item name field."
+      }),
+      createTraceEntry({
+        manifestField: "(default image)",
+        sourceValue: "icons/svg/book.svg",
+        targetPath: "img",
+        targetValue: stub.img,
+        status: determineStatus({
+          sourceValue: "icons/svg/book.svg",
+          targetValue: stub.img,
+          fallback: TRACE_STATUS.PROVISIONAL
+        }),
+        notes: "Temporary inspection default used for feat presentation while manifest-level image input is deferred."
+      }),
+      createTraceEntry({
+        manifestField: "(deferred feat type markers)",
+        sourceValue: null,
+        targetPath: "system.type.value/system.type.subtype",
+        targetValue: `${getValueAtPath(stub, "system.type.value")}/${getValueAtPath(stub, "system.type.subtype")}`,
+        status: TRACE_STATUS.PROVISIONAL,
+        notes: "Type/subtype markers are included as explicit placeholders, pending confirmed dnd5e value vocabulary."
       }),
       createTraceEntry({
         manifestField: "description",
@@ -151,10 +172,15 @@
       createTraceEntry({
         manifestField: "source",
         sourceValue: manifest.source,
-        targetPath: "(omitted)",
-        targetValue: null,
-        status: TRACE_STATUS.OMITTED,
-        notes: "Intentionally omitted from the stub because source -> system.source.custom is still provisional."
+        targetPath: "system.source.custom",
+        targetValue: getValueAtPath(stub, "system.source.custom"),
+        status: determineStatus({
+          sourceValue: manifest.source,
+          targetValue: getValueAtPath(stub, "system.source.custom"),
+          fallback: TRACE_STATUS.PROVISIONAL,
+          confirmedStatus: sourceMapping?.status ?? "provisional"
+        }),
+        notes: "Included as a provisional provenance note target to inspect source-shape assumptions without creating documents."
       })
     ];
 
