@@ -2,7 +2,15 @@
  * Minimal GM-facing tool shell launcher and placeholder application.
  */
 (() => {
-  const { MODULE_ID, log, manifestRegistry, manifestValidation, typeTargetMap, fieldTargetMap } = globalThis.SWF;
+  const {
+    MODULE_ID,
+    log,
+    manifestRegistry,
+    manifestValidation,
+    typeTargetMap,
+    fieldTargetMap,
+    unresolvedMappingTracker
+  } = globalThis.SWF;
 
   class SWFToolShellApp extends FormApplication {
     #selectedManifestKey = null;
@@ -114,6 +122,8 @@
         const typeSpecificFields = this.#collectTypeSpecificFields(manifest);
         const intendedTarget = typeTargetMap.getTargetInfo(manifest.type);
         const fieldMappingNotes = fieldTargetMap.getFieldMappings(manifest.type);
+        const unresolvedMappings = unresolvedMappingTracker.getUnresolvedMappingsForType(manifest.type);
+        const unresolvedMappingStatusCounts = unresolvedMappingTracker.countByStatus(manifest.type);
         return {
           hasSelection: true,
           source: "valid",
@@ -131,6 +141,9 @@
           hasIntendedTarget: intendedTarget !== null,
           fieldMappingNotes,
           hasFieldMappingNotes: fieldMappingNotes.length > 0,
+          unresolvedMappings,
+          unresolvedMappingStatusCounts,
+          hasUnresolvedMappings: unresolvedMappings.length > 0,
           hasIssues: false,
           issues: []
         };
@@ -154,6 +167,8 @@
         const validationSummary = `Invalid (${entry.issues.length} issues: ${errors} errors, ${warnings} warnings)`;
         const intendedTarget = typeTargetMap.getTargetInfo(normalizedManifest.type);
         const fieldMappingNotes = fieldTargetMap.getFieldMappings(normalizedManifest.type);
+        const unresolvedMappings = unresolvedMappingTracker.getUnresolvedMappingsForType(normalizedManifest.type);
+        const unresolvedMappingStatusCounts = unresolvedMappingTracker.countByStatus(normalizedManifest.type);
 
         return {
           hasSelection: true,
@@ -172,6 +187,9 @@
           hasIntendedTarget: intendedTarget !== null,
           fieldMappingNotes,
           hasFieldMappingNotes: fieldMappingNotes.length > 0,
+          unresolvedMappings,
+          unresolvedMappingStatusCounts,
+          hasUnresolvedMappings: unresolvedMappings.length > 0,
           hasIssues: entry.issues.length > 0,
           issues: entry.issues
         };
