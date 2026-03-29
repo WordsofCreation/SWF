@@ -1,0 +1,49 @@
+_id: swfSubVngGuard01
+name: SWF Guardian Calling
+type: subclass
+img: icons/magic/defensive/shield-barrier-glowing-blue.webp
+system:
+  description:
+    value: >-
+      <p>Guardian-focused vanguards hold position and protect allies through positioning discipline.</p>
+    chat: ''
+  source:
+    custom: SWF
+  identifier: swf-guardian-calling
+  classIdentifier: swf-vanguard
+  advancement:
+    -
+      _id: swfGuardFeature3
+      type: ItemGrant
+      configuration:
+        items:
+          -
+            uuid: Compendium.swf-module.swf-items.swfFeatGuardPost1
+            optional: false
+        optional: false
+        spell:
+          ability: []
+          preparation: ''
+          uses:
+            max: ''
+            per: ''
+      value: {}
+      level: 3
+      title: Guardian Features
+  spellcasting:
+    progression: none
+    ability: ''
+    preparation: {}
+effects: []
+folder: null
+sort: 0
+ownership:
+  default: 0
+flags: {}
+_stats:
+  coreVersion: '13.350'
+  systemId: dnd5e
+  systemVersion: '5.3.0'
+  createdTime: 0
+  modifiedTime: 0
+  lastModifiedBy: ''
