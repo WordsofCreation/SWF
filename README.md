@@ -14,6 +14,10 @@ This repository is a **Foundry Virtual Tabletop v13 add-on module** scaffold int
 ## Current Status
 Initial minimal content slice added under `packs/_source/swf-items/` with three dnd5e-pattern sample items (weapon, consumable, feat).
 
+Image-aligned item-type coverage planning now has an explicit capability tracker at:
+- `scripts/data/item-type-capability-matrix.js`
+- `docs/dnd5e-item-type-capability-matrix-2026-03-29.md`
+
 ## Next Recommended Tasks
 1. Inspect 2–3 analogous dnd5e reference examples for a first target content type (e.g., one simple item).
 2. Define a single vertical slice (e.g., one item or one feature) and implement it using dnd5e patterns.
