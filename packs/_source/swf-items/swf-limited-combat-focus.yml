@@ -1,0 +1,43 @@
+_id: swfFeatLimited0001
+name: SWF Combat Focus
+type: feat
+img: icons/skills/melee/sword-damaged-broken-yellow.webp
+system:
+  description:
+    value: >-
+      <p>You can center yourself briefly in combat before pressing on.</p>
+    chat: ''
+    unidentified: ''
+  source:
+    custom: SWF
+  type:
+    value: feat
+    subtype: class
+  prerequisites:
+    level: null
+  requirements: ''
+  activities: {}
+  uses:
+    spent: 0
+    max: '1'
+    recovery:
+      -
+        period: sr
+        type: recoverAll
+  advancement: []
+  enchant: {}
+  properties: []
+  identifier: swf-combat-focus
+effects: []
+folder: null
+sort: 0
+ownership:
+  default: 0
+flags: {}
+_stats:
+  coreVersion: '13.350'
+  systemId: dnd5e
+  systemVersion: '5.3.0'
+  createdTime: 0
+  modifiedTime: 0
+  lastModifiedBy: ''

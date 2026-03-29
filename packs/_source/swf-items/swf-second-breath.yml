@@ -1,0 +1,92 @@
+_id: swfFeatActivity0001
+name: SWF Second Breath
+type: feat
+img: icons/magic/life/heart-cross-strong-flame-purple-orange.webp
+system:
+  description:
+    value: >-
+      <p>You can draw on a reserve of stamina to recover in the middle of a fight.</p>
+    chat: ''
+    unidentified: ''
+  source:
+    custom: SWF
+  type:
+    value: feat
+    subtype: class
+  prerequisites:
+    level: null
+  requirements: ''
+  activities:
+    dnd5eactivity000:
+      type: heal
+      _id: dnd5eactivity000
+      activation:
+        type: bonus
+        value: null
+        condition: ''
+      consumption:
+        spellSlot: false
+        targets:
+          -
+            type: itemUses
+            value: '1'
+            scaling:
+              mode: ''
+      description:
+        chatFlavor: ''
+      duration:
+        units: inst
+        concentration: false
+        override: false
+      effects: []
+      healing:
+        number: 1
+        denomination: 10
+        bonus: '@classes.fighter.levels'
+        types:
+          - healing
+        custom:
+          enabled: false
+        scaling:
+          mode: ''
+          number: null
+          formula: ''
+      name: Use
+      range:
+        value: null
+        units: self
+        special: ''
+      target:
+        template:
+          contiguous: false
+        affects:
+          choice: false
+          count: '1'
+          type: self
+          special: ''
+        prompt: false
+      sort: 0
+  uses:
+    spent: 0
+    max: '1'
+    recovery:
+      -
+        period: sr
+        type: recoverAll
+  advancement: []
+  enchant: {}
+  properties: []
+  identifier: swf-second-breath
+effects: []
+folder: null
+sort: 0
+ownership:
+  default: 0
+flags: {}
+_stats:
+  coreVersion: '13.350'
+  systemId: dnd5e
+  systemVersion: '5.3.0'
+  createdTime: 0
+  modifiedTime: 0
+  lastModifiedBy: ''
