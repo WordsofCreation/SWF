@@ -2,7 +2,7 @@
  * Minimal GM-facing tool shell launcher and placeholder application.
  */
 (() => {
-  const { MODULE_ID, log, manifestRegistry, manifestValidation, typeTargetMap } = globalThis.SWF;
+  const { MODULE_ID, log, manifestRegistry, manifestValidation, typeTargetMap, fieldTargetMap } = globalThis.SWF;
 
   class SWFToolShellApp extends FormApplication {
     #selectedManifestKey = null;
@@ -113,6 +113,7 @@
 
         const typeSpecificFields = this.#collectTypeSpecificFields(manifest);
         const intendedTarget = typeTargetMap.getTargetInfo(manifest.type);
+        const fieldMappingNotes = fieldTargetMap.getFieldMappings(manifest.type);
         return {
           hasSelection: true,
           source: "valid",
@@ -128,6 +129,8 @@
           validationSummary: "Valid (0 issues)",
           intendedTarget,
           hasIntendedTarget: intendedTarget !== null,
+          fieldMappingNotes,
+          hasFieldMappingNotes: fieldMappingNotes.length > 0,
           hasIssues: false,
           issues: []
         };
@@ -150,6 +153,7 @@
         const warnings = entry.issues.filter((issue) => issue.severity === "warning").length;
         const validationSummary = `Invalid (${entry.issues.length} issues: ${errors} errors, ${warnings} warnings)`;
         const intendedTarget = typeTargetMap.getTargetInfo(normalizedManifest.type);
+        const fieldMappingNotes = fieldTargetMap.getFieldMappings(normalizedManifest.type);
 
         return {
           hasSelection: true,
@@ -166,6 +170,8 @@
           validationSummary,
           intendedTarget,
           hasIntendedTarget: intendedTarget !== null,
+          fieldMappingNotes,
+          hasFieldMappingNotes: fieldMappingNotes.length > 0,
           hasIssues: entry.issues.length > 0,
           issues: entry.issues
         };
