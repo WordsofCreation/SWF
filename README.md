@@ -12,7 +12,7 @@ This repository is a **Foundry Virtual Tabletop v13 add-on module** scaffold int
 - Prefer dnd5e-aligned data/content patterns over custom code when adding gameplay content.
 
 ## Current Status
-Scaffold only. No gameplay content is included yet beyond placeholders that establish project structure.
+Initial minimal content slice added under `packs/_source/swf-items/` with three dnd5e-pattern sample items (weapon, consumable, feat).
 
 ## Next Recommended Tasks
 1. Inspect 2–3 analogous dnd5e reference examples for a first target content type (e.g., one simple item).

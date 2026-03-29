@@ -1,5 +1,7 @@
 # packs/
 
-Reserved for future compendium pack definitions and content.
+Contains compendium-related content and source YAML.
 
-Scaffold phase: no compendia are implemented yet.
+Current state:
+- Source item definitions live in `packs/_source/swf-items/`.
+- No packed `.db` compendium is registered in `module.json` yet (kept minimal for this vertical slice).
