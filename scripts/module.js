@@ -4,7 +4,7 @@
  * Intentionally minimal and non-invasive: no actor/item/sheet patches.
  */
 (() => {
-  const { MODULE_ID, log, registerSettings, loadManifests, manifestRegistry } = globalThis.SWF;
+  const { MODULE_ID, log, registerSettings, loadManifests, manifestCompare, manifestRegistry } = globalThis.SWF;
 
   Hooks.once("init", () => {
     registerSettings();
@@ -27,5 +27,9 @@
     }
 
     await loadManifests();
+
+    if (game.settings.get(MODULE_ID, "debugLogging")) {
+      manifestCompare.logCanonicalStarterComparisons();
+    }
   });
 })();
