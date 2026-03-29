@@ -15,6 +15,36 @@
     <li>Invalid Manifest Entries: {{manifests.invalid}}</li>
   </ul>
 
+  <h3>Mapping Coverage (Read-Only)</h3>
+  {{#if mappingCoverage.hasEntries}}
+    <ul class="swf-tool-shell__status">
+      <li>Types: {{mappingCoverage.summary.manifestTypeCount}}</li>
+      <li>Tracked Fields: {{mappingCoverage.summary.totalTrackedFields}}</li>
+      <li>Confirmed: {{mappingCoverage.summary.confirmedCount}}</li>
+      <li>Provisional: {{mappingCoverage.summary.provisionalCount}}</li>
+      <li>Unresolved: {{mappingCoverage.summary.unresolvedCount}}</li>
+      <li>Planned: {{mappingCoverage.summary.plannedCount}}</li>
+      <li>Unmapped: {{mappingCoverage.summary.unmappedCount}}</li>
+    </ul>
+    <ul class="swf-tool-shell__manifest-list">
+      {{#each mappingCoverage.entries}}
+        <li>
+          <div><strong>{{this.manifestType}}</strong> · Tracked: {{this.totalTrackedFields}}</div>
+          <div class="swf-tool-shell__manifest-meta">
+            <span>Confirmed: {{this.confirmedCount}}</span>
+            <span>Provisional: {{this.provisionalCount}}</span>
+            <span>Unresolved: {{this.unresolvedCount}}</span>
+            <span>Planned: {{this.plannedCount}}</span>
+            <span>Unmapped: {{this.unmappedCount}}</span>
+          </div>
+          <div class="swf-tool-shell__hint">{{this.coverageNotes}}</div>
+        </li>
+      {{/each}}
+    </ul>
+  {{else}}
+    <p class="swf-tool-shell__empty">No mapping coverage data is available yet.</p>
+  {{/if}}
+
   <h3>Manifest Browser (Read-Only)</h3>
   <p class="swf-tool-shell__hint">Showing module-owned manifest metadata from the in-memory registry.</p>
 
