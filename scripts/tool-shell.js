@@ -151,6 +151,9 @@
         const featStubSummary = featStubResult ? featTargetStub.summarizeFeatTargetStub(featStubResult) : null;
         const featPresentationSummary =
           featStubResult?.ok === true ? featTargetStub.summarizeFeatPresentationFields(featStubResult.stub) : null;
+        const featPrerequisitesSummary =
+          featStubResult?.ok === true ? featTargetStub.summarizeFeatPrerequisites(featStubResult.stub) : null;
+        const featPrerequisitesCluster = featStubResult?.ok === true ? featStubResult.stub?.system?.prerequisites : null;
         const featTraceResult =
           manifest.type === "feat" && featStubResult?.ok === true
             ? featConversionTrace.buildFeatConversionTrace(manifest, featStubResult.stub)
@@ -186,6 +189,8 @@
           featTargetStubJson: featStubResult?.stub ? JSON.stringify(featStubResult.stub, null, 2) : "",
           featTargetStubSummary: featStubSummary,
           featPresentationSummary,
+          featPrerequisitesSummary,
+          featPrerequisitesCluster,
           featTargetStubOmittedCount: featStubResult?.stub?.sourceNotes?.intentionallyOmittedTargets?.length ?? 0,
           featTargetDiagnostics: featStubResult?.diagnostics ?? [],
           hasFeatTargetStub: featStubResult?.ok === true && !!featStubResult.stub,

@@ -181,6 +181,22 @@
           confirmedStatus: sourceMapping?.status ?? "provisional"
         }),
         notes: "Included as a provisional provenance note target to inspect source-shape assumptions without creating documents."
+      }),
+      createTraceEntry({
+        manifestField: "prerequisiteText",
+        sourceValue: typeof manifest.prerequisiteText === "string" ? manifest.prerequisiteText : "(missing)",
+        targetPath: "system.requirements",
+        targetValue: getValueAtPath(stub, "system.requirements"),
+        status: TRACE_STATUS.PROVISIONAL,
+        notes: "Mapped into a minimal requirements text slot for read-only eligibility inspection; exact long-term vocabulary remains provisional."
+      }),
+      createTraceEntry({
+        manifestField: "prerequisiteLevel",
+        sourceValue: Number.isInteger(manifest.prerequisiteLevel) ? manifest.prerequisiteLevel : "(missing)",
+        targetPath: "system.prerequisites.level",
+        targetValue: getValueAtPath(stub, "system.prerequisites.level"),
+        status: TRACE_STATUS.PROVISIONAL,
+        notes: "Minimal structured prerequisite level is tracked for inspection while additional prerequisite fields stay intentionally deferred."
       })
     ];
 
