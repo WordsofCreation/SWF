@@ -1,0 +1,102 @@
+_id: swfTonic000000001
+name: SWF Restorative Tonic
+type: consumable
+img: icons/consumables/potions/potion-bottle-corked-red.webp
+system:
+  description:
+    value: >-
+      <p>A basic restorative tonic. Drink it to regain a small amount of health.</p>
+    chat: ''
+    unidentified: ''
+  source:
+    custom: SWF
+  quantity: 1
+  weight:
+    value: 0.5
+    units: lb
+  price:
+    value: 25
+    denomination: gp
+  attunement: 0
+  equipped: false
+  rarity: ''
+  identified: true
+  uses:
+    spent: 0
+    max: '1'
+    recovery: []
+  autoDestroy: true
+  damage:
+    base:
+      number: 2
+      denomination: 4
+      bonus: ''
+      types:
+        - healing
+      custom:
+        enabled: false
+      scaling:
+        mode: whole
+        number: null
+        formula: ''
+  type:
+    value: potion
+    subtype: ''
+  magicalBonus: null
+  properties: []
+  activities:
+    dnd5eactivity000:
+      type: heal
+      _id: dnd5eactivity000
+      name: ''
+      sort: 0
+      activation:
+        type: action
+        value: null
+        condition: ''
+      consumption:
+        spellSlot: false
+        targets:
+          - type: itemUses
+            value: '1'
+            scaling:
+              mode: ''
+      target:
+        template:
+          contiguous: false
+        affects:
+          choice: false
+          count: ''
+          type: creature
+          special: ''
+        prompt: true
+      healing:
+        number: 2
+        denomination: 4
+        bonus: ''
+        types:
+          - healing
+        custom:
+          enabled: false
+        scaling:
+          mode: whole
+          number: 1
+          formula: ''
+      range:
+        value: null
+        units: self
+        special: ''
+  identifier: swf-restorative-tonic
+effects: []
+folder: null
+sort: 0
+ownership:
+  default: 0
+flags: {}
+_stats:
+  coreVersion: '13.350'
+  systemId: dnd5e
+  systemVersion: '5.3.0'
+  createdTime: 0
+  modifiedTime: 0
+  lastModifiedBy: ''

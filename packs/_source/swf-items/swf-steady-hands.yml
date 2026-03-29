@@ -1,0 +1,51 @@
+_id: swfFeat0000000001
+name: SWF Steady Hands
+type: feat
+img: icons/skills/melee/hand-grip-sword-strike-orange.webp
+system:
+  description:
+    value: >-
+      <p>Your repeated drills keep your grip controlled under pressure.</p>
+    chat: ''
+    unidentified: ''
+  source:
+    custom: SWF
+  type:
+    value: feat
+    subtype: general
+  prerequisites:
+    level: 1
+  requirements: ''
+  activities: {}
+  uses:
+    spent: 0
+    max: ''
+    recovery: []
+  advancement: []
+  enchant: {}
+  properties: []
+  identifier: swf-steady-hands
+  quantity: 1
+  weight:
+    value: 0
+    units: lb
+  price:
+    value: 0
+    denomination: gp
+  attunement: 0
+  equipped: true
+  rarity: ''
+  identified: true
+effects: []
+folder: null
+sort: 0
+ownership:
+  default: 0
+flags: {}
+_stats:
+  coreVersion: '13.350'
+  systemId: dnd5e
+  systemVersion: '5.3.0'
+  createdTime: 0
+  modifiedTime: 0
+  lastModifiedBy: ''
