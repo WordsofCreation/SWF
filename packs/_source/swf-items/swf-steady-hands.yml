@@ -25,17 +25,6 @@ system:
   enchant: {}
   properties: []
   identifier: swf-steady-hands
-  quantity: 1
-  weight:
-    value: 0
-    units: lb
-  price:
-    value: 0
-    denomination: gp
-  attunement: 0
-  equipped: true
-  rarity: ''
-  identified: true
 effects: []
 folder: null
 sort: 0
