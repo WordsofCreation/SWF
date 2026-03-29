@@ -241,8 +241,12 @@
         <ul class="swf-tool-shell__status">
           <li>Feat Category: {{manifests.detail.featClassificationCluster.featCategory}}</li>
           <li>Feat Subcategory: {{manifests.detail.featClassificationCluster.featSubcategory}}</li>
+          <li>Grouping Label: {{manifests.detail.featClassificationCluster.groupingLabel}}</li>
           <li>Repeatable: {{manifests.detail.featClassificationCluster.repeatable}}</li>
           <li>Acquisition Mode: {{manifests.detail.featClassificationCluster.acquisitionMode}}</li>
+          <li>Acquisition Source Tag: {{manifests.detail.featClassificationCluster.acquisition.sourceTag}}</li>
+          <li>Acquisition Manifest Status: {{manifests.detail.featClassificationCluster.acquisition.manifestStatus}}</li>
+          <li>Has Prerequisite Gate: {{manifests.detail.featClassificationCluster.acquisition.hasPrerequisiteGate}}</li>
         </ul>
       {{/if}}
       {{#if manifests.detail.featPrerequisitesCluster}}
