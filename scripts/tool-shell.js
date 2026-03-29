@@ -7,6 +7,7 @@
     log,
     manifestRegistry,
     manifestValidation,
+    canonicalFieldInventory,
     typeTargetMap,
     fieldTargetMap,
     unresolvedMappingTracker,
@@ -129,6 +130,7 @@
         }
 
         const typeSpecificFields = this.#collectTypeSpecificFields(manifest);
+        const canonicalFields = canonicalFieldInventory.getCanonicalFields(manifest.type);
         const intendedTarget = typeTargetMap.getTargetInfo(manifest.type);
         const fieldMappingNotes = fieldTargetMap.getFieldMappings(manifest.type);
         const unresolvedMappings = unresolvedMappingTracker.getUnresolvedMappingsForType(manifest.type);
@@ -148,6 +150,8 @@
           isCanonicalExample: manifest.example === true,
           typeSpecificFields,
           hasTypeSpecificFields: typeSpecificFields.length > 0,
+          canonicalFields,
+          hasCanonicalFields: canonicalFields.length > 0,
           validationSummary: "Valid (0 issues)",
           intendedTarget,
           hasIntendedTarget: intendedTarget !== null,
@@ -178,6 +182,7 @@
 
         const normalizedManifest = entry.manifest ?? {};
         const typeSpecificFields = this.#collectTypeSpecificFields(normalizedManifest);
+        const canonicalFields = canonicalFieldInventory.getCanonicalFields(normalizedManifest.type);
         const errors = entry.issues.filter((issue) => issue.severity === "error").length;
         const warnings = entry.issues.filter((issue) => issue.severity === "warning").length;
         const validationSummary = `Invalid (${entry.issues.length} issues: ${errors} errors, ${warnings} warnings)`;
@@ -201,6 +206,8 @@
           description: normalizedManifest.description || "(missing)",
           typeSpecificFields,
           hasTypeSpecificFields: typeSpecificFields.length > 0,
+          canonicalFields,
+          hasCanonicalFields: canonicalFields.length > 0,
           validationSummary,
           intendedTarget,
           hasIntendedTarget: intendedTarget !== null,
