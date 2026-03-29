@@ -39,10 +39,12 @@
     for (const path of MANIFEST_PATHS) {
       const raw = await fetchManifest(path);
       if (!raw) {
+        const unreadableManifest = manifestValidation.normalizeManifest({});
         invalid.push({
           path,
           id: "(unreadable)",
           type: "unknown",
+          manifest: unreadableManifest,
           issues: [
             manifestValidation.createIssue({
               code: "manifest_unreadable",
@@ -73,6 +75,7 @@
           path,
           id: manifest.id || "(missing-id)",
           type: manifest.type || "unknown",
+          manifest,
           issues
         });
         log(`Manifest skipped at ${path}: ${issues.map((issue) => issue.message).join(" ")}`);

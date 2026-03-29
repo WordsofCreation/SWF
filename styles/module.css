@@ -35,6 +35,15 @@
   margin-bottom: 0.5rem;
 }
 
+.swf-tool-shell__view-button {
+  margin-left: 0.5rem;
+  font-size: 0.85em;
+}
+
+.swf-tool-shell__view-button.is-selected {
+  font-weight: 600;
+}
+
 .swf-tool-shell__manifest-meta {
   display: grid;
   grid-template-columns: 1fr;
