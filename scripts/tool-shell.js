@@ -9,7 +9,8 @@
     manifestValidation,
     typeTargetMap,
     fieldTargetMap,
-    unresolvedMappingTracker
+    unresolvedMappingTracker,
+    confirmedMappingSnapshot
   } = globalThis.SWF;
 
   class SWFToolShellApp extends FormApplication {
@@ -124,6 +125,9 @@
         const fieldMappingNotes = fieldTargetMap.getFieldMappings(manifest.type);
         const unresolvedMappings = unresolvedMappingTracker.getUnresolvedMappingsForType(manifest.type);
         const unresolvedMappingStatusCounts = unresolvedMappingTracker.countByStatus(manifest.type);
+        const confirmedMappings = confirmedMappingSnapshot.getConfirmedMappingsForType(manifest.type);
+        const confirmedMappingStatusCounts = confirmedMappingSnapshot.countByStatus(manifest.type);
+        const confirmedMappingCoverage = confirmedMappingSnapshot.getConfirmedCoverageForType(manifest.type);
         return {
           hasSelection: true,
           source: "valid",
@@ -144,6 +148,10 @@
           unresolvedMappings,
           unresolvedMappingStatusCounts,
           hasUnresolvedMappings: unresolvedMappings.length > 0,
+          confirmedMappings,
+          confirmedMappingStatusCounts,
+          confirmedMappingCoverage,
+          hasConfirmedMappings: confirmedMappings.length > 0,
           hasIssues: false,
           issues: []
         };
@@ -169,6 +177,9 @@
         const fieldMappingNotes = fieldTargetMap.getFieldMappings(normalizedManifest.type);
         const unresolvedMappings = unresolvedMappingTracker.getUnresolvedMappingsForType(normalizedManifest.type);
         const unresolvedMappingStatusCounts = unresolvedMappingTracker.countByStatus(normalizedManifest.type);
+        const confirmedMappings = confirmedMappingSnapshot.getConfirmedMappingsForType(normalizedManifest.type);
+        const confirmedMappingStatusCounts = confirmedMappingSnapshot.countByStatus(normalizedManifest.type);
+        const confirmedMappingCoverage = confirmedMappingSnapshot.getConfirmedCoverageForType(normalizedManifest.type);
 
         return {
           hasSelection: true,
@@ -190,6 +201,10 @@
           unresolvedMappings,
           unresolvedMappingStatusCounts,
           hasUnresolvedMappings: unresolvedMappings.length > 0,
+          confirmedMappings,
+          confirmedMappingStatusCounts,
+          confirmedMappingCoverage,
+          hasConfirmedMappings: confirmedMappings.length > 0,
           hasIssues: entry.issues.length > 0,
           issues: entry.issues
         };
