@@ -30,6 +30,14 @@
       base.source = normalizeString(raw.source);
     }
 
+    if (raw && Object.hasOwn(raw, "prerequisiteText")) {
+      base.prerequisiteText = normalizeString(raw.prerequisiteText);
+    }
+
+    if (raw && Object.hasOwn(raw, "prerequisiteLevel")) {
+      base.prerequisiteLevel = raw.prerequisiteLevel;
+    }
+
     if (raw && Object.hasOwn(raw, "classIdentifier")) {
       base.classIdentifier = normalizeString(raw.classIdentifier);
     }
@@ -72,6 +80,27 @@
           }));
         }
       }
+    }
+
+    if (Object.hasOwn(manifest, "prerequisiteText") && typeof manifest.prerequisiteText !== "string") {
+      issues.push(createIssue({
+        severity: "warning",
+        code: "invalid_optional_field_type",
+        field: "prerequisiteText",
+        message: "Optional field 'prerequisiteText' should be a string when provided."
+      }));
+    }
+
+    if (
+      Object.hasOwn(manifest, "prerequisiteLevel") &&
+      !(Number.isInteger(manifest.prerequisiteLevel) && manifest.prerequisiteLevel >= 0)
+    ) {
+      issues.push(createIssue({
+        severity: "warning",
+        code: "invalid_optional_field_type",
+        field: "prerequisiteLevel",
+        message: "Optional field 'prerequisiteLevel' should be an integer >= 0 when provided."
+      }));
     }
 
     return {

@@ -7,7 +7,7 @@
 (() => {
   const { manifestValidation, confirmedMappingSnapshot, fieldTargetMap } = globalThis.SWF;
 
-  const STUB_VERSION = 3;
+  const STUB_VERSION = 4;
   const DEFAULT_FEAT_IMG = "icons/svg/book.svg";
 
   function isFeatManifest(manifest) {
@@ -100,6 +100,20 @@
       targetPath: "img",
       source: "dnd5e-item-pattern-analysis"
     };
+    const requirementsText = typeof manifest.prerequisiteText === "string" ? manifest.prerequisiteText : "";
+    const prerequisiteLevel = Number.isInteger(manifest.prerequisiteLevel) ? manifest.prerequisiteLevel : null;
+    const prerequisitesMapping = {
+      requirements: {
+        status: "provisional",
+        targetPath: "system.requirements",
+        source: "dnd5e-feat-feature-pattern-deep-dive"
+      },
+      level: {
+        status: "provisional",
+        targetPath: "system.prerequisites.level",
+        source: "dnd5e-feat-feature-pattern-deep-dive"
+      }
+    };
 
     const stub = {
       stubKind: "swf.feat-item-target",
@@ -118,6 +132,10 @@
         },
         source: {
           custom: manifest.source
+        },
+        requirements: requirementsText,
+        prerequisites: {
+          level: prerequisiteLevel
         }
       },
       flags: {
@@ -137,7 +155,8 @@
         provisionalMappings: {
           source: sourceMapping,
           featType: featTypeMapping,
-          img: imgMapping
+          img: imgMapping,
+          prerequisites: prerequisitesMapping
         },
         intentionallyOmittedTargets: [
           {
@@ -149,6 +168,11 @@
             manifestField: "(no manifest field yet)",
             targetPath: "system.type.value/system.type.subtype",
             reason: "Feat-type taxonomy is intentionally deferred until manifest vocabulary is introduced."
+          },
+          {
+            manifestField: "(prerequisites cluster remainder)",
+            targetPath: "system.prerequisites.items/system.prerequisites.repeatable",
+            reason: "Only a minimal prerequisites slice is modeled in this step; additional eligibility fields remain deferred."
           }
         ],
         safety: [
@@ -190,10 +214,23 @@
     return `Name: ${stub.name} | Item Type: ${stub.itemType} | Feat Type: ${typeValue}/${subtypeValue} | Img: ${stub.img} | Source: ${sourceLabel}`;
   }
 
+  function summarizeFeatPrerequisites(stub) {
+    if (!stub || stub.itemType !== "feat") {
+      return "No feat prerequisites cluster available.";
+    }
+
+    const requirements = stub.system?.requirements || "(none)";
+    const level = stub.system?.prerequisites?.level;
+    const levelLabel = Number.isInteger(level) ? String(level) : "(none)";
+
+    return `Requirements Text: ${requirements} | Minimum Level: ${levelLabel}`;
+  }
+
   globalThis.SWF.featTargetStub = {
     buildFeatTargetStub,
     isFeatManifest,
     summarizeFeatTargetStub,
-    summarizeFeatPresentationFields
+    summarizeFeatPresentationFields,
+    summarizeFeatPrerequisites
   };
 })();

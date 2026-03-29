@@ -235,6 +235,13 @@
       <h4>Intended Feat Item Stub (Read-Only)</h4>
       <p class="swf-tool-shell__hint">{{manifests.detail.featTargetStubSummary}}</p>
       <p class="swf-tool-shell__hint">Presentation Cluster: {{manifests.detail.featPresentationSummary}}</p>
+      <p class="swf-tool-shell__hint">Prerequisites Cluster: {{manifests.detail.featPrerequisitesSummary}}</p>
+      {{#if manifests.detail.featPrerequisitesCluster}}
+        <ul class="swf-tool-shell__status">
+          <li>Requirements Text: {{manifests.detail.featTargetStub.system.requirements}}</li>
+          <li>Minimum Level: {{manifests.detail.featPrerequisitesCluster.level}}</li>
+        </ul>
+      {{/if}}
       <p class="swf-tool-shell__hint">Intentionally omitted unresolved targets: {{manifests.detail.featTargetStubOmittedCount}}</p>
       <pre class="swf-tool-shell__hint"><code>{{manifests.detail.featTargetStubJson}}</code></pre>
     {{/if}}
