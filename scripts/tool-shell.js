@@ -183,6 +183,7 @@
           featTargetStub: featStubResult?.stub ?? null,
           featTargetStubJson: featStubResult?.stub ? JSON.stringify(featStubResult.stub, null, 2) : "",
           featTargetStubSummary: featStubSummary,
+          featTargetStubOmittedCount: featStubResult?.stub?.sourceNotes?.intentionallyOmittedTargets?.length ?? 0,
           featTargetDiagnostics: featStubResult?.diagnostics ?? [],
           hasFeatTargetStub: featStubResult?.ok === true && !!featStubResult.stub,
           hasFeatTargetDiagnostics: (featStubResult?.diagnostics?.length ?? 0) > 0,
