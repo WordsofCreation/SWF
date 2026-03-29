@@ -4,5 +4,6 @@
   "name": "Placeholder Feature Alpha",
   "version": "0.0.1",
   "description": "Placeholder-only manifest entry for validating registry wiring.",
-  "status": "draft"
+  "status": "draft",
+  "source": "SWF"
 }

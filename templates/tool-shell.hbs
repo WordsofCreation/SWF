@@ -11,7 +11,8 @@
     <li>Debug Logging: {{#if settings.debugLogging}}On{{else}}Off{{/if}}</li>
     <li>Dev Tools Placeholder: {{#if settings.enableDevTools}}On{{else}}Off{{/if}}</li>
     <li>Future Content Tools: {{#if settings.futureContentToolsEnabled}}On{{else}}Off{{/if}}</li>
-    <li>Loaded Manifest Entries: {{manifests.total}}</li>
+    <li>Loaded Valid Manifest Entries: {{manifests.total}}</li>
+    <li>Invalid Manifest Entries: {{manifests.invalid}}</li>
   </ul>
 
   <h3>Manifest Browser (Read-Only)</h3>
@@ -36,11 +37,28 @@
             <span>Type: {{this.type}}</span>
             <span>Version: {{this.version}}</span>
             <span>Status: {{this.status}}</span>
+            <span>Validation: {{this.validationState}}</span>
           </div>
         </li>
       {{/each}}
     </ul>
   {{else}}
     <p class="swf-tool-shell__empty">No module manifests are currently loaded.</p>
+  {{/if}}
+
+  {{#if manifests.hasInvalidEntries}}
+    <h3>Invalid Manifests (Read-Only)</h3>
+    <ul class="swf-tool-shell__manifest-list">
+      {{#each manifests.invalidEntries}}
+        <li>
+          <strong>{{this.id}}</strong>
+          <div class="swf-tool-shell__manifest-meta">
+            <span>Type: {{this.type}}</span>
+            <span>Issues: {{this.issueCount}}</span>
+          </div>
+          <p class="swf-tool-shell__hint">{{this.issueSummary}}</p>
+        </li>
+      {{/each}}
+    </ul>
   {{/if}}
 </section>

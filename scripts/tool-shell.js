@@ -29,7 +29,14 @@
         type: manifest.type,
         name: manifest.name,
         version: manifest.version,
-        status: manifest.status
+        status: manifest.status,
+        validationState: "valid"
+      }));
+      const invalidEntries = manifestRegistry.getInvalidEntries().map((entry) => ({
+        id: entry.id,
+        type: entry.type,
+        issueCount: entry.issues.length,
+        issueSummary: entry.issues.map((issue) => issue.message).join(" ")
       }));
 
       return {
@@ -40,10 +47,13 @@
         },
         manifests: {
           total: manifestStats.total,
+          invalid: manifestStats.invalid,
           attempted: loadReport.attempted,
           failed: loadReport.failed,
           entries: manifestEntries,
+          invalidEntries,
           hasEntries: manifestEntries.length > 0,
+          hasInvalidEntries: invalidEntries.length > 0,
           hasFailures: loadReport.failed > 0
         }
       };
