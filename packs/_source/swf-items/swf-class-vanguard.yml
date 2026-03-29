@@ -1,0 +1,70 @@
+_id: swfClassVanguard1
+name: SWF Vanguard
+type: class
+img: icons/skills/melee/shield-block-bash-blue.webp
+system:
+  description:
+    value: >-
+      <p>The SWF Vanguard is a disciplined front-line defender who relies on drilled technique.</p>
+    chat: ''
+  source:
+    custom: SWF
+  identifier: swf-vanguard
+  levels: 1
+  hitDice: d10
+  hitDiceUsed: 0
+  advancement:
+    -
+      _id: swfVngHitPoints1
+      type: HitPoints
+      configuration: {}
+      value: {}
+      title: Hit Points
+      icon: systems/dnd5e/icons/svg/hit-points.svg
+    -
+      _id: swfVngFeatures1
+      type: ItemGrant
+      configuration:
+        items:
+          -
+            uuid: Compendium.swf-module.swf-items.swfFeatVngDrill1
+            optional: false
+        optional: false
+        spell:
+          ability: []
+          preparation: ''
+          uses:
+            max: ''
+            per: ''
+      value: {}
+      level: 1
+      title: Features
+    -
+      _id: swfVngSubclass1
+      type: Subclass
+      configuration: {}
+      value: {}
+      level: 3
+      title: Vanguard Calling
+  spellcasting:
+    progression: none
+    ability: ''
+    preparation: {}
+  startingEquipment: []
+  wealth: ''
+  primaryAbility:
+    value: []
+    all: false
+effects: []
+folder: null
+sort: 0
+ownership:
+  default: 0
+flags: {}
+_stats:
+  coreVersion: '13.350'
+  systemId: dnd5e
+  systemVersion: '5.3.0'
+  createdTime: 0
+  modifiedTime: 0
+  lastModifiedBy: ''

@@ -1,0 +1,40 @@
+_id: swfFeatGuardPost1
+name: SWF Guardian Posture
+type: feat
+img: icons/magic/defensive/shield-barrier-deflect-teal.webp
+system:
+  description:
+    value: >-
+      <p>Your guardian training emphasizes stance, timing, and positioning to deter enemy movement.</p>
+    chat: ''
+    unidentified: ''
+  source:
+    custom: SWF
+  type:
+    value: feat
+    subtype: class
+  prerequisites:
+    level: null
+  requirements: ''
+  activities: {}
+  uses:
+    spent: 0
+    max: ''
+    recovery: []
+  advancement: []
+  enchant: {}
+  properties: []
+  identifier: swf-guardian-posture
+effects: []
+folder: null
+sort: 0
+ownership:
+  default: 0
+flags: {}
+_stats:
+  coreVersion: '13.350'
+  systemId: dnd5e
+  systemVersion: '5.3.0'
+  createdTime: 0
+  modifiedTime: 0
+  lastModifiedBy: ''
