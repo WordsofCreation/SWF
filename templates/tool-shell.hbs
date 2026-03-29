@@ -40,6 +40,7 @@
             <span>Type: {{this.type}}</span>
             <span>Version: {{this.version}}</span>
             <span>Status: {{this.status}}</span>
+            <span>Example: {{#if this.isCanonicalExample}}canonical{{else}}no{{/if}}</span>
             <span>Validation: {{this.validationState}}</span>
           </div>
         </li>
@@ -78,6 +79,7 @@
       <li>Name: {{manifests.detail.name}}</li>
       <li>Version: {{manifests.detail.version}}</li>
       <li>Status: {{manifests.detail.status}}</li>
+      <li>Example: {{#if manifests.detail.isCanonicalExample}}canonical{{else}}no{{/if}}</li>
       <li>Description: {{manifests.detail.description}}</li>
       <li>Validation: {{manifests.detail.validationSummary}}</li>
     </ul>

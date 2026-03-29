@@ -1,0 +1,10 @@
+{
+  "id": "example-feature-canonical",
+  "type": "feature",
+  "name": "Example Feature (Canonical)",
+  "version": "1.0.0",
+  "description": "Canonical reference manifest for feature-type SWF content metadata.",
+  "status": "draft",
+  "source": "swf-module",
+  "example": true
+}

@@ -1,0 +1,10 @@
+{
+  "id": "example-subclass-canonical",
+  "type": "subclass",
+  "name": "Example Subclass (Canonical)",
+  "version": "1.0.0",
+  "description": "Canonical reference manifest for subclass-type SWF content metadata.",
+  "status": "draft",
+  "classIdentifier": "example-class",
+  "example": true
+}
