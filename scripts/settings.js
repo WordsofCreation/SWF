@@ -2,7 +2,7 @@
  * Register SWF module settings.
  */
 (() => {
-  const { MODULE_ID } = globalThis.SWF;
+  const { MODULE_ID, registerToolShellMenu } = globalThis.SWF;
 
   function registerSettings() {
     game.settings.register(MODULE_ID, "debugLogging", {
@@ -31,6 +31,8 @@
       type: Boolean,
       default: false
     });
+
+    registerToolShellMenu();
   }
 
   globalThis.SWF.registerSettings = registerSettings;

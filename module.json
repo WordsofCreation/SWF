@@ -25,6 +25,7 @@
   },
   "scripts": [
     "scripts/constants.js",
+    "scripts/tool-shell.js",
     "scripts/settings.js",
     "scripts/module.js"
   ],

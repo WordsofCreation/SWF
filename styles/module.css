@@ -2,3 +2,16 @@
  * SWF module styles.
  * Keep empty/minimal until UI changes are intentionally introduced.
  */
+
+.swf-tool-shell__body {
+  padding: 0.25rem 0.1rem;
+}
+
+.swf-tool-shell__body p {
+  margin: 0 0 0.5rem;
+}
+
+.swf-tool-shell__status {
+  margin: 0.25rem 0 0;
+  padding-left: 1.25rem;
+}
