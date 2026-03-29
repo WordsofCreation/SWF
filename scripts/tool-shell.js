@@ -10,7 +10,8 @@
     typeTargetMap,
     fieldTargetMap,
     unresolvedMappingTracker,
-    confirmedMappingSnapshot
+    confirmedMappingSnapshot,
+    mappingCoverageReport
   } = globalThis.SWF;
 
   class SWFToolShellApp extends FormApplication {
@@ -40,6 +41,8 @@
       const setting = (key) => game.settings.get(MODULE_ID, key) === true;
       const manifestStats = manifestRegistry.getStats();
       const loadReport = manifestRegistry.getLastLoadReport();
+      const mappingCoverage = mappingCoverageReport.getCoverageReport();
+      const mappingCoverageSummary = mappingCoverageReport.getCoverageSummary();
       const manifestEntries = manifestRegistry.getAll().map((manifest) => {
         const selectionKey = this.#toValidSelectionKey(manifest.id);
         return {
@@ -87,6 +90,11 @@
           hasEntries: manifestEntries.length > 0,
           hasInvalidEntries: invalidEntries.length > 0,
           hasFailures: loadReport.failed > 0
+        },
+        mappingCoverage: {
+          entries: mappingCoverage,
+          summary: mappingCoverageSummary,
+          hasEntries: mappingCoverage.length > 0
         }
       };
     }
