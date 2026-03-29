@@ -14,7 +14,8 @@
     confirmedMappingSnapshot,
     mappingCoverageReport,
     shapeConsistencyChecker,
-    featTargetStub
+    featTargetStub,
+    featConversionTrace
   } = globalThis.SWF;
 
   class SWFToolShellApp extends FormApplication {
@@ -148,6 +149,11 @@
         const confirmedMappingCoverage = confirmedMappingSnapshot.getConfirmedCoverageForType(manifest.type);
         const featStubResult = manifest.type === "feat" ? featTargetStub.buildFeatTargetStub(manifest) : null;
         const featStubSummary = featStubResult ? featTargetStub.summarizeFeatTargetStub(featStubResult) : null;
+        const featTraceResult =
+          manifest.type === "feat" && featStubResult?.ok === true
+            ? featConversionTrace.buildFeatConversionTrace(manifest, featStubResult.stub)
+            : null;
+        const featTraceSummary = featTraceResult ? featConversionTrace.getFeatTraceSummary(featTraceResult) : null;
         return {
           hasSelection: true,
           source: "valid",
@@ -180,6 +186,11 @@
           featTargetDiagnostics: featStubResult?.diagnostics ?? [],
           hasFeatTargetStub: featStubResult?.ok === true && !!featStubResult.stub,
           hasFeatTargetDiagnostics: (featStubResult?.diagnostics?.length ?? 0) > 0,
+          featConversionTrace: featTraceResult?.trace ?? [],
+          featConversionTraceSummary: featTraceSummary,
+          featConversionTraceDiagnostics: featTraceResult?.diagnostics ?? [],
+          hasFeatConversionTrace: featTraceResult?.ok === true && (featTraceResult?.trace?.length ?? 0) > 0,
+          hasFeatConversionTraceDiagnostics: (featTraceResult?.diagnostics?.length ?? 0) > 0,
           hasIssues: false,
           issues: []
         };
