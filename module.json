@@ -24,7 +24,9 @@
     ]
   },
   "scripts": [
-    "scripts/main.js"
+    "scripts/constants.js",
+    "scripts/settings.js",
+    "scripts/module.js"
   ],
   "styles": [
     "styles/module.css"
