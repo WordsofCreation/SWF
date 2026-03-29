@@ -2,12 +2,12 @@
  * Read-only feat-target stub builder.
  *
  * This module converts a validated feat manifest into a minimal in-memory object
- * representing the current intended dnd5e Item target shape.
+ * representing the module's current intended dnd5e Item target shape.
  */
 (() => {
-  const { manifestValidation, confirmedMappingSnapshot } = globalThis.SWF;
+  const { manifestValidation, confirmedMappingSnapshot, fieldTargetMap } = globalThis.SWF;
 
-  const STUB_VERSION = 1;
+  const STUB_VERSION = 2;
 
   function isFeatManifest(manifest) {
     return manifest?.type === "feat";
@@ -58,6 +58,24 @@
     };
   }
 
+  function getMappingStatus(field) {
+    const confirmed = confirmedMappingSnapshot.getConfirmedMapping("feat", field);
+    if (confirmed) {
+      return {
+        status: confirmed.status,
+        targetPath: confirmed.confirmedTargetPath,
+        source: confirmed.confirmedSource
+      };
+    }
+
+    const mapped = fieldTargetMap.getFieldMapping("feat", field);
+    return {
+      status: mapped?.status ?? "unresolved",
+      targetPath: mapped?.intendedTargetPath ?? "(unresolved)",
+      source: mapped ? "field-target-map" : "missing"
+    };
+  }
+
   function buildFeatTargetStub(manifest) {
     if (!isFeatManifest(manifest)) {
       return buildUnsupportedTypeResult(manifest);
@@ -68,8 +86,9 @@
       return buildInvalidManifestResult(manifest, validation.issues);
     }
 
-    const nameMapping = confirmedMappingSnapshot.getConfirmedMapping("feat", "name");
-    const descriptionMapping = confirmedMappingSnapshot.getConfirmedMapping("feat", "description");
+    const nameMapping = getMappingStatus("name");
+    const descriptionMapping = getMappingStatus("description");
+    const sourceMapping = getMappingStatus("source");
 
     const stub = {
       stubKind: "swf.feat-item-target",
@@ -90,17 +109,30 @@
           source: manifest.source
         }
       },
-      provenance: {
-        manifest: cloneManifestFields(manifest),
-        mappingStatus: {
-          name: nameMapping?.status ?? "unresolved",
-          description: descriptionMapping?.status ?? "unresolved",
-          source: "provisional"
+      sourceNotes: {
+        modelIntent: "Read-only planning stub for a future dnd5e feat Item shape.",
+        resolvedMappings: {
+          name: nameMapping,
+          description: descriptionMapping
         },
-        sourceNotes: [
-          "This object is a read-only planning stub and is not a Foundry document.",
-          "No Item.create or compendium writes are performed in this layer.",
-          "source -> system.source.custom remains intentionally omitted until confirmed."
+        provisionalMappings: {
+          source: sourceMapping
+        },
+        intentionallyOmittedTargets: [
+          {
+            manifestField: "source",
+            targetPath: "system.source.custom",
+            reason: "Mapping is still provisional; omitted from system data in this read-only slice."
+          },
+          {
+            manifestField: "status",
+            targetPath: "(module workflow metadata)",
+            reason: "Planning/workflow metadata remains module-only for now."
+          }
+        ],
+        safety: [
+          "This object is not a Foundry document instance.",
+          "No Item.create, update, import, or compendium write is performed."
         ]
       }
     };
