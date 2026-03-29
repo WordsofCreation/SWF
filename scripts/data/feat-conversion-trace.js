@@ -117,20 +117,22 @@
         notes: "Temporary inspection default used for feat presentation while manifest-level image input is deferred."
       }),
       createTraceEntry({
-        manifestField: "(deferred feat type markers)",
-        sourceValue: null,
+        manifestField: "featCategory",
+        sourceValue: Object.hasOwn(manifest, "featCategory") ? manifest.featCategory : "(missing)",
         targetPath: "system.type.value/system.type.subtype",
         targetValue: `${getValueAtPath(stub, "system.type.value")}/${getValueAtPath(stub, "system.type.subtype")}`,
-        status: TRACE_STATUS.PROVISIONAL,
-        notes: "Type/subtype markers are included as explicit placeholders, pending confirmed dnd5e value vocabulary."
+        status: TRACE_STATUS.NORMALIZED,
+        notes:
+          "Optional featCategory is normalized to strict lowercase and copied to the type value placeholder; allowed vocabulary remains provisional in this read-only slice."
       }),
       createTraceEntry({
-        manifestField: "(deferred feat classification category)",
-        sourceValue: null,
+        manifestField: "featCategory",
+        sourceValue: Object.hasOwn(manifest, "featCategory") ? manifest.featCategory : "(missing)",
         targetPath: "classification.featCategory → system.type.value",
         targetValue: getValueAtPath(stub, "classification.featCategory"),
         status: TRACE_STATUS.PROVISIONAL,
-        notes: "Classification category is tracked as a read-only planning value and intentionally left unset until manifest vocabulary is introduced."
+        notes:
+          "Classification category is tracked as a read-only planning value. Optional vocabulary currently accepts provisional values only and is warning-level validated."
       }),
       createTraceEntry({
         manifestField: "(deferred feat classification subcategory)",
@@ -215,12 +217,13 @@
         notes: "Minimal structured prerequisite level is tracked for inspection while additional prerequisite fields stay intentionally deferred."
       }),
       createTraceEntry({
-        manifestField: "(deferred repeatable flag)",
+        manifestField: "(repeatable mapping note)",
         sourceValue: null,
         targetPath: "classification.repeatable → system.prerequisites.repeatable",
         targetValue: getValueAtPath(stub, "system.prerequisites.repeatable"),
         status: TRACE_STATUS.PROVISIONAL,
-        notes: "Repeatability is modeled as a conservative placeholder and intentionally left unset while dnd5e path confirmation remains provisional."
+        notes:
+          "Repeatability is explicitly tracked as provisional in mapping notes outside the stub to keep unresolved status visible while target confirmation remains pending."
       }),
       createTraceEntry({
         manifestField: "source",

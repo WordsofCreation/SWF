@@ -22,6 +22,14 @@
       notes: "Kept in sync with field-target notes where description is currently provisional."
     }),
     Object.freeze({
+      manifestType: "feat",
+      field: "repeatable",
+      unresolvedReason: "Repeatable flag path/value handling is intentionally inspection-only and not yet confirmed for manifest-driven conversion.",
+      status: STATUS.PROVISIONAL,
+      suggestedNextCheck: "Re-check dnd5e feat prerequisite repeatable conventions before promoting this mapping beyond read-only notes.",
+      notes: "Dedicated tracking row keeps repeatable provisional status visible outside stub internals."
+    }),
+    Object.freeze({
       manifestType: "feature",
       field: "source",
       unresolvedReason: "The final source container path is not confirmed for class-feature style records in this module workflow.",

@@ -83,7 +83,7 @@
     const organizationLabel = hasSourceTag ? `source:${manifest.source}` : "(deferred)";
 
     return {
-      featCategory: null,
+      featCategory: manifest.featCategory || null,
       featSubcategory: null,
       groupingLabel: organizationLabel,
       repeatable: null,
@@ -92,6 +92,8 @@
         featCategoryTargetPath: "system.type.value",
         featSubcategoryTargetPath: "system.type.subtype",
         repeatableTargetPath: "system.prerequisites.repeatable",
+        featCategoryVocabulary: manifestValidation.PROVISIONAL_FEAT_CATEGORY_VOCABULARY,
+        featCategoryVocabularyStatus: "provisional",
         status: "provisional"
       },
       acquisition: {
@@ -144,7 +146,8 @@
       category: {
         status: "provisional",
         targetPath: "system.type.value",
-        source: "dnd5e-feat-feature-pattern-deep-dive"
+        source: "dnd5e-feat-feature-pattern-deep-dive",
+        notes: "Optional manifest featCategory uses strict normalized lowercase vocabulary in this slice; allowed values remain provisional."
       },
       subcategory: {
         status: "provisional",
@@ -179,7 +182,7 @@
       classification: classificationCluster,
       system: {
         type: {
-          value: null,
+          value: classificationCluster.featCategory,
           subtype: null
         },
         description: {
@@ -224,7 +227,7 @@
           {
             manifestField: "(no manifest field yet)",
             targetPath: "system.type.value/system.type.subtype",
-            reason: "Feat-type taxonomy is intentionally deferred until manifest vocabulary is introduced."
+            reason: "Feat subcategory taxonomy remains deferred; optional featCategory vocabulary is now inspection-only and still provisional."
           },
           {
             manifestField: "(prerequisites cluster remainder)",
