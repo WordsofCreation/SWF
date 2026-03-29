@@ -5,9 +5,19 @@
   const { log } = globalThis.SWF;
 
   const manifestsById = new Map();
+  let lastLoadReport = {
+    attempted: 0,
+    loaded: 0,
+    failed: 0
+  };
 
   function clear() {
     manifestsById.clear();
+    lastLoadReport = {
+      attempted: 0,
+      loaded: 0,
+      failed: 0
+    };
   }
 
   function setAll(manifests) {
@@ -15,6 +25,18 @@
     for (const manifest of manifests) {
       manifestsById.set(manifest.id, manifest);
     }
+  }
+
+  function setLastLoadReport(report) {
+    lastLoadReport = {
+      attempted: Number(report?.attempted) || 0,
+      loaded: Number(report?.loaded) || 0,
+      failed: Number(report?.failed) || 0
+    };
+  }
+
+  function getLastLoadReport() {
+    return { ...lastLoadReport };
   }
 
   function getAll() {
@@ -42,6 +64,8 @@
   globalThis.SWF.manifestRegistry = {
     clear,
     setAll,
+    setLastLoadReport,
+    getLastLoadReport,
     getAll,
     getById,
     getByType,

@@ -13,4 +13,34 @@
     <li>Future Content Tools: {{#if settings.futureContentToolsEnabled}}On{{else}}Off{{/if}}</li>
     <li>Loaded Manifest Entries: {{manifests.total}}</li>
   </ul>
+
+  <h3>Manifest Browser (Read-Only)</h3>
+  <p class="swf-tool-shell__hint">Showing module-owned manifest metadata from the in-memory registry.</p>
+
+  <ul class="swf-tool-shell__status">
+    <li>Manifest Files Checked: {{manifests.attempted}}</li>
+    <li>Load Failures: {{manifests.failed}}</li>
+  </ul>
+
+  {{#if manifests.hasFailures}}
+    <p class="swf-tool-shell__warning">Some manifests were skipped during validation. See console logs for details.</p>
+  {{/if}}
+
+  {{#if manifests.hasEntries}}
+    <ul class="swf-tool-shell__manifest-list">
+      {{#each manifests.entries}}
+        <li>
+          <strong>{{this.name}}</strong>
+          <div class="swf-tool-shell__manifest-meta">
+            <span>ID: <code>{{this.id}}</code></span>
+            <span>Type: {{this.type}}</span>
+            <span>Version: {{this.version}}</span>
+            <span>Status: {{this.status}}</span>
+          </div>
+        </li>
+      {{/each}}
+    </ul>
+  {{else}}
+    <p class="swf-tool-shell__empty">No module manifests are currently loaded.</p>
+  {{/if}}
 </section>
