@@ -36,6 +36,7 @@
     "scripts/data/confirmed-mapping-snapshot.js",
     "scripts/data/mapping-coverage-report.js",
     "scripts/data/shape-consistency-checker.js",
+    "scripts/data/feat-target-stub.js",
     "scripts/data/manifest-loader.js",
     "scripts/tool-shell.js",
     "scripts/settings.js",

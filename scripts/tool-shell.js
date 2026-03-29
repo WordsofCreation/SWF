@@ -13,7 +13,8 @@
     unresolvedMappingTracker,
     confirmedMappingSnapshot,
     mappingCoverageReport,
-    shapeConsistencyChecker
+    shapeConsistencyChecker,
+    featTargetStub
   } = globalThis.SWF;
 
   class SWFToolShellApp extends FormApplication {
@@ -145,6 +146,8 @@
         const confirmedMappings = confirmedMappingSnapshot.getConfirmedMappingsForType(manifest.type);
         const confirmedMappingStatusCounts = confirmedMappingSnapshot.countByStatus(manifest.type);
         const confirmedMappingCoverage = confirmedMappingSnapshot.getConfirmedCoverageForType(manifest.type);
+        const featStubResult = manifest.type === "feat" ? featTargetStub.buildFeatTargetStub(manifest) : null;
+        const featStubSummary = featStubResult ? featTargetStub.summarizeFeatTargetStub(featStubResult) : null;
         return {
           hasSelection: true,
           source: "valid",
@@ -171,6 +174,12 @@
           confirmedMappingStatusCounts,
           confirmedMappingCoverage,
           hasConfirmedMappings: confirmedMappings.length > 0,
+          featTargetStub: featStubResult?.stub ?? null,
+          featTargetStubJson: featStubResult?.stub ? JSON.stringify(featStubResult.stub, null, 2) : "",
+          featTargetStubSummary: featStubSummary,
+          featTargetDiagnostics: featStubResult?.diagnostics ?? [],
+          hasFeatTargetStub: featStubResult?.ok === true && !!featStubResult.stub,
+          hasFeatTargetDiagnostics: (featStubResult?.diagnostics?.length ?? 0) > 0,
           hasIssues: false,
           issues: []
         };
