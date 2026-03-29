@@ -12,6 +12,35 @@
 }
 
 .swf-tool-shell__status {
+  margin: 0.25rem 0 0.75rem;
+  padding-left: 1.25rem;
+}
+
+.swf-tool-shell__hint {
+  font-size: 0.9em;
+  color: var(--color-text-secondary);
+}
+
+.swf-tool-shell__warning {
+  color: var(--color-text-dark-warning);
+  font-weight: 600;
+}
+
+.swf-tool-shell__manifest-list {
   margin: 0.25rem 0 0;
   padding-left: 1.25rem;
+}
+
+.swf-tool-shell__manifest-list > li {
+  margin-bottom: 0.5rem;
+}
+
+.swf-tool-shell__manifest-meta {
+  display: grid;
+  grid-template-columns: 1fr;
+  font-size: 0.9em;
+}
+
+.swf-tool-shell__empty {
+  font-style: italic;
 }

@@ -11,7 +11,7 @@
         classes: [MODULE_ID, "swf-tool-shell"],
         title: "SWF Tool Shell",
         template: `modules/${MODULE_ID}/templates/tool-shell.hbs`,
-        width: 380,
+        width: 560,
         height: "auto",
         closeOnSubmit: false,
         submitOnClose: false,
@@ -23,6 +23,14 @@
     getData() {
       const setting = (key) => game.settings.get(MODULE_ID, key) === true;
       const manifestStats = manifestRegistry.getStats();
+      const loadReport = manifestRegistry.getLastLoadReport();
+      const manifestEntries = manifestRegistry.getAll().map((manifest) => ({
+        id: manifest.id,
+        type: manifest.type,
+        name: manifest.name,
+        version: manifest.version,
+        status: manifest.status
+      }));
 
       return {
         settings: {
@@ -31,7 +39,12 @@
           futureContentToolsEnabled: setting("futureContentToolsEnabled")
         },
         manifests: {
-          total: manifestStats.total
+          total: manifestStats.total,
+          attempted: loadReport.attempted,
+          failed: loadReport.failed,
+          entries: manifestEntries,
+          hasEntries: manifestEntries.length > 0,
+          hasFailures: loadReport.failed > 0
         }
       };
     }

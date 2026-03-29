@@ -86,6 +86,12 @@
     }
 
     manifestRegistry.setAll(validated);
+    manifestRegistry.setLastLoadReport({
+      attempted: MANIFEST_PATHS.length,
+      loaded: validated.length,
+      failed: Math.max(0, MANIFEST_PATHS.length - validated.length)
+    });
+
     log(`Manifest load complete: ${validated.length}/${MANIFEST_PATHS.length} valid.`);
 
     return manifestRegistry.getStats();
