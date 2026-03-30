@@ -25,13 +25,24 @@ test('journal post-create inspection summarizes successful creation conservative
       statusMessage: 'Created Journal entry: Sample Journal Blueprint',
       createData: {
         name: 'Sample Journal Blueprint',
-        pages: [{ name: 'Overview', type: 'text' }, { name: 'Details', type: 'text' }]
+        pages: [
+          { name: 'Overview', type: 'text' },
+          { name: 'Details', type: 'text' },
+          { name: 'Deferred References', type: 'text' }
+        ]
       },
       entry: {
         id: 'abc123',
         name: 'Sample Journal Blueprint',
         uuid: 'JournalEntry.abc123',
-        pages: { size: 2, contents: [{ name: 'Overview', type: 'text' }, { name: 'Details', type: 'text' }] }
+        pages: {
+          size: 3,
+          contents: [
+            { name: 'Overview', type: 'text' },
+            { name: 'Details', type: 'text' },
+            { name: 'Deferred References', type: 'text' }
+          ]
+        }
       }
     }
   });

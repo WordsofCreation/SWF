@@ -99,6 +99,17 @@
       });
     }
 
+    if (deferredReferencesPageContent) {
+      pages.push({
+        name: "Deferred References",
+        type: "text",
+        text: {
+          format,
+          content: deferredReferencesPageContent
+        }
+      });
+    }
+
     return {
       name,
       pages

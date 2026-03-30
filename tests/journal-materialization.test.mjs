@@ -36,10 +36,11 @@ test('journal materialization builds explicit overview and details pages when de
   const data = globalThis.SWF.journalMaterialization.buildJournalEntryCreateDataFromPreview(preview);
   assert.equal(data.name, 'Sample Journal Blueprint');
   assert.equal(Array.isArray(data.pages), true);
-  assert.equal(data.pages.length, 2);
+  assert.equal(data.pages.length, 3);
   assert.equal(data.pages[0].name, 'Overview');
   assert.equal(data.pages[0].type, 'text');
   assert.equal(data.pages[0].text.format, 1);
+  assert.match(data.pages[0].text.content, /Summary/);
   assert.match(data.pages[0].text.content, /Journal builder preview only/);
   assert.equal(data.pages[1].name, 'Details');
   assert.equal(data.pages[1].type, 'text');

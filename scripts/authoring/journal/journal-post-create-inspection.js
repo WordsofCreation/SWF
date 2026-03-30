@@ -76,7 +76,7 @@
     rows.push({
       key: "notes",
       preview: `${previewNotesCount} note(s) in preview`,
-      requested: "embedded into overview page content",
+      requested: previewNotesCount > 0 ? "mapped into dedicated Details page content" : "no details page requested",
       actual: "not compared at field level",
       status: "deferred-inspection"
     });
@@ -105,7 +105,7 @@
     ];
 
     const materializedClusters = success
-      ? ["name", "overview text page", "details text page when supported", "deferred reference summary text"]
+      ? ["name", "overview text page", "details text page when notes are present", "deferred references text page when references are present"]
       : [];
 
     const warnings = [];
