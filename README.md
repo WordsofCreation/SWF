@@ -24,6 +24,10 @@ Image-aligned item-type coverage planning now has an explicit capability tracker
 - Public manifest URL (`manifest`): `https://raw.githubusercontent.com/WordsofCreation/SWF/main/module.json`
 - Package download URL (`download`): intentionally deferred until a stable release ZIP URL exists. Until then, install via manifest URL and treat auto-update as deferred.
 
+
+Release/install metadata guardrails checklist:
+- `docs/release-readiness-checklist.md`
+
 ## Next Recommended Tasks
 1. Inspect 2–3 analogous dnd5e reference examples for a first target content type (e.g., one simple item).
 2. Define a single vertical slice (e.g., one item or one feature) and implement it using dnd5e patterns.
