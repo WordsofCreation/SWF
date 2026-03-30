@@ -4,7 +4,8 @@ Contains compendium-related content and source YAML.
 
 Current state:
 - Source item definitions live in `packs/_source/swf-items/`.
-- No packed `.db` compendium is registered in `module.json` yet (kept minimal for this vertical slice).
+- One initial module compendium pack is now registered in `module.json` at `packs/star-wars-compendium.db` as a `JournalEntry` pack labeled **Star Wars Compendium**.
+- The first registered pack is intentionally scaffold-only (empty) for safe in-Foundry visibility testing.
 
 - Current workflow-oriented sample trio in `_source/swf-items/`:
   - `swf-training-dagger.yml` (weapon attack)
