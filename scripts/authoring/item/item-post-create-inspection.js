@@ -4,6 +4,16 @@
  * Scope: conservative GM-facing trust layer for one equipment/loot Item creation attempt.
  */
 (() => {
+  // Allowlist is intentionally narrow for the current equipment-loot-v1 slice.
+  // Do not expand this into deep system-data diffing.
+  const INSPECTION_OUTCOME = Object.freeze({
+    MATCHED: "matched",
+    NORMALIZED: "normalized/defaulted",
+    OMITTED: "omitted by design",
+    DEFERRED: "unsupported/deferred",
+    MISMATCH: "mismatch/error"
+  });
+
   function toNonEmptyString(value) {
     if (typeof value !== "string") return "";
     return value.trim();
@@ -11,14 +21,6 @@
 
   function toArray(values) {
     return Array.isArray(values) ? values.filter(Boolean) : [];
-  }
-
-  function compareValue(requested, actual) {
-    if (!requested && !actual) return "deferred-inspection";
-    if (requested === actual) return "materialized";
-    if (requested && actual) return "mismatch";
-    if (requested && !actual) return "requested-not-observed";
-    return "deferred-inspection";
   }
 
   function getModuleFlagValue(documentOrData, key) {
@@ -29,175 +31,311 @@
     return toNonEmptyString(documentOrData?.flags?.[moduleId]?.[key]);
   }
 
-  function buildClusterComparisonRows({ preview, createData, item }) {
-    const previewName = toNonEmptyString(preview?.name);
-    const requestedName = toNonEmptyString(createData?.name);
-    const actualName = toNonEmptyString(item?.name);
+  function toInspectableValue(value) {
+    if (value === null || value === undefined) return "";
+    if (typeof value === "string") return value.trim();
+    return String(value).trim();
+  }
 
-    const requestedDescription = toNonEmptyString(createData?.system?.description?.value);
-    const actualDescription = toNonEmptyString(item?.system?.description?.value);
+  function resolveInspectionOutcome({ expected, actual, supportLevel }) {
+    if (supportLevel === "omitted") return INSPECTION_OUTCOME.OMITTED;
+    if (supportLevel === "deferred") return INSPECTION_OUTCOME.DEFERRED;
 
-    const requestedType = toNonEmptyString(createData?.type);
-    const actualType = toNonEmptyString(item?.type);
-    const requestedCategory = toNonEmptyString(createData?.system?.type?.value);
-    const actualCategory = toNonEmptyString(item?.system?.type?.value);
-    const requestedIdentifier = toNonEmptyString(createData?.system?.identifier);
-    const actualIdentifier = toNonEmptyString(item?.system?.identifier);
-    const requestedSource = JSON.stringify({
-      custom: toNonEmptyString(createData?.system?.source?.custom),
-      book: toNonEmptyString(createData?.system?.source?.book),
-      page: toNonEmptyString(createData?.system?.source?.page),
-      license: toNonEmptyString(createData?.system?.source?.license),
-      rules: toNonEmptyString(createData?.system?.source?.rules)
-    });
-    const actualSource = JSON.stringify({
-      custom: toNonEmptyString(item?.system?.source?.custom),
-      book: toNonEmptyString(item?.system?.source?.book),
-      page: toNonEmptyString(item?.system?.source?.page),
-      license: toNonEmptyString(item?.system?.source?.license),
-      rules: toNonEmptyString(item?.system?.source?.rules)
-    });
+    if (expected && actual && expected === actual) return INSPECTION_OUTCOME.MATCHED;
+    if (!expected && !actual) return INSPECTION_OUTCOME.NORMALIZED;
+    if (!expected && actual) return INSPECTION_OUTCOME.NORMALIZED;
+    return INSPECTION_OUTCOME.MISMATCH;
+  }
 
-    const requestedPathFlag = getModuleFlagValue(createData, "itemBuilderPath");
-    const actualPathFlag = getModuleFlagValue(item, "itemBuilderPath");
+  function safeReadValue(readFn, payload) {
+    try {
+      return {
+        value: toInspectableValue(readFn(payload)),
+        readError: ""
+      };
+    } catch (error) {
+      return {
+        value: "",
+        readError: error?.message || String(error)
+      };
+    }
+  }
 
-    return [
+  function buildAllowlistedInspectionRows({ preview, createData, item }) {
+    const fieldAllowlist = [
       {
-        key: "identity",
-        label: "Identity",
-        status: compareValue(requestedName, actualName),
-        requested: requestedName || "(defaulted)",
-        actual: actualName || "(not observed)",
-        preview: previewName || "(empty)",
-        note: "Preview name should map directly to created Item name."
+        key: "document.id",
+        label: "Document id",
+        supportLevel: "materialized",
+        previewValue: "n/a",
+        expectedRead: () => "",
+        actualRead: ({ item: document }) => document?.id,
+        note: "Generated at creation time; compared for presence only."
       },
       {
-        key: "description",
-        label: "Description summary mapping",
-        status: compareValue(requestedDescription, actualDescription),
-        requested: requestedDescription ? `${requestedDescription.length} chars requested` : "defaulted description",
-        actual: actualDescription ? `${actualDescription.length} chars observed` : "(not observed)",
-        preview: toNonEmptyString(preview?.summary) || "(empty)",
-        note: "Conservative check compares requested/observed HTML string."
+        key: "name",
+        label: "Name",
+        supportLevel: "materialized",
+        previewValue: toNonEmptyString(preview?.name) || "(empty)",
+        expectedRead: ({ createData: requested }) => requested?.name,
+        actualRead: ({ item: document }) => document?.name
       },
       {
-        key: "classification",
-        label: "Type profile cluster",
-        status:
-          compareValue(requestedType, actualType) === "materialized" &&
-          compareValue(requestedCategory, actualCategory) === "materialized" &&
-          compareValue(requestedIdentifier, actualIdentifier) === "materialized"
-            ? "materialized"
-            : item
-              ? "partial"
-              : "deferred-inspection",
-        requested: `type=${requestedType || "(unknown)"}; category=${requestedCategory || "(default)"}; identifier=${requestedIdentifier || "(defaulted)"}`,
-        actual: item
-          ? `type=${actualType || "(unknown)"}; category=${actualCategory || "(unknown)"}; identifier=${actualIdentifier || "(unknown)"}`
-          : "(not observed)",
-        preview: `typeHint=${toNonEmptyString(preview?.typeHint) || "(empty)"}; itemCategory=${toNonEmptyString(preview?.classification?.itemCategory) || "(default)"}`
+        key: "type",
+        label: "Type",
+        supportLevel: "materialized",
+        previewValue: toNonEmptyString(preview?.typeHint) || "(empty)",
+        expectedRead: ({ createData: requested }) => requested?.type,
+        actualRead: ({ item: document }) => document?.type
       },
       {
-        key: "source",
-        label: "Source details cluster",
-        status: compareValue(requestedSource, actualSource),
-        requested: requestedSource,
-        actual: item ? actualSource : "(not observed)",
-        preview: JSON.stringify({
+        key: "img",
+        label: "Image",
+        supportLevel: "materialized",
+        previewValue: toNonEmptyString(preview?.img) || "(empty)",
+        expectedRead: ({ createData: requested }) => requested?.img,
+        actualRead: ({ item: document }) => document?.img
+      },
+      {
+        key: "folder",
+        label: "Folder",
+        supportLevel: "omitted",
+        previewValue: "(not in item draft slice)",
+        expectedRead: () => "",
+        actualRead: ({ item: document }) => document?.folder?.id ?? document?.folder
+      },
+      {
+        key: "system.description.value",
+        label: "Description/notes",
+        supportLevel: "materialized",
+        previewValue: toNonEmptyString(preview?.summary) || "(empty)",
+        expectedRead: ({ createData: requested }) => requested?.system?.description?.value,
+        actualRead: ({ item: document }) => document?.system?.description?.value,
+        note: "Conservative check compares requested/observed HTML description string."
+      },
+      {
+        key: "system.type.value",
+        label: "Classification category",
+        supportLevel: "materialized",
+        previewValue: toNonEmptyString(preview?.classification?.itemCategory) || "(default)",
+        expectedRead: ({ createData: requested }) => requested?.system?.type?.value,
+        actualRead: ({ item: document }) => document?.system?.type?.value
+      },
+      {
+        key: "system.identifier",
+        label: "Classification identifier",
+        supportLevel: "materialized",
+        previewValue: "(derived from normalized name)",
+        expectedRead: ({ createData: requested }) => requested?.system?.identifier,
+        actualRead: ({ item: document }) => document?.system?.identifier
+      },
+      {
+        key: "system.source.cluster",
+        label: "Source details",
+        supportLevel: "materialized",
+        previewValue: JSON.stringify({
           custom: toNonEmptyString(preview?.sourceDetails?.custom),
           book: toNonEmptyString(preview?.sourceDetails?.book),
           page: toNonEmptyString(preview?.sourceDetails?.page),
           license: toNonEmptyString(preview?.sourceDetails?.license),
           rules: toNonEmptyString(preview?.sourceDetails?.rules)
         }),
+        expectedRead: ({ createData: requested }) =>
+          JSON.stringify({
+            custom: toNonEmptyString(requested?.system?.source?.custom),
+            book: toNonEmptyString(requested?.system?.source?.book),
+            page: toNonEmptyString(requested?.system?.source?.page),
+            license: toNonEmptyString(requested?.system?.source?.license),
+            rules: toNonEmptyString(requested?.system?.source?.rules)
+          }),
+        actualRead: ({ item: document }) =>
+          JSON.stringify({
+            custom: toNonEmptyString(document?.system?.source?.custom),
+            book: toNonEmptyString(document?.system?.source?.book),
+            page: toNonEmptyString(document?.system?.source?.page),
+            license: toNonEmptyString(document?.system?.source?.license),
+            rules: toNonEmptyString(document?.system?.source?.rules)
+          })
+      },
+      {
+        key: "system.rarity",
+        label: "Rarity",
+        supportLevel: "deferred",
+        previewValue: "(deferred in equipment-loot-v1)",
+        expectedRead: () => "",
+        actualRead: ({ item: document }) => document?.system?.rarity
+      },
+      {
+        key: "flags.swf.itemBuilderPath",
+        label: "Module item path flag",
+        supportLevel: "materialized",
+        previewValue: "n/a",
+        expectedRead: ({ createData: requested }) => getModuleFlagValue(requested, "itemBuilderPath"),
+        actualRead: ({ item: document }) => getModuleFlagValue(document, "itemBuilderPath")
+      }
+    ];
+
+    return fieldAllowlist.map((field) => {
+      const expectedRead = safeReadValue(field.expectedRead, { preview, createData, item });
+      const actualRead = safeReadValue(field.actualRead, { preview, createData, item });
+      const outcome =
+        expectedRead.readError || actualRead.readError
+          ? INSPECTION_OUTCOME.MISMATCH
+          : resolveInspectionOutcome({
+              expected: expectedRead.value,
+              actual: actualRead.value,
+              supportLevel: field.supportLevel
+            });
+
+      return {
+        key: field.key,
+        label: field.label,
+        preview: field.previewValue,
+        expected: expectedRead.value || "(empty/default)",
+        actual: actualRead.value || "(not observed)",
+        outcome,
+        supportLevel: field.supportLevel,
+        note: field.note || "",
+        readError: expectedRead.readError || actualRead.readError || ""
+      };
+    });
+  }
+
+  function buildClusterComparisonRows({ rows }) {
+    const rowByKey = Object.fromEntries(rows.map((row) => [row.key, row]));
+
+    const classificationStatus = ["system.type.value", "system.identifier"].every(
+      (key) => rowByKey[key]?.outcome === INSPECTION_OUTCOME.MATCHED
+    )
+      ? INSPECTION_OUTCOME.MATCHED
+      : INSPECTION_OUTCOME.MISMATCH;
+
+    return [
+      {
+        key: "identity",
+        label: "Identity",
+        status: rowByKey.name?.outcome ?? INSPECTION_OUTCOME.MISMATCH,
+        requested: rowByKey.name?.expected ?? "(empty/default)",
+        actual: rowByKey.name?.actual ?? "(not observed)",
+        preview: rowByKey.name?.preview ?? "(empty)",
+        note: "Preview name should map directly to created Item name."
+      },
+      {
+        key: "type",
+        label: "Item type",
+        status: rowByKey.type?.outcome ?? INSPECTION_OUTCOME.MISMATCH,
+        requested: rowByKey.type?.expected ?? "(empty/default)",
+        actual: rowByKey.type?.actual ?? "(not observed)",
+        preview: rowByKey.type?.preview ?? "(empty)",
+        note: "Only equipment/loot type paths are in scope for this slice."
+      },
+      {
+        key: "description",
+        label: "Description",
+        status: rowByKey["system.description.value"]?.outcome ?? INSPECTION_OUTCOME.MISMATCH,
+        requested: rowByKey["system.description.value"]?.expected ?? "(empty/default)",
+        actual: rowByKey["system.description.value"]?.actual ?? "(not observed)",
+        preview: rowByKey["system.description.value"]?.preview ?? "(empty)",
+        note: rowByKey["system.description.value"]?.note || ""
+      },
+      {
+        key: "classification",
+        label: "Classification cluster",
+        status: classificationStatus,
+        requested:
+          `system.type.value=${rowByKey["system.type.value"]?.expected ?? "(empty/default)"}; ` +
+          `system.identifier=${rowByKey["system.identifier"]?.expected ?? "(empty/default)"}`,
+        actual:
+          `system.type.value=${rowByKey["system.type.value"]?.actual ?? "(not observed)"}; ` +
+          `system.identifier=${rowByKey["system.identifier"]?.actual ?? "(not observed)"}`,
+        preview:
+          `itemCategory=${rowByKey["system.type.value"]?.preview ?? "(default)"}; ` +
+          `identifier=${rowByKey["system.identifier"]?.preview ?? "(derived)"}`,
+        note: "Classification fields are allowlisted because this slice explicitly materializes them."
+      },
+      {
+        key: "source",
+        label: "Source details cluster",
+        status: rowByKey["system.source.cluster"]?.outcome ?? INSPECTION_OUTCOME.MISMATCH,
+        requested: rowByKey["system.source.cluster"]?.expected ?? "(empty/default)",
+        actual: rowByKey["system.source.cluster"]?.actual ?? "(not observed)",
+        preview: rowByKey["system.source.cluster"]?.preview ?? "(empty)",
         note: "Conservative source pass-through maps preview sourceDetails into system.source."
       },
       {
         key: "module-metadata",
         label: "Module creation metadata",
-        status: compareValue(requestedPathFlag, actualPathFlag),
-        requested: requestedPathFlag || "(missing)",
-        actual: actualPathFlag || "(not observed)",
+        status: rowByKey["flags.swf.itemBuilderPath"]?.outcome ?? INSPECTION_OUTCOME.MISMATCH,
+        requested: rowByKey["flags.swf.itemBuilderPath"]?.expected ?? "(missing)",
+        actual: rowByKey["flags.swf.itemBuilderPath"]?.actual ?? "(not observed)",
         preview: "n/a",
         note: "Flag confirms create path lineage for this lane."
       }
     ];
   }
 
-  function mapMaterializedFieldRows({ preview, createData, item }) {
-    const rows = [];
-
-    rows.push({
-      key: "name",
-      preview: toNonEmptyString(preview?.name) || "(empty)",
-      requested: toNonEmptyString(createData?.name) || "(defaulted)",
-      actual: toNonEmptyString(item?.name) || "(unknown)",
-      status: item?.name ? "materialized" : "unknown"
-    });
-
-    rows.push({
-      key: "type",
-      preview: toNonEmptyString(preview?.typeHint) || "(empty)",
-      requested: toNonEmptyString(createData?.type) || "(defaulted)",
-      actual: toNonEmptyString(item?.type) || "(unknown)",
-      status: item?.type ? "materialized" : "unknown"
-    });
-
-    rows.push({
-      key: "summary -> system.description.value",
-      preview: toNonEmptyString(preview?.summary) || "(empty)",
-      requested: toNonEmptyString(createData?.system?.description?.value) || "(defaulted)",
-      actual: item?.system?.description?.value ? "description present" : "not inspected",
-      status: createData?.system?.description?.value ? "materialized" : "unknown"
-    });
-
-    rows.push({
-      key: "classification",
-      preview: `typeHint=${toNonEmptyString(preview?.typeHint) || "(empty)"}; itemCategory=${toNonEmptyString(preview?.classification?.itemCategory) || "(default)"}`,
-      requested: `type=${toNonEmptyString(createData?.type) || "(unknown)"}; system.type.value=${toNonEmptyString(createData?.system?.type?.value)}; system.identifier=${toNonEmptyString(createData?.system?.identifier) || "(defaulted)"}`,
-      actual: item
-        ? `type=${toNonEmptyString(item?.type) || "(unknown)"}; system.type.value=${toNonEmptyString(item?.system?.type?.value) || "(unknown)"}; system.identifier=${toNonEmptyString(item?.system?.identifier) || "(unknown)"}`
-        : "not inspected",
-      status: item ? "materialized" : "unknown"
-    });
-
-    rows.push({
-      key: "source details",
-      preview: JSON.stringify({
-        custom: toNonEmptyString(preview?.sourceDetails?.custom),
-        book: toNonEmptyString(preview?.sourceDetails?.book),
-        page: toNonEmptyString(preview?.sourceDetails?.page),
-        license: toNonEmptyString(preview?.sourceDetails?.license),
-        rules: toNonEmptyString(preview?.sourceDetails?.rules)
-      }),
-      requested: JSON.stringify({
-        custom: toNonEmptyString(createData?.system?.source?.custom),
-        book: toNonEmptyString(createData?.system?.source?.book),
-        page: toNonEmptyString(createData?.system?.source?.page),
-        license: toNonEmptyString(createData?.system?.source?.license),
-        rules: toNonEmptyString(createData?.system?.source?.rules)
-      }),
-      actual: item
-        ? JSON.stringify({
-            custom: toNonEmptyString(item?.system?.source?.custom),
-            book: toNonEmptyString(item?.system?.source?.book),
-            page: toNonEmptyString(item?.system?.source?.page),
-            license: toNonEmptyString(item?.system?.source?.license),
-            rules: toNonEmptyString(item?.system?.source?.rules)
-          })
-        : "not inspected",
-      status: item ? "materialized" : "unknown"
-    });
-
-    rows.push({
-      key: "module creation metadata",
-      preview: "n/a",
-      requested: toNonEmptyString(createData?.flags?.[globalThis.SWF?.MODULE_ID]?.itemBuilderPath) || "(missing)",
-      actual: item ? "captured in module flag payload" : "not inspected",
-      status: createData?.flags?.[globalThis.SWF?.MODULE_ID]?.itemBuilderPath ? "materialized" : "deferred-inspection"
-    });
-
-    return rows;
+  function mapMaterializedFieldRows({ rows }) {
+    return [
+      {
+        key: "name",
+        preview: rows.find((row) => row.key === "name")?.preview ?? "(empty)",
+        requested: rows.find((row) => row.key === "name")?.expected ?? "(empty/default)",
+        actual: rows.find((row) => row.key === "name")?.actual ?? "(not observed)",
+        status: rows.find((row) => row.key === "name")?.outcome ?? INSPECTION_OUTCOME.MISMATCH
+      },
+      {
+        key: "type",
+        preview: rows.find((row) => row.key === "type")?.preview ?? "(empty)",
+        requested: rows.find((row) => row.key === "type")?.expected ?? "(empty/default)",
+        actual: rows.find((row) => row.key === "type")?.actual ?? "(not observed)",
+        status: rows.find((row) => row.key === "type")?.outcome ?? INSPECTION_OUTCOME.MISMATCH
+      },
+      {
+        key: "img",
+        preview: rows.find((row) => row.key === "img")?.preview ?? "(empty)",
+        requested: rows.find((row) => row.key === "img")?.expected ?? "(empty/default)",
+        actual: rows.find((row) => row.key === "img")?.actual ?? "(not observed)",
+        status: rows.find((row) => row.key === "img")?.outcome ?? INSPECTION_OUTCOME.MISMATCH
+      },
+      {
+        key: "description -> system.description.value",
+        preview: rows.find((row) => row.key === "system.description.value")?.preview ?? "(empty)",
+        requested: rows.find((row) => row.key === "system.description.value")?.expected ?? "(empty/default)",
+        actual: rows.find((row) => row.key === "system.description.value")?.actual ?? "(not observed)",
+        status: rows.find((row) => row.key === "system.description.value")?.outcome ?? INSPECTION_OUTCOME.MISMATCH
+      },
+      {
+        key: "classification (type/value + identifier)",
+        preview:
+          `system.type.value=${rows.find((row) => row.key === "system.type.value")?.preview ?? "(default)"}; ` +
+          `system.identifier=${rows.find((row) => row.key === "system.identifier")?.preview ?? "(derived)"}`,
+        requested:
+          `system.type.value=${rows.find((row) => row.key === "system.type.value")?.expected ?? "(empty/default)"}; ` +
+          `system.identifier=${rows.find((row) => row.key === "system.identifier")?.expected ?? "(empty/default)"}`,
+        actual:
+          `system.type.value=${rows.find((row) => row.key === "system.type.value")?.actual ?? "(not observed)"}; ` +
+          `system.identifier=${rows.find((row) => row.key === "system.identifier")?.actual ?? "(not observed)"}`,
+        status:
+          rows.find((row) => row.key === "system.type.value")?.outcome === INSPECTION_OUTCOME.MATCHED &&
+          rows.find((row) => row.key === "system.identifier")?.outcome === INSPECTION_OUTCOME.MATCHED
+            ? INSPECTION_OUTCOME.MATCHED
+            : INSPECTION_OUTCOME.MISMATCH
+      },
+      {
+        key: "source details",
+        preview: rows.find((row) => row.key === "system.source.cluster")?.preview ?? "(empty)",
+        requested: rows.find((row) => row.key === "system.source.cluster")?.expected ?? "(empty/default)",
+        actual: rows.find((row) => row.key === "system.source.cluster")?.actual ?? "(not observed)",
+        status: rows.find((row) => row.key === "system.source.cluster")?.outcome ?? INSPECTION_OUTCOME.MISMATCH
+      },
+      {
+        key: "module item path flag",
+        preview: "n/a",
+        requested: rows.find((row) => row.key === "flags.swf.itemBuilderPath")?.expected ?? "(missing)",
+        actual: rows.find((row) => row.key === "flags.swf.itemBuilderPath")?.actual ?? "(not observed)",
+        status: rows.find((row) => row.key === "flags.swf.itemBuilderPath")?.outcome ?? INSPECTION_OUTCOME.MISMATCH
+      }
+    ];
   }
 
   function buildItemPostCreateInspection({ preview = {}, result = {} } = {}) {
@@ -206,7 +344,7 @@
     const createData = result?.createData ?? null;
     const validation = result?.validation ?? null;
 
-    const deferredClusters = [
+    const deferredClusters = Object.freeze([
       "system.activities",
       "system.uses",
       "system.armor",
@@ -214,11 +352,14 @@
       "effects automation",
       "cross-document references",
       "ownership and containers"
-    ];
+    ]);
 
-    const clusterComparisons = buildClusterComparisonRows({ preview, createData, item });
+    const allowlistedRows = buildAllowlistedInspectionRows({ preview, createData, item });
+    const clusterComparisons = buildClusterComparisonRows({ rows: allowlistedRows });
     const materializedClusters = success
-      ? clusterComparisons.filter((cluster) => cluster.status === "materialized").map((cluster) => cluster.label)
+      ? clusterComparisons
+          .filter((cluster) => cluster.status === INSPECTION_OUTCOME.MATCHED)
+          .map((cluster) => cluster.label)
       : [];
 
     const warnings = [];
@@ -228,26 +369,26 @@
       warnings.push(...validation.warnings);
     }
     if (success) {
-      const mismatchRows = clusterComparisons.filter((cluster) =>
-        ["mismatch", "requested-not-observed", "partial"].includes(cluster.status)
-      );
+      const mismatchRows = clusterComparisons.filter((cluster) => cluster.status === INSPECTION_OUTCOME.MISMATCH);
       mismatchRows.forEach((cluster) => warnings.push(`${cluster.label} needs manual review (${cluster.status}).`));
     }
+    allowlistedRows
+      .filter((row) => row.readError)
+      .forEach((row) => warnings.push(`Inspection read failed for ${row.label}: ${row.readError}`));
     warnings.push("Inspection is conservative: no deep diff is performed against full dnd5e item system defaults.");
 
     const notes = [
-      "This inspection reports one creation attempt from the current Item preview state.",
+      "This inspection reports one creation attempt from the current Item preview/draft state.",
       "Staged Item lane trace: authoring model -> preview shaping -> validation -> materialization -> post-create inspection.",
+      "Allowlisted fields are intentionally limited to the equipment/loot-v1 create payload.",
       "Only one equipment/loot create path is enabled in this slice."
     ];
 
     const traceSummary = {
       attempted: clusterComparisons.length,
-      materialized: clusterComparisons.filter((cluster) => cluster.status === "materialized").length,
-      reviewNeeded: clusterComparisons.filter((cluster) =>
-        ["mismatch", "requested-not-observed", "partial"].includes(cluster.status)
-      ).length,
-      deferredInspection: clusterComparisons.filter((cluster) => cluster.status === "deferred-inspection").length
+      materialized: clusterComparisons.filter((cluster) => cluster.status === INSPECTION_OUTCOME.MATCHED).length,
+      reviewNeeded: clusterComparisons.filter((cluster) => cluster.status === INSPECTION_OUTCOME.MISMATCH).length,
+      deferredInspection: allowlistedRows.filter((row) => row.outcome === INSPECTION_OUTCOME.DEFERRED).length
     };
 
     return {
@@ -261,14 +402,17 @@
             id: toNonEmptyString(item?.id) || "(unknown)",
             name: toNonEmptyString(item?.name) || toNonEmptyString(createData?.name) || "(unnamed)",
             type: toNonEmptyString(item?.type) || toNonEmptyString(createData?.type) || "(unknown)",
+            img: toNonEmptyString(item?.img) || toNonEmptyString(createData?.img) || "(unknown)",
+            folder: toNonEmptyString(item?.folder?.name ?? item?.folder) || "(none)",
             uuid: toNonEmptyString(item?.uuid) || ""
           }
         : null,
+      inspectionRows: allowlistedRows,
       materializedClusters,
       deferredClusters,
       traceSummary,
       clusterComparisons,
-      fieldMapping: mapMaterializedFieldRows({ preview, createData, item }),
+      fieldMapping: mapMaterializedFieldRows({ rows: allowlistedRows }),
       validation: validation
         ? {
             ok: validation.ok === true,
@@ -288,8 +432,11 @@
     INTERNALS: {
       toArray,
       toNonEmptyString,
-      compareValue,
+      toInspectableValue,
+      resolveInspectionOutcome,
+      safeReadValue,
       getModuleFlagValue,
+      buildAllowlistedInspectionRows,
       buildClusterComparisonRows,
       mapMaterializedFieldRows
     }
