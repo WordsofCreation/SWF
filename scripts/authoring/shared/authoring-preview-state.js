@@ -10,42 +10,53 @@
   const { MODULE_ID } = globalThis.SWF;
 
   const AUTHORING_SURFACES = Object.freeze([
-    Object.freeze({ key: "item", label: "Item" }),
-    Object.freeze({ key: "actor", label: "Actor" }),
-    Object.freeze({ key: "journal", label: "Journal" })
+    Object.freeze({ key: "item", label: "Item", documentName: "Item" }),
+    Object.freeze({ key: "actor", label: "Actor", documentName: "Actor" }),
+    Object.freeze({ key: "journal", label: "Journal", documentName: "JournalEntry" })
   ]);
+
+  function buildSurfacePreview({ label, documentName, sampleName, typeHint, notes }) {
+    return Object.freeze({
+      label,
+      status: "available",
+      readOnly: true,
+      nonMaterialized: true,
+      preview: Object.freeze({
+        name: sampleName,
+        documentName,
+        typeHint,
+        summary: `${label} builder preview only`,
+        notes: Object.freeze(notes)
+      })
+    });
+  }
 
   const DEFAULT_PREVIEW_STATE = Object.freeze({
     sessionId: `${MODULE_ID}-preview-session`,
+    schemaVersion: 1,
     mode: "read-only",
     source: "placeholder",
     surfaces: Object.freeze({
-      item: Object.freeze({
+      item: buildSurfacePreview({
         label: "Item",
-        status: "available",
-        preview: Object.freeze({
-          name: "Sample Item Blueprint",
-          type: "feat",
-          notes: ["Read-only preview model only.", "No Item document is created."]
-        })
+        documentName: "Item",
+        sampleName: "Sample Item Blueprint",
+        typeHint: "feat",
+        notes: ["Read-only preview model only.", "No Item document is created."]
       }),
-      actor: Object.freeze({
+      actor: buildSurfacePreview({
         label: "Actor",
-        status: "available",
-        preview: Object.freeze({
-          name: "Sample Actor Blueprint",
-          type: "npc",
-          notes: ["Read-only preview model only.", "No Actor document is created."]
-        })
+        documentName: "Actor",
+        sampleName: "Sample Actor Blueprint",
+        typeHint: "npc",
+        notes: ["Read-only preview model only.", "No Actor document is created."]
       }),
-      journal: Object.freeze({
+      journal: buildSurfacePreview({
         label: "Journal",
-        status: "available",
-        preview: Object.freeze({
-          name: "Sample Journal Blueprint",
-          type: "entry",
-          notes: ["Read-only preview model only.", "No JournalEntry document is created."]
-        })
+        documentName: "JournalEntry",
+        sampleName: "Sample Journal Blueprint",
+        typeHint: "entry",
+        notes: ["Read-only preview model only.", "No JournalEntry document is created."]
       })
     })
   });
