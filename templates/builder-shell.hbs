@@ -44,10 +44,77 @@
         <button type="button" class="swf-builder-shell__action" data-action="create-journal">
           Create Journal Entry
         </button>
-        {{#if journalCreateStatus}}
-          <p class="swf-builder-shell__status-note swf-builder-shell__status-note--{{journalCreateStatus.type}}">
-            {{journalCreateStatus.message}}
-          </p>
+        {{#if journalCreateInspection}}
+          <section class="swf-builder-shell__inspection">
+            <h5>Post-Creation Inspection</h5>
+            <p
+              class="swf-builder-shell__status-note swf-builder-shell__status-note--{{#if journalCreateInspection.status.ok}}success{{else}}error{{/if}}"
+            >
+              <strong>{{journalCreateInspection.status.label}}:</strong>
+              {{journalCreateInspection.status.message}}
+            </p>
+
+            {{#if journalCreateInspection.createdJournal}}
+              <ul class="swf-builder-shell__status">
+                <li>Name: {{journalCreateInspection.createdJournal.name}}</li>
+                <li>ID: <code>{{journalCreateInspection.createdJournal.id}}</code></li>
+                {{#if journalCreateInspection.createdJournal.uuid}}
+                  <li>UUID: <code>{{journalCreateInspection.createdJournal.uuid}}</code></li>
+                {{/if}}
+              </ul>
+              {{#if canOpenCreatedJournal}}
+                <button type="button" class="swf-builder-shell__action" data-action="open-created-journal">
+                  Open Created Journal
+                </button>
+              {{/if}}
+            {{/if}}
+
+            <div class="swf-builder-shell__inspection-grid">
+              <section class="swf-builder-shell__inspection-section">
+                <h6>Materialized Clusters</h6>
+                {{#if journalCreateInspection.materializedClusters.length}}
+                  <ul class="swf-builder-shell__status">
+                    {{#each journalCreateInspection.materializedClusters}}
+                      <li>{{this}}</li>
+                    {{/each}}
+                  </ul>
+                {{else}}
+                  <p class="swf-builder-shell__empty">No clusters were materialized in this attempt.</p>
+                {{/if}}
+              </section>
+
+              <section class="swf-builder-shell__inspection-section">
+                <h6>Deferred Clusters</h6>
+                <ul class="swf-builder-shell__status">
+                  {{#each journalCreateInspection.deferredClusters}}
+                    <li>{{this}}</li>
+                  {{/each}}
+                </ul>
+              </section>
+            </div>
+
+            <h6>Preview → Created Mapping</h6>
+            <ul class="swf-builder-shell__status">
+              {{#each journalCreateInspection.fieldMapping}}
+                <li>
+                  <strong>{{this.key}}</strong>:
+                  preview={{this.preview}} |
+                  requested={{this.requested}} |
+                  actual={{this.actual}}
+                </li>
+              {{/each}}
+            </ul>
+
+            <h6>Warnings &amp; Notes</h6>
+            <ul class="swf-builder-shell__status">
+              {{#each journalCreateInspection.warnings}}
+                <li>{{this}}</li>
+              {{/each}}
+              {{#each journalCreateInspection.notes}}
+                <li>{{this}}</li>
+              {{/each}}
+            </ul>
+          </section>
         {{/if}}
       {{/if}}
 
