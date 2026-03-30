@@ -72,11 +72,21 @@
       status: typeof createdPageCount === "number" ? "materialized" : "unknown"
     });
 
+    const previewPresetKey = toNonEmptyString(preview?.preset?.key);
+    const requestedPresetKey = toNonEmptyString(createData?.flags?.[globalThis.SWF?.MODULE_ID]?.journalPresetKey);
+    rows.push({
+      key: "preset",
+      preview: previewPresetKey || "(default)",
+      requested: requestedPresetKey || "(default)",
+      actual: requestedPresetKey || "not inspected",
+      status: requestedPresetKey ? "materialized" : "deferred-inspection"
+    });
+
     const previewNotesCount = toArray(preview?.notes).length;
     rows.push({
       key: "notes",
       preview: `${previewNotesCount} note(s) in preview`,
-      requested: previewNotesCount > 0 ? "mapped into dedicated Details page content" : "no details page requested",
+      requested: previewNotesCount > 0 ? "mapped into preset-defined details page content" : "no details page requested",
       actual: "not compared at field level",
       status: "deferred-inspection"
     });
@@ -85,7 +95,7 @@
     rows.push({
       key: "linkedReferences",
       preview: `${previewReferenceCount} preview reference(s)`,
-      requested: "mapped into a structured References (Deferred) block on the Details page",
+      requested: "mapped into a structured References (Deferred) text page when references are present",
       actual: "document links intentionally not created",
       status: "deferred"
     });
@@ -105,7 +115,7 @@
     ];
 
     const materializedClusters = success
-      ? ["name", "overview text page", "details text page when notes are present", "deferred references text page when references are present"]
+      ? ["name", "preset flag", "overview text page", "details text page when notes are present", "deferred references text page when references are present"]
       : [];
 
     const warnings = [];

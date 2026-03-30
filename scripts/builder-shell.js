@@ -13,13 +13,15 @@
     materializationReadinessPresentation,
     journalReferencePresentation,
     journalMaterialization,
-    journalPostCreateInspection
+    journalPostCreateInspection,
+    journalPresetDefinitions
   } = globalThis.SWF;
   let builderShellApp = null;
 
   class SWFBuilderShellApp extends FormApplication {
     #activeSurface = "item";
     #journalCreateInspection = null;
+    #journalPresetKey = journalPresetDefinitions.DEFAULT_JOURNAL_PRESET_KEY;
 
     static get defaultOptions() {
       return foundry.utils.mergeObject(super.defaultOptions, {
@@ -41,6 +43,7 @@
       html.find("[data-builder-surface]").on("click", this.#onSelectSurface.bind(this));
       html.find('[data-action="create-journal"]').on("click", this.#onCreateJournal.bind(this));
       html.find('[data-action="open-created-journal"]').on("click", this.#onOpenCreatedJournal.bind(this));
+      html.find('[data-action="select-journal-preset"]').on("change", this.#onSelectJournalPreset.bind(this));
     }
 
     getData() {
@@ -51,14 +54,25 @@
       const linkedReferences = activePreview?.preview?.linkedReferences ?? [];
       const validationTrace = activePreview?.preview?.validationTrace ?? {};
       const materializationReadiness = activePreview?.preview?.materializationReadiness ?? {};
+      const journalPreview =
+        activeSurface?.key === "journal"
+          ? journalPresetDefinitions.applyJournalPresetToPreview(activePreview?.preview ?? {}, this.#journalPresetKey)
+          : null;
       const journalReferenceBlock =
         activeSurface?.key === "journal"
           ? journalReferencePresentation.mapSharedReferencesToJournalReferenceBlock(linkedReferences, {
-              targetPageName: "Details"
+              targetPageName: journalPreview?.preset?.detailsPageName || "Details"
             })
           : null;
 
       const canCreateJournal = game.user?.isGM === true && activeSurface?.key === "journal";
+      const activePreviewWithPreset =
+        activeSurface?.key === "journal" && activePreview
+          ? {
+              ...activePreview,
+              preview: journalPreview
+            }
+          : activePreview;
 
       return {
         shell: {
@@ -75,10 +89,17 @@
           isActive: activeSurface ? surface.key === activeSurface.key : false
         })),
         activeSurface,
-        activePreview,
-        activePreviewJson: activePreview ? JSON.stringify(activePreview.preview, null, 2) : "",
+        activePreview: activePreviewWithPreset,
+        activePreviewJson: activePreviewWithPreset ? JSON.stringify(activePreviewWithPreset.preview, null, 2) : "",
         referenceRows: referencePresentation.buildReferenceDisplayRows(linkedReferences),
         journalReferenceBlock,
+        journalPresetOptions: journalPresetDefinitions.getJournalPresets().map((preset) => ({
+          key: preset.key,
+          label: preset.label,
+          description: preset.description,
+          isSelected: preset.key === this.#journalPresetKey
+        })),
+        selectedJournalPreset: journalPreview?.preset ?? null,
         validationTrace: validationTracePresentation.buildValidationTraceDisplay(validationTrace),
         materializationReadiness:
           materializationReadinessPresentation.buildMaterializationReadinessDisplay(materializationReadiness),
@@ -103,12 +124,26 @@
       await this.render(false);
     }
 
+
+    async #onSelectJournalPreset(event) {
+      event.preventDefault();
+      const nextPresetKey = event.currentTarget?.value;
+      if (!nextPresetKey) return;
+
+      this.#journalPresetKey = nextPresetKey;
+      this.#journalCreateInspection = null;
+      await this.render(false);
+    }
+
     async #onCreateJournal(event) {
       event.preventDefault();
       if (!game.user?.isGM) return;
 
       const previewState = authoringPreviewState.getDefaultPreviewState();
-      const journalPreview = previewState?.surfaces?.journal?.preview;
+      const journalPreview = journalPresetDefinitions.applyJournalPresetToPreview(
+        previewState?.surfaces?.journal?.preview ?? {},
+        this.#journalPresetKey
+      );
       if (!journalPreview) {
         const message = "Journal preview is unavailable; creation was skipped.";
         this.#journalCreateInspection = journalPostCreateInspection.buildJournalPostCreateInspection({

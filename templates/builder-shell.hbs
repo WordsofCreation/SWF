@@ -38,6 +38,25 @@
       <h4>Summary</h4>
       <p>{{activePreview.preview.summary}}</p>
 
+      {{#if selectedJournalPreset}}
+        <h4>Journal Preset</h4>
+        <label>
+          Preset
+          <select data-action="select-journal-preset">
+            {{#each journalPresetOptions}}
+              <option value="{{this.key}}" {{#if this.isSelected}}selected{{/if}}>{{this.label}}</option>
+            {{/each}}
+          </select>
+        </label>
+        <ul class="swf-builder-shell__status">
+          <li>Preset Key: <code>{{selectedJournalPreset.key}}</code></li>
+          <li>{{selectedJournalPreset.description}}</li>
+          <li>Overview Page: {{selectedJournalPreset.overviewPageName}}</li>
+          <li>Details Page: {{selectedJournalPreset.detailsPageName}}</li>
+          <li>Reference Page: {{selectedJournalPreset.referencePageName}}</li>
+        </ul>
+      {{/if}}
+
       {{#if canCreateJournal}}
         <h4>Journal Materialization (Controlled Slice)</h4>
         <p>Creates one world JournalEntry from the current Journal preview using minimal v13-safe fields.</p>
