@@ -1,0 +1,50 @@
+<section class="swf-builder-shell__body">
+  <p>
+    Safe stage-1 builder shell for GM preview workflows.
+    This window is read-only and does not create or mutate Item, Actor, or Journal documents.
+  </p>
+
+  <ul class="swf-builder-shell__status">
+    <li>Mode: {{shell.mode}}</li>
+    <li>Source: {{shell.source}}</li>
+    <li>Session: <code>{{shell.sessionId}}</code></li>
+  </ul>
+
+  <nav class="swf-builder-shell__tabs" aria-label="Builder surfaces">
+    {{#each surfaces}}
+      <button
+        type="button"
+        class="swf-builder-shell__tab {{#if this.isActive}}is-active{{/if}}"
+        data-builder-surface="{{this.key}}"
+      >
+        {{this.label}}
+      </button>
+    {{/each}}
+  </nav>
+
+  <section class="swf-builder-shell__panel">
+    <h3>{{activePreview.label}} Preview (Read-Only)</h3>
+    <ul class="swf-builder-shell__status">
+      <li>Status: {{activePreview.status}}</li>
+      <li>Name: {{activePreview.preview.name}}</li>
+      <li>Type: {{activePreview.preview.type}}</li>
+    </ul>
+
+    <h4>Notes</h4>
+    <ul class="swf-builder-shell__status">
+      {{#each activePreview.preview.notes}}
+        <li>{{this}}</li>
+      {{/each}}
+    </ul>
+
+    <h4>Shared Preview Payload</h4>
+    <pre class="swf-builder-shell__code">{{activePreviewJson}}</pre>
+  </section>
+
+  <h4>Current Assumptions</h4>
+  <ul class="swf-builder-shell__status">
+    {{#each assumptions}}
+      <li>{{this}}</li>
+    {{/each}}
+  </ul>
+</section>
