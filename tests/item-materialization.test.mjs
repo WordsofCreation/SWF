@@ -58,10 +58,11 @@ test('item materialization enforces GM-only and creates item on success', async 
   assert.equal(denied.ok, false);
   assert.equal(denied.reason, 'gm-only');
 
-  globalThis.game = { user: { isGM: true } };
+  globalThis.game = { user: { isGM: true }, system: { id: 'dnd5e' } };
   globalThis.Item = {
-    async create(data) {
-      return { id: 'item123', name: data.name, type: data.type };
+    async createDocuments(dataRows) {
+      const [data] = dataRows;
+      return [{ id: 'item123', name: data.name, type: data.type, system: data.system }];
     }
   };
 

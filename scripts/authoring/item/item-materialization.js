@@ -175,11 +175,19 @@
       };
     }
 
-    if (typeof Item?.create !== "function") {
+    if (game.system?.id !== "dnd5e") {
+      return {
+        ok: false,
+        reason: "unsupported-system",
+        errorMessage: "SWF Item materialization currently requires the dnd5e system."
+      };
+    }
+
+    if (typeof Item?.create !== "function" && typeof Item?.createDocuments !== "function") {
       return {
         ok: false,
         reason: "missing-api",
-        errorMessage: "Item.create is not available in this Foundry environment."
+        errorMessage: "Item creation APIs are not available in this Foundry environment."
       };
     }
 
@@ -197,9 +205,22 @@
 
     try {
       const createData = materializationPipeline.createData;
-      const item = await Item.create(createData, {
-        renderSheet: options.renderSheet ?? true
-      });
+      const createdItems =
+        typeof Item.createDocuments === "function"
+          ? await Item.createDocuments([createData], {
+              renderSheet: options.renderSheet ?? true
+            })
+          : [await Item.create(createData, { renderSheet: options.renderSheet ?? true })];
+      const item = Array.isArray(createdItems) ? createdItems[0] : createdItems;
+      if (!item) {
+        return {
+          ok: false,
+          reason: "create-failed",
+          validation,
+          createData,
+          errorMessage: "Item creation returned no document."
+        };
+      }
 
       return {
         ok: true,

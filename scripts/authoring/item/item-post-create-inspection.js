@@ -44,7 +44,9 @@
       key: "classification",
       preview: `featSubtype=${toNonEmptyString(preview?.classification?.featSubtype) || "(default)"}; requirements=${toNonEmptyString(preview?.classification?.requirements) || "(empty)"}`,
       requested: `system.type.value=${toNonEmptyString(createData?.system?.type?.value)}; system.type.subtype=${toNonEmptyString(createData?.system?.type?.subtype)}; system.requirements=${toNonEmptyString(createData?.system?.requirements) || "(empty)"}`,
-      actual: item ? "type cluster present on created Item" : "not inspected",
+      actual: item
+        ? `system.type.value=${toNonEmptyString(item?.system?.type?.value) || toNonEmptyString(item?.type) || "(unknown)"}; system.type.subtype=${toNonEmptyString(item?.system?.type?.subtype) || "(unknown)"}; system.requirements=${toNonEmptyString(item?.system?.requirements) || "(empty)"}`
+        : "not inspected",
       status: item ? "materialized" : "unknown"
     });
 
