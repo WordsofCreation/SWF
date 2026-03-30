@@ -144,16 +144,15 @@
     ]),
     item: Object.freeze([
       Object.freeze({
-        key: "item-guardian-stance",
-        label: "Feat: Guardian Stance",
-        description: "Conservative feat sample aligned to the existing feat-only materialization path.",
+        key: "item-field-kit",
+        label: "Equipment: Field Kit",
+        description: "Conservative equipment sample aligned to the first equipment/loot materialization path.",
         previewOverrides: Object.freeze({
-          name: "Guardian Stance",
-          typeHint: "feat",
-          summary: "Maintain a practiced defensive stance that emphasizes control over aggression.",
+          name: "Field Kit",
+          typeHint: "equipment",
+          summary: "Compact mission-ready gear bundle for routine deployments.",
           classification: Object.freeze({
-            featSubtype: "class",
-            requirements: "Vanguard training"
+            itemCategory: "wondrous"
           }),
           sourceDetails: Object.freeze({
             custom: "SWF Sample Content",
@@ -176,16 +175,15 @@
         })
       }),
       Object.freeze({
-        key: "item-steady-breath",
-        label: "Feat: Steady Breath",
-        description: "Second feat-only sample to validate preview, create-intent, and post-create inspection repeatability.",
+        key: "item-salvage-cache",
+        label: "Loot: Salvage Cache",
+        description: "Conservative loot sample to validate repeatable equipment/loot materialization and inspection flow.",
         previewOverrides: Object.freeze({
-          name: "Steady Breath",
-          typeHint: "feat",
-          summary: "Use measured breathing drills to stay focused under sudden battlefield pressure.",
+          name: "Salvage Cache",
+          typeHint: "loot",
+          summary: "Recovered crate of tradable salvage tags and unrefined components.",
           classification: Object.freeze({
-            featSubtype: "origin",
-            requirements: "Militia background"
+            itemCategory: "treasure"
           }),
           sourceDetails: Object.freeze({
             custom: "SWF Sample Content",
@@ -198,10 +196,10 @@
             {
               kind: "actor",
               label: "Quartermaster Reth",
-              role: "Recommended trainer",
+              role: "Claim adjudicator",
               source: "swf-sample",
               status: "candidate",
-              provisionalNote: "Trainer association remains a non-materialized preview reference.",
+              provisionalNote: "Adjudication association remains a non-materialized preview reference.",
               meta: { localId: "swf.actor.quartermaster-reth" }
             }
           ])

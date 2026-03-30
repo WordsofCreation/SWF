@@ -1,7 +1,7 @@
 <section class="swf-builder-shell__body">
   <p>
     Safe stage-1 builder shell for GM preview workflows.
-    Actor lane includes one controlled npc-only create action. Item lane includes one controlled feat-only create action. Journal lane includes one controlled create action.
+    Actor lane includes one controlled npc-only create action. Item lane includes one controlled equipment/loot create action. Journal lane includes one controlled create action.
   </p>
 
   <ul class="swf-builder-shell__status">
@@ -96,12 +96,11 @@
             <h5>Item Pipeline Stage: Create Intent Summary</h5>
             <ul class="swf-builder-shell__status">
               <li>Path: <code>{{itemCreateIntentSummary.path}}</code></li>
-              <li>Supported Item Type: {{itemCreateIntentSummary.supportedItemType}}</li>
+              <li>Supported Item Types: {{itemCreateIntentSummary.supportedItemTypes}}</li>
               <li>Name: {{itemCreateIntentSummary.name}}</li>
               <li>Type: {{itemCreateIntentSummary.type}}</li>
-              <li>Feat Subtype: {{itemCreateIntentSummary.featSubtype}}</li>
+              <li>Item Category: {{itemCreateIntentSummary.itemCategory}}</li>
               <li>Description Length: {{itemCreateIntentSummary.descriptionLength}}</li>
-              <li>Requirements: {{itemCreateIntentSummary.requirements}}</li>
             </ul>
             <h6>Deferred Clusters</h6>
             <ul class="swf-builder-shell__status">
@@ -111,14 +110,14 @@
             </ul>
           </section>
         {{/if}}
-        <p>Creates one world Item (type feat) from the current Item preview using minimal v13-safe fields.</p>
+        <p>Creates one world Item (type equipment or loot) from normalized Item draft data using minimal v13-safe fields.</p>
         <button
           type="button"
           class="swf-builder-shell__action"
           data-action="create-item"
           {{#unless canCreateItem}}disabled title="Item creation is blocked until validation errors are resolved."{{/unless}}
         >
-          Create Item (Feat Path)
+          Create Item (Equipment/Loot Path)
         </button>
         {{#if itemCreateInspection}}
           <section class="swf-builder-shell__inspection">

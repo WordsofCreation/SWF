@@ -147,13 +147,12 @@
       item: buildSurfacePreview({
         label: "Item",
         documentName: "Item",
-        sampleName: "SWF Guardian Posture",
-        typeHint: "feat",
+        sampleName: "SWF Field Kit",
+        typeHint: "equipment",
         previewOverrides: {
-          summary: "Gain disciplined defensive posture fundamentals.",
+          summary: "Compact mission-ready equipment pack with no embedded automation.",
           classification: Object.freeze({
-            featSubtype: "class",
-            requirements: "Vanguard training"
+            itemCategory: "wondrous"
           }),
           sourceDetails: Object.freeze({
             custom: "SWF Builder",
@@ -175,26 +174,26 @@
           })
         ],
         validationTrace: {
-          warnings: ["Only one feat-only world Item creation path is enabled; activities remain deferred."],
+          warnings: ["Only one equipment/loot world Item creation path is enabled; activities remain deferred."],
           deferredFields: ["dnd5e.system.activities"],
-          provisionalFields: ["classification.featSubtype", "classification.requirements", "sourceDetails.*"],
+          provisionalFields: ["classification.itemCategory", "sourceDetails.*"],
           readiness: {
             status: "partially-ready",
-            summary: "Item lane supports one conservative feat-only creation path; broader dnd5e item system mapping remains deferred."
+            summary: "Item lane supports one conservative equipment/loot creation path; broader dnd5e item system mapping remains deferred."
           },
-          traceNotes: ["One explicit GM-only Item document write path is enabled for feat previews."]
+          traceNotes: ["One explicit GM-only Item document write path is enabled for equipment/loot previews."]
         },
         materializationReadiness: {
           readyClusters: ["name", "summary", "classification", "sourceDetails", "linkedReferences"],
           deferredClusters: ["dnd5e.system.activities", "item ownership defaults"],
-          provisionalClusters: ["feat subtype allow-list coverage", "sourceDetails optional field population"],
+          provisionalClusters: ["equipment/loot category allow-list coverage", "sourceDetails optional field population"],
           readiness: {
             status: "partially-ready",
-            summary: "Item lane can now materialize one feat-style document path while complex item fields remain deferred."
+            summary: "Item lane can now materialize one equipment/loot document path while complex item fields remain deferred."
           },
-          nextStepNote: "Expand from feat-only creation to one additional item type only after validating required dnd5e system clusters."
+          nextStepNote: "Add one optional equipment details cluster (for example weight and quantity) only after validating a stable dnd5e schema contract."
         },
-        notes: ["Preview model remains primary authoring source.", "One controlled GM-only feat Item create path is available."]
+        notes: ["Preview model remains primary authoring source.", "One controlled GM-only equipment/loot Item create path is available."]
       }),
       actor: buildActorPreview(),
       journal: Object.freeze({

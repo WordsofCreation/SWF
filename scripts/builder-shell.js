@@ -118,12 +118,18 @@
       const journalSectionPlan = journalPipeline?.shaping?.sectionPlan ?? null;
       const itemMaterializationPipeline =
         activeSurface?.key === "item"
-          ? itemMaterialization.buildItemMaterializationPipelineFromPreview(activePreview?.preview ?? {})
+          ? itemMaterialization.buildItemMaterializationPipelineFromPreview({
+              ...(activePreview?.preview ?? {}),
+              ...(laneDraftCoordination?.laneDrafts?.item ?? {})
+            })
           : null;
       const itemValidationResult = itemMaterializationPipeline?.stages?.validation ?? null;
       const itemCreateIntentSummary =
         activeSurface?.key === "item"
-          ? itemMaterialization.buildItemCreateIntentSummaryFromPreview(activePreview?.preview ?? {})
+          ? itemMaterialization.buildItemCreateIntentSummaryFromPreview({
+              ...(activePreview?.preview ?? {}),
+              ...(laneDraftCoordination?.laneDrafts?.item ?? {})
+            })
           : null;
       const canCreateItem = game.user?.isGM === true && activeSurface?.key === "item" && itemValidationResult?.ok === true;
 
@@ -231,7 +237,7 @@
         assumptions: [
           "Preview state is module-local and ephemeral in memory.",
           "Journal lane can create one world JournalEntry via explicit GM action.",
-          "Item lane can create one world feat Item via explicit GM action.",
+          "Item lane can create one world equipment/loot Item via explicit GM action.",
           "Actor lane can create one world npc Actor via explicit GM action.",
           "Item/Actor/Journal tabs share one read-only preview state contract.",
           "Linked references use one shared preview-only reference model.",
@@ -257,12 +263,15 @@
       event.preventDefault();
       if (!game.user?.isGM) return;
 
-      const itemPreview = this.#getPreviewStateWithSamples()?.surfaces?.item?.preview ?? {};
+      const itemPreview = {
+        ...(this.#getPreviewStateWithSamples()?.surfaces?.item?.preview ?? {}),
+        ...(this.#laneDrafts?.item ?? {})
+      };
       const materializationPipeline = itemMaterialization.buildItemMaterializationPipelineFromPreview(itemPreview);
       const itemValidationResult = materializationPipeline.stages.validation;
 
       if (!itemValidationResult.ok) {
-        const message = "Item preview failed feat-only validation. Fix preview inputs before creating.";
+        const message = "Item draft failed equipment/loot validation. Fix preview inputs before creating.";
         this.#itemCreateInspection = itemPostCreateInspection.buildItemPostCreateInspection({
           preview: itemPreview,
           result: { ok: false, reason: "validation-failed", errorMessage: message, validation: itemValidationResult }

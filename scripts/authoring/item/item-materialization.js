@@ -1,15 +1,22 @@
 /**
  * Item materialization helpers.
  *
- * Scope: first controlled world-document creation path for Item (feat-only).
+ * Scope: first controlled world-document creation path for Item (equipment/loot only).
  */
 (() => {
   const { MODULE_ID } = globalThis.SWF;
 
-  const SUPPORTED_ITEM_TYPE = "feat";
-  const DEFAULT_FEAT_SUBTYPE = "general";
-  const DEFAULT_ITEM_IMAGE = "icons/svg/book.svg";
-  const ALLOWED_FEAT_SUBTYPES = Object.freeze(["general", "origin", "fightingStyle", "epicBoon", "class", "species", "calling"]);
+  const SUPPORTED_ITEM_TYPES = Object.freeze(["equipment", "loot"]);
+  const DEFAULT_ITEM_TYPE = "equipment";
+  const DEFAULT_ITEM_IMAGE = "icons/svg/item-bag.svg";
+  const DEFAULT_TYPE_CLASSIFICATION = Object.freeze({
+    equipment: "wondrous",
+    loot: "treasure"
+  });
+  const ALLOWED_TYPE_CLASSIFICATIONS = Object.freeze({
+    equipment: Object.freeze(["wondrous", "clothing", "trinket", "light", "medium", "heavy", "shield", "vehicle"]),
+    loot: Object.freeze(["treasure", "gem", "art", "material"])
+  });
 
   function toNonEmptyString(value) {
     if (typeof value !== "string") return "";
@@ -46,20 +53,37 @@
     });
   }
 
+  function resolveSupportedItemType(value) {
+    const normalized = toNonEmptyString(value).toLowerCase();
+    return SUPPORTED_ITEM_TYPES.includes(normalized) ? normalized : "";
+  }
+
+  function resolveItemClassification(itemType, draftValue) {
+    const safeType = resolveSupportedItemType(itemType) || DEFAULT_ITEM_TYPE;
+    const normalized = toNonEmptyString(draftValue);
+    const allowed = ALLOWED_TYPE_CLASSIFICATIONS[safeType] ?? [];
+    return allowed.includes(normalized) ? normalized : DEFAULT_TYPE_CLASSIFICATION[safeType];
+  }
+
   function validateSupportedItemPreview(itemPreview = {}) {
     const normalizedName = toNonEmptyString(itemPreview?.name);
-    const normalizedTypeHint = toNonEmptyString(itemPreview?.typeHint).toLowerCase();
-    const normalizedSubtype = toNonEmptyString(itemPreview?.classification?.featSubtype);
+    const normalizedTypeHint = resolveSupportedItemType(itemPreview?.typeHint);
+    const providedClassification = toNonEmptyString(itemPreview?.classification?.itemCategory);
 
     const errors = [];
     const warnings = [];
 
     if (!normalizedName) errors.push("Item name is required.");
-    if (normalizedTypeHint !== SUPPORTED_ITEM_TYPE) {
-      errors.push(`Only ${SUPPORTED_ITEM_TYPE} item previews are currently supported for creation.`);
+    if (!normalizedTypeHint) {
+      errors.push(`Only ${SUPPORTED_ITEM_TYPES.join(" / ")} item previews are currently supported for creation.`);
     }
-    if (normalizedSubtype && !ALLOWED_FEAT_SUBTYPES.includes(normalizedSubtype)) {
-      warnings.push(`Feat subtype '${normalizedSubtype}' is not in the conservative allow-list; defaulting to ${DEFAULT_FEAT_SUBTYPE}.`);
+    if (normalizedTypeHint && providedClassification) {
+      const allowed = ALLOWED_TYPE_CLASSIFICATIONS[normalizedTypeHint] ?? [];
+      if (!allowed.includes(providedClassification)) {
+        warnings.push(
+          `Classification '${providedClassification}' is not in the conservative allow-list for ${normalizedTypeHint}; defaulting to ${DEFAULT_TYPE_CLASSIFICATION[normalizedTypeHint]}.`
+        );
+      }
     }
 
     return {
@@ -68,8 +92,8 @@
         label: errors.length === 0 ? "Ready" : "Blocked",
         summary:
           errors.length === 0
-            ? "Preview supports one conservative feat Item creation path."
-            : "Preview is missing required feat-only creation inputs."
+            ? "Preview supports one conservative equipment/loot Item creation path."
+            : "Preview is missing required equipment/loot creation inputs."
       },
       errors,
       warnings
@@ -78,17 +102,16 @@
 
   function buildItemMaterializationInputModelFromPreview(itemPreview = {}) {
     const name = toNonEmptyString(itemPreview?.name) || "SWF Item Draft";
+    const itemType = resolveSupportedItemType(itemPreview?.typeHint) || DEFAULT_ITEM_TYPE;
     const summary = toNonEmptyString(itemPreview?.summary);
-    const featSubtype = toNonEmptyString(itemPreview?.classification?.featSubtype) || DEFAULT_FEAT_SUBTYPE;
-    const requirements = toNonEmptyString(itemPreview?.classification?.requirements);
+    const classification = resolveItemClassification(itemType, itemPreview?.classification?.itemCategory);
     const source = buildConservativeSourceCluster(itemPreview?.sourceDetails);
 
     return Object.freeze({
       name,
       summary,
-      type: SUPPORTED_ITEM_TYPE,
-      featSubtype,
-      requirements,
+      type: itemType,
+      itemCategory: classification,
       source,
       identifier: `swf-builder-${slugify(name)}`
     });
@@ -96,13 +119,10 @@
 
   function buildItemCreateDataFromMaterializationInput(materializationInput = {}, itemPreview = {}) {
     const descriptionValue = toDescriptionHtml(materializationInput.summary);
-    const safeSubtype = ALLOWED_FEAT_SUBTYPES.includes(materializationInput.featSubtype)
-      ? materializationInput.featSubtype
-      : DEFAULT_FEAT_SUBTYPE;
 
     return {
       name: materializationInput.name,
-      type: SUPPORTED_ITEM_TYPE,
+      type: materializationInput.type,
       img: toNonEmptyString(itemPreview?.img) || DEFAULT_ITEM_IMAGE,
       system: {
         description: {
@@ -118,26 +138,24 @@
           rules: materializationInput?.source?.rules || ""
         },
         type: {
-          value: SUPPORTED_ITEM_TYPE,
-          subtype: safeSubtype
+          value: materializationInput.itemCategory
         },
-        prerequisites: {
-          level: null
-        },
-        requirements: materializationInput.requirements,
         identifier: materializationInput.identifier
       },
       effects: [],
       flags: {
         [MODULE_ID]: {
-          itemBuilderPath: "feat-only-v1",
+          itemBuilderPath: "equipment-loot-v1",
+          itemType: materializationInput.type,
+          itemCategory: materializationInput.itemCategory,
           itemSummarySource: materializationInput.summary ? "preview.summary" : "defaulted",
           deferredClusters: [
             "system.activities",
             "system.uses",
-            "system.advancement",
-            "system.enchant",
-            "cross-document references"
+            "system.armor",
+            "system.damage",
+            "cross-document references",
+            "ownership and containers"
           ]
         }
       }
@@ -156,8 +174,7 @@
           typeHint: toNonEmptyString(itemPreview?.typeHint),
           summary: toNonEmptyString(itemPreview?.summary),
           classification: Object.freeze({
-            featSubtype: toNonEmptyString(itemPreview?.classification?.featSubtype),
-            requirements: toNonEmptyString(itemPreview?.classification?.requirements)
+            itemCategory: toNonEmptyString(itemPreview?.classification?.itemCategory)
           }),
           sourceDetails: Object.freeze({
             custom: toNonEmptyString(itemPreview?.sourceDetails?.custom),
@@ -168,9 +185,9 @@
           })
         }),
         previewShaping: Object.freeze({
-          path: "feat-only",
+          path: "equipment-loot-only",
           summaryAsDescription: true,
-          classificationCluster: "classification.featSubtype + classification.requirements",
+          classificationCluster: "classification.itemCategory -> system.type.value",
           sourceCluster: "sourceDetails.* -> system.source.* (conservative string pass-through)"
         }),
         validation,
@@ -185,13 +202,12 @@
     const createData = pipeline.createData;
 
     return Object.freeze({
-      path: "feat-only-v1",
-      supportedItemType: SUPPORTED_ITEM_TYPE,
+      path: "equipment-loot-v1",
+      supportedItemTypes: SUPPORTED_ITEM_TYPES,
       name: toNonEmptyString(createData?.name),
       type: toNonEmptyString(createData?.type),
-      featSubtype: toNonEmptyString(createData?.system?.type?.subtype),
+      itemCategory: toNonEmptyString(createData?.system?.type?.value),
       descriptionLength: toNonEmptyString(createData?.system?.description?.value).length,
-      requirements: toNonEmptyString(createData?.system?.requirements) || "(empty)",
       source: Object.freeze({
         custom: toNonEmptyString(createData?.system?.source?.custom) || "(defaulted)",
         book: toNonEmptyString(createData?.system?.source?.book) || "(empty)",
@@ -199,7 +215,7 @@
         license: toNonEmptyString(createData?.system?.source?.license) || "(empty)",
         rules: toNonEmptyString(createData?.system?.source?.rules) || "(empty)"
       }),
-      deferredClusters: Object.freeze(["activities", "uses", "advancement", "effects automation", "linked references"])
+      deferredClusters: Object.freeze(["activities", "uses", "armor and damage profiles", "effects automation", "linked references"])
     });
   }
 
@@ -236,7 +252,7 @@
         ok: false,
         reason: "validation-failed",
         validation,
-        errorMessage: "Item draft failed feat-only validation."
+        errorMessage: "Item draft failed conservative equipment/loot validation."
       };
     }
 
@@ -277,7 +293,7 @@
   }
 
   globalThis.SWF.itemMaterialization = {
-    SUPPORTED_ITEM_TYPE,
+    SUPPORTED_ITEM_TYPES,
     buildItemMaterializationInputModelFromPreview,
     buildItemMaterializationPipelineFromPreview,
     buildItemCreateDataFromMaterializationInput,
@@ -288,7 +304,9 @@
       toNonEmptyString,
       toDescriptionHtml,
       slugify,
-      buildConservativeSourceCluster
+      buildConservativeSourceCluster,
+      resolveSupportedItemType,
+      resolveItemClassification
     }
   };
 })();

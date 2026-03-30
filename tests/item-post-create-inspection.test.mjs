@@ -8,17 +8,17 @@ function loadScript(path) {
   vm.runInThisContext(source, { filename: path });
 }
 
-test('item post-create inspection summarizes successful feat-only creation conservatively', () => {
+test('item post-create inspection summarizes successful equipment/loot creation conservatively', () => {
   globalThis.SWF = { MODULE_ID: 'swf-module' };
 
   loadScript('scripts/authoring/item/item-post-create-inspection.js');
 
   const inspection = globalThis.SWF.itemPostCreateInspection.buildItemPostCreateInspection({
     preview: {
-      name: 'SWF Guardian Posture',
-      typeHint: 'feat',
-      summary: 'Gain disciplined defensive posture fundamentals.',
-      classification: { featSubtype: 'class', requirements: 'Vanguard training' },
+      name: 'SWF Field Kit',
+      typeHint: 'equipment',
+      summary: 'Compact mission-ready equipment pack.',
+      classification: { itemCategory: 'wondrous' },
       sourceDetails: {
         custom: 'SWF Builder QA',
         book: 'SW5e Conversion Notes',
@@ -29,14 +29,14 @@ test('item post-create inspection summarizes successful feat-only creation conse
     },
     result: {
       ok: true,
-      statusMessage: 'Created Item: SWF Guardian Posture',
+      statusMessage: 'Created Item: SWF Field Kit',
       createData: {
-        name: 'SWF Guardian Posture',
-        type: 'feat',
+        name: 'SWF Field Kit',
+        type: 'equipment',
         system: {
-          description: { value: '<p>Gain disciplined defensive posture fundamentals.</p>' },
-          type: { value: 'feat', subtype: 'class' },
-          requirements: 'Vanguard training',
+          description: { value: '<p>Compact mission-ready equipment pack.</p>' },
+          type: { value: 'wondrous' },
+          identifier: 'swf-builder-swf-field-kit',
           source: {
             custom: 'SWF Builder QA',
             book: 'SW5e Conversion Notes',
@@ -47,19 +47,19 @@ test('item post-create inspection summarizes successful feat-only creation conse
         },
         flags: {
           'swf-module': {
-            itemBuilderPath: 'feat-only-v1'
+            itemBuilderPath: 'equipment-loot-v1'
           }
         }
       },
       item: {
         id: 'abc123',
-        name: 'SWF Guardian Posture',
-        type: 'feat',
+        name: 'SWF Field Kit',
+        type: 'equipment',
         uuid: 'Item.abc123',
         system: {
-          description: { value: '<p>Gain disciplined defensive posture fundamentals.</p>' },
-          type: { subtype: 'class' },
-          requirements: 'Vanguard training',
+          description: { value: '<p>Compact mission-ready equipment pack.</p>' },
+          type: { value: 'wondrous' },
+          identifier: 'swf-builder-swf-field-kit',
           source: {
             custom: 'SWF Builder QA',
             book: 'SW5e Conversion Notes',
@@ -70,7 +70,7 @@ test('item post-create inspection summarizes successful feat-only creation conse
         },
         flags: {
           'swf-module': {
-            itemBuilderPath: 'feat-only-v1'
+            itemBuilderPath: 'equipment-loot-v1'
           }
         }
       }
@@ -79,10 +79,10 @@ test('item post-create inspection summarizes successful feat-only creation conse
 
   assert.equal(inspection.status.ok, true);
   assert.equal(inspection.createdItem.id, 'abc123');
-  assert.equal(inspection.materializedClusters.includes('Classification cluster'), true);
+  assert.equal(inspection.materializedClusters.includes('Type profile cluster'), true);
   assert.equal(inspection.materializedClusters.includes('Source details cluster'), true);
   assert.equal(inspection.deferredClusters.includes('system.activities'), true);
-  assert.match(inspection.fieldMapping.find((row) => row.key === 'classification')?.requested ?? '', /system.type.subtype=class/);
+  assert.match(inspection.fieldMapping.find((row) => row.key === 'classification')?.requested ?? '', /system.identifier=swf-builder-swf-field-kit/);
   assert.equal(inspection.traceSummary.attempted, 5);
   assert.equal(inspection.traceSummary.materialized, 5);
   assert.equal(inspection.traceSummary.reviewNeeded, 0);
@@ -110,27 +110,28 @@ test('item post-create inspection flags conservative review when requested and o
         name: 'Mismatch Test',
         system: {
           description: { value: '<p>Preview summary</p>' },
-          type: { subtype: 'class' },
-          requirements: 'Vanguard',
+          type: { value: 'treasure' },
+          identifier: 'swf-builder-mismatch-test',
           source: { custom: 'Requested Source' }
         },
         flags: {
           'swf-module': {
-            itemBuilderPath: 'feat-only-v1'
+            itemBuilderPath: 'equipment-loot-v1'
           }
         }
       },
       item: {
+        type: 'loot',
         name: 'Mismatch Test',
         system: {
           description: { value: '<p>different</p>' },
-          type: { subtype: 'general' },
-          requirements: 'None',
+          type: { value: 'art' },
+          identifier: 'swf-builder-mismatch-test-v2',
           source: { custom: 'Observed Source' }
         },
         flags: {
           'swf-module': {
-            itemBuilderPath: 'feat-only-v2'
+            itemBuilderPath: 'equipment-loot-v2'
           }
         }
       }

@@ -8,7 +8,7 @@ function loadScript(path) {
   vm.runInThisContext(source, { filename: path });
 }
 
-test('item materialization builds conservative feat create payload from item preview', () => {
+test('item materialization builds conservative equipment create payload from item preview', () => {
   globalThis.SWF = { MODULE_ID: 'swf-module' };
   globalThis.foundry = {
     utils: {
@@ -19,12 +19,11 @@ test('item materialization builds conservative feat create payload from item pre
   loadScript('scripts/authoring/item/item-materialization.js');
 
   const pipeline = globalThis.SWF.itemMaterialization.buildItemMaterializationPipelineFromPreview({
-    name: 'SWF Guardian Posture',
-    typeHint: 'feat',
-    summary: 'Gain disciplined defensive posture fundamentals.',
+    name: 'SWF Field Kit',
+    typeHint: 'equipment',
+    summary: 'Compact mission-ready equipment pack.',
     classification: {
-      featSubtype: 'class',
-      requirements: 'Vanguard training'
+      itemCategory: 'wondrous'
     },
     sourceDetails: {
       custom: 'SWF Builder QA',
@@ -36,18 +35,16 @@ test('item materialization builds conservative feat create payload from item pre
   });
 
   assert.equal(pipeline.stages.validation.ok, true);
-  assert.equal(pipeline.createData.name, 'SWF Guardian Posture');
-  assert.equal(pipeline.createData.type, 'feat');
-  assert.equal(pipeline.createData.system.type.value, 'feat');
-  assert.equal(pipeline.createData.system.type.subtype, 'class');
-  assert.match(pipeline.createData.system.description.value, /Gain disciplined defensive posture fundamentals/);
-  assert.equal(pipeline.createData.system.requirements, 'Vanguard training');
+  assert.equal(pipeline.createData.name, 'SWF Field Kit');
+  assert.equal(pipeline.createData.type, 'equipment');
+  assert.equal(pipeline.createData.system.type.value, 'wondrous');
+  assert.match(pipeline.createData.system.description.value, /Compact mission-ready equipment pack/);
   assert.equal(pipeline.createData.system.source.custom, 'SWF Builder QA');
   assert.equal(pipeline.createData.system.source.book, 'SW5e Conversion Notes');
   assert.equal(pipeline.createData.system.source.page, '12');
   assert.equal(pipeline.createData.system.source.license, 'CC-BY-4.0');
   assert.equal(pipeline.createData.system.source.rules, '2024');
-  assert.equal(pipeline.createData.flags['swf-module'].itemBuilderPath, 'feat-only-v1');
+  assert.equal(pipeline.createData.flags['swf-module'].itemBuilderPath, 'equipment-loot-v1');
 });
 
 test('item materialization enforces GM-only and creates item on success', async () => {
@@ -65,7 +62,7 @@ test('item materialization enforces GM-only and creates item on success', async 
 
   const denied = await globalThis.SWF.itemMaterialization.materializeItemPreviewAsWorldItem({
     name: 'Denied Item',
-    typeHint: 'feat'
+    typeHint: 'equipment'
   });
   assert.equal(denied.ok, false);
   assert.equal(denied.reason, 'gm-only');
@@ -79,12 +76,12 @@ test('item materialization enforces GM-only and creates item on success', async 
   };
 
   const created = await globalThis.SWF.itemMaterialization.materializeItemPreviewAsWorldItem({
-    name: 'Created Feat',
-    typeHint: 'feat',
+    name: 'Created Loot',
+    typeHint: 'loot',
     summary: 'Preview summary'
   });
 
   assert.equal(created.ok, true);
   assert.equal(created.item.id, 'item123');
-  assert.equal(created.createData.type, 'feat');
+  assert.equal(created.createData.type, 'loot');
 });

@@ -1,7 +1,7 @@
 /**
  * Post-creation inspection model for the Item builder lane.
  *
- * Scope: conservative GM-facing trust layer for one feat-only Item creation attempt.
+ * Scope: conservative GM-facing trust layer for one equipment/loot Item creation attempt.
  */
 (() => {
   function toNonEmptyString(value) {
@@ -37,11 +37,12 @@
     const requestedDescription = toNonEmptyString(createData?.system?.description?.value);
     const actualDescription = toNonEmptyString(item?.system?.description?.value);
 
-    const requestedSubtype = toNonEmptyString(createData?.system?.type?.subtype);
-    const actualSubtype = toNonEmptyString(item?.system?.type?.subtype);
-
-    const requestedRequirements = toNonEmptyString(createData?.system?.requirements);
-    const actualRequirements = toNonEmptyString(item?.system?.requirements);
+    const requestedType = toNonEmptyString(createData?.type);
+    const actualType = toNonEmptyString(item?.type);
+    const requestedCategory = toNonEmptyString(createData?.system?.type?.value);
+    const actualCategory = toNonEmptyString(item?.system?.type?.value);
+    const requestedIdentifier = toNonEmptyString(createData?.system?.identifier);
+    const actualIdentifier = toNonEmptyString(item?.system?.identifier);
     const requestedSource = JSON.stringify({
       custom: toNonEmptyString(createData?.system?.source?.custom),
       book: toNonEmptyString(createData?.system?.source?.book),
@@ -81,19 +82,20 @@
       },
       {
         key: "classification",
-        label: "Classification cluster",
+        label: "Type profile cluster",
         status:
-          compareValue(requestedSubtype, actualSubtype) === "materialized" &&
-          compareValue(requestedRequirements, actualRequirements) === "materialized"
+          compareValue(requestedType, actualType) === "materialized" &&
+          compareValue(requestedCategory, actualCategory) === "materialized" &&
+          compareValue(requestedIdentifier, actualIdentifier) === "materialized"
             ? "materialized"
             : item
               ? "partial"
               : "deferred-inspection",
-        requested: `subtype=${requestedSubtype || "(default)"}; requirements=${requestedRequirements || "(empty)"}`,
+        requested: `type=${requestedType || "(unknown)"}; category=${requestedCategory || "(default)"}; identifier=${requestedIdentifier || "(defaulted)"}`,
         actual: item
-          ? `subtype=${actualSubtype || "(unknown)"}; requirements=${actualRequirements || "(empty)"}`
+          ? `type=${actualType || "(unknown)"}; category=${actualCategory || "(unknown)"}; identifier=${actualIdentifier || "(unknown)"}`
           : "(not observed)",
-        preview: `featSubtype=${toNonEmptyString(preview?.classification?.featSubtype) || "(default)"}`
+        preview: `typeHint=${toNonEmptyString(preview?.typeHint) || "(empty)"}; itemCategory=${toNonEmptyString(preview?.classification?.itemCategory) || "(default)"}`
       },
       {
         key: "source",
@@ -151,10 +153,10 @@
 
     rows.push({
       key: "classification",
-      preview: `featSubtype=${toNonEmptyString(preview?.classification?.featSubtype) || "(default)"}; requirements=${toNonEmptyString(preview?.classification?.requirements) || "(empty)"}`,
-      requested: `system.type.value=${toNonEmptyString(createData?.system?.type?.value)}; system.type.subtype=${toNonEmptyString(createData?.system?.type?.subtype)}; system.requirements=${toNonEmptyString(createData?.system?.requirements) || "(empty)"}`,
+      preview: `typeHint=${toNonEmptyString(preview?.typeHint) || "(empty)"}; itemCategory=${toNonEmptyString(preview?.classification?.itemCategory) || "(default)"}`,
+      requested: `type=${toNonEmptyString(createData?.type) || "(unknown)"}; system.type.value=${toNonEmptyString(createData?.system?.type?.value)}; system.identifier=${toNonEmptyString(createData?.system?.identifier) || "(defaulted)"}`,
       actual: item
-        ? `system.type.value=${toNonEmptyString(item?.system?.type?.value) || toNonEmptyString(item?.type) || "(unknown)"}; system.type.subtype=${toNonEmptyString(item?.system?.type?.subtype) || "(unknown)"}; system.requirements=${toNonEmptyString(item?.system?.requirements) || "(empty)"}`
+        ? `type=${toNonEmptyString(item?.type) || "(unknown)"}; system.type.value=${toNonEmptyString(item?.system?.type?.value) || "(unknown)"}; system.identifier=${toNonEmptyString(item?.system?.identifier) || "(unknown)"}`
         : "not inspected",
       status: item ? "materialized" : "unknown"
     });
@@ -207,9 +209,11 @@
     const deferredClusters = [
       "system.activities",
       "system.uses",
-      "system.advancement",
+      "system.armor",
+      "system.damage",
       "effects automation",
-      "cross-document references"
+      "cross-document references",
+      "ownership and containers"
     ];
 
     const clusterComparisons = buildClusterComparisonRows({ preview, createData, item });
@@ -234,7 +238,7 @@
     const notes = [
       "This inspection reports one creation attempt from the current Item preview state.",
       "Staged Item lane trace: authoring model -> preview shaping -> validation -> materialization -> post-create inspection.",
-      "Only one feat-only create path is enabled in this slice."
+      "Only one equipment/loot create path is enabled in this slice."
     ];
 
     const traceSummary = {
