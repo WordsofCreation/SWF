@@ -131,3 +131,24 @@
   color: var(--color-text-secondary);
   margin-top: 0.1rem;
 }
+
+.swf-builder-shell__trace-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.5rem;
+  margin: 0.35rem 0 0.6rem;
+}
+
+.swf-builder-shell__trace-section {
+  border: 1px solid var(--color-border-light-tertiary);
+  border-radius: 4px;
+  padding: 0.35rem 0.5rem;
+}
+
+.swf-builder-shell__trace-section h5 {
+  margin: 0 0 0.3rem;
+}
+
+.swf-builder-shell__trace-list {
+  margin-bottom: 0;
+}

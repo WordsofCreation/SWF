@@ -38,6 +38,29 @@
       <h4>Summary</h4>
       <p>{{activePreview.preview.summary}}</p>
 
+
+      <h4>Validation &amp; Trace</h4>
+      <ul class="swf-builder-shell__status">
+        <li>Readiness: <strong>{{validationTrace.readiness.status}}</strong></li>
+        <li>{{validationTrace.readiness.summary}}</li>
+      </ul>
+      <div class="swf-builder-shell__trace-grid">
+        {{#each validationTrace.sections}}
+          <section class="swf-builder-shell__trace-section">
+            <h5>{{this.label}}</h5>
+            {{#if this.hasItems}}
+              <ul class="swf-builder-shell__status swf-builder-shell__trace-list" data-trace-section="{{this.key}}">
+                {{#each this.items}}
+                  <li>{{this}}</li>
+                {{/each}}
+              </ul>
+            {{else}}
+              <p class="swf-builder-shell__empty">{{this.emptyText}}</p>
+            {{/if}}
+          </section>
+        {{/each}}
+      </div>
+
       {{#if activePreview.preview.roleLabel}}
         <h4>Actor Authoring Structure</h4>
         <ul class="swf-builder-shell__status">
