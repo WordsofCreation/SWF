@@ -2,7 +2,7 @@
  * Register SWF module settings.
  */
 (() => {
-  const { MODULE_ID, registerToolShellMenu, registerBuilderShellMenu } = globalThis.SWF;
+  const { MODULE_ID, registerToolShellMenu, registerBuilderShellMenu, registerBuilderShellKeybinding } = globalThis.SWF;
 
   function registerSettings() {
     game.settings.register(MODULE_ID, "debugLogging", {
@@ -34,6 +34,7 @@
 
     registerToolShellMenu();
     registerBuilderShellMenu();
+    registerBuilderShellKeybinding();
   }
 
   globalThis.SWF.registerSettings = registerSettings;
