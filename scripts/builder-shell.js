@@ -1,7 +1,7 @@
 /**
  * Stage-1 GM-facing builder shell.
  *
- * The shell is intentionally read-only and preview-oriented.
+ * The shell is intentionally conservative and preview-first.
  */
 (() => {
   const {
@@ -13,6 +13,8 @@
     materializationReadinessPresentation,
     itemMaterialization,
     itemPostCreateInspection,
+    actorMaterialization,
+    actorPostCreateInspection,
     journalMaterialization,
     journalPostCreateInspection,
     journalPresetDefinitions,
@@ -27,6 +29,7 @@
   class SWFBuilderShellApp extends FormApplication {
     #activeSurface = "item";
     #itemCreateInspection = null;
+    #actorCreateInspection = null;
     #journalCreateInspection = null;
     #journalPresetKey = journalPresetDefinitions.DEFAULT_JOURNAL_PRESET_KEY;
     #laneDrafts = Object.freeze({});
@@ -58,6 +61,8 @@
       html.find("[data-builder-surface]").on("click", this.#onSelectSurface.bind(this));
       html.find('[data-action="create-item"]').on("click", this.#onCreateItem.bind(this));
       html.find('[data-action="open-created-item"]').on("click", this.#onOpenCreatedItem.bind(this));
+      html.find('[data-action="create-actor"]').on("click", this.#onCreateActor.bind(this));
+      html.find('[data-action="open-created-actor"]').on("click", this.#onOpenCreatedActor.bind(this));
       html.find('[data-action="create-journal"]').on("click", this.#onCreateJournal.bind(this));
       html.find('[data-action="open-created-journal"]').on("click", this.#onOpenCreatedJournal.bind(this));
       html.find('[data-action="select-journal-preset"]').on("change", this.#onSelectJournalPreset.bind(this));
@@ -122,6 +127,24 @@
           : null;
       const canCreateItem = game.user?.isGM === true && activeSurface?.key === "item" && itemValidationResult?.ok === true;
 
+      const actorPreviewForCreate =
+        activeSurface?.key === "actor"
+          ? {
+              ...(activePreview?.preview ?? {}),
+              ...(laneDraftCoordination?.laneDrafts?.actor ?? {})
+            }
+          : null;
+      const actorMaterializationPipeline =
+        activeSurface?.key === "actor"
+          ? actorMaterialization.buildActorMaterializationPipelineFromPreview(actorPreviewForCreate ?? {})
+          : null;
+      const actorValidationResult = actorMaterializationPipeline?.stages?.validation ?? null;
+      const actorCreateIntentSummary =
+        activeSurface?.key === "actor"
+          ? actorMaterialization.buildActorCreateIntentSummaryFromPreview(actorPreviewForCreate ?? {})
+          : null;
+      const canCreateActor = game.user?.isGM === true && activeSurface?.key === "actor" && actorValidationResult?.ok === true;
+
       const canCreateJournal =
         game.user?.isGM === true && activeSurface?.key === "journal" && journalValidationResult?.ok === true;
       const journalCreateIntentSummary =
@@ -157,6 +180,11 @@
         itemCreateIntentSummary,
         itemCreateInspection: this.#itemCreateInspection,
         canOpenCreatedItem: Boolean(this.#itemCreateInspection?.createdItem?.id),
+        actorValidation: actorValidationResult,
+        actorCreateIntentSummary,
+        actorCreateInspection: this.#actorCreateInspection,
+        canCreateActor,
+        canOpenCreatedActor: Boolean(this.#actorCreateInspection?.createdActor?.id),
         journalCreateInspection: this.#journalCreateInspection,
         canOpenCreatedJournal: Boolean(this.#journalCreateInspection?.createdJournal?.id),
         surfaces: surfaces.map((surface) => ({
@@ -204,7 +232,7 @@
           "Preview state is module-local and ephemeral in memory.",
           "Journal lane can create one world JournalEntry via explicit GM action.",
           "Item lane can create one world feat Item via explicit GM action.",
-          "Actor lane remains preview-only with no document writes.",
+          "Actor lane can create one world npc Actor via explicit GM action.",
           "Item/Actor/Journal tabs share one read-only preview state contract.",
           "Linked references use one shared preview-only reference model.",
           "This shell is additive and does not override dnd5e sheets."
@@ -219,6 +247,7 @@
 
       this.#activeSurface = surface;
       this.#itemCreateInspection = null;
+      this.#actorCreateInspection = null;
       this.#journalCreateInspection = null;
       await this.#persistWorkspaceState();
       await this.render(false);
@@ -273,6 +302,57 @@
       createdItem.sheet?.render(true, { focus: true });
     }
 
+    async #onCreateActor(event) {
+      event.preventDefault();
+      if (!game.user?.isGM) return;
+
+      const actorPreview = {
+        ...(this.#getPreviewStateWithSamples()?.surfaces?.actor?.preview ?? {}),
+        ...(this.#laneDrafts?.actor ?? {})
+      };
+      const materializationPipeline = actorMaterialization.buildActorMaterializationPipelineFromPreview(actorPreview);
+      const actorValidationResult = materializationPipeline.stages.validation;
+
+      if (!actorValidationResult.ok) {
+        const message = "Actor draft failed npc-only validation. Fix preview inputs before creating.";
+        this.#actorCreateInspection = actorPostCreateInspection.buildActorPostCreateInspection({
+          preview: actorPreview,
+          result: { ok: false, reason: "validation-failed", errorMessage: message, validation: actorValidationResult }
+        });
+        ui.notifications?.error(message);
+        await this.render(false);
+        return;
+      }
+
+      const result = await actorMaterialization.materializeActorPreviewAsWorldActor(actorPreview, {
+        materializationPipeline
+      });
+      this.#actorCreateInspection = actorPostCreateInspection.buildActorPostCreateInspection({
+        preview: actorPreview,
+        result
+      });
+
+      if (result.ok) ui.notifications?.info(result.statusMessage);
+      else ui.notifications?.error(result.errorMessage);
+
+      await this.render(false);
+    }
+
+    async #onOpenCreatedActor(event) {
+      event.preventDefault();
+      if (!game.user?.isGM) return;
+
+      const createdActorId = this.#actorCreateInspection?.createdActor?.id;
+      if (!createdActorId) return;
+
+      const createdActor = game.actors?.get(createdActorId);
+      if (!createdActor) {
+        ui.notifications?.warn("Created Actor could not be found in the Actors sidebar.");
+        return;
+      }
+
+      createdActor.sheet?.render(true, { focus: true });
+    }
 
     async #onSelectJournalPreset(event) {
       event.preventDefault();
@@ -444,6 +524,7 @@
       if (!resetPolicy.clearPostCreationInspection) return;
 
       this.#itemCreateInspection = null;
+      this.#actorCreateInspection = null;
       this.#journalCreateInspection = null;
     }
 

@@ -30,7 +30,7 @@
       label: "Actor",
       status: "available",
       readOnly: true,
-      nonMaterialized: true,
+      nonMaterialized: false,
       preview: Object.freeze({
         name: "SWF Vanguard Drill Sergeant",
         documentName: "Actor",
@@ -69,15 +69,15 @@
           })
         ]),
         validationTrace: createValidationTraceModel({
-          warnings: ["Actor system-data mapping is not finalized in this preview slice."],
+          warnings: ["Only one conservative npc Actor creation path is enabled; dnd5e system-data mapping remains deferred."],
           deferredFields: ["dnd5e.system.attributes", "dnd5e.system.details"],
           provisionalFields: ["typeHint", "classification.encounterRole"],
           readiness: {
-            status: "preview-ready",
-            summary: "Actor lane is ready for review as read-only preview data; materialization remains deferred."
+            status: "partially-ready",
+            summary: "Actor lane supports one controlled npc-only creation path; richer actor system mapping remains deferred."
           },
           traceNotes: [
-            "No Actor document is created during preview.",
+            "One explicit GM-only Actor document write path is enabled for npc previews.",
             "Cross-surface links remain local preview references only."
           ]
         }),
@@ -87,22 +87,22 @@
           provisionalClusters: ["typeHint.npc", "encounter-role mapping"],
           readiness: {
             status: "partially-ready",
-            summary: "Actor preview clusters are inspectable, while document-safe actor system mapping remains deferred."
+            summary: "Actor lane can materialize one npc identity path while document-safe actor system mapping remains deferred."
           },
-          nextStepNote: "Confirm one dnd5e npc actor mapping contract for attributes/details before enabling actor materialization."
+          nextStepNote: "Add one optional npc details cluster mapping (for example biography) only after validating a stable dnd5e actor schema contract."
         }),
         previewMeta: Object.freeze({
           schemaVersion: 1,
           mode: "read-only",
-          materialization: "deferred",
+          materialization: "partial",
           integrationNotes: Object.freeze([
-            "Actor document creation is not implemented in this slice.",
+            "Actor document creation is implemented for one conservative npc-only path.",
             "dnd5e actor system-data mapping remains explicitly deferred."
           ])
         }),
         notes: Object.freeze([
-          "Read-only preview model only.",
-          "No Actor document is created."
+          "Preview model remains primary authoring source.",
+          "One controlled GM-only npc Actor create path is available."
         ])
       })
     });

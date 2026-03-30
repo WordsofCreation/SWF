@@ -29,7 +29,7 @@ test('authoring preview state exposes three shared surfaces', () => {
   );
 });
 
-test('authoring preview state remains read-only and non-materialized for every surface', () => {
+test('authoring preview state remains read-only and tracks conservative materialization flags per surface', () => {
   globalThis.SWF = { MODULE_ID: 'swf-module' };
   globalThis.foundry = { utils: { deepClone: (value) => structuredClone(value) } };
 
@@ -42,7 +42,8 @@ test('authoring preview state remains read-only and non-materialized for every s
   for (const key of ['item', 'actor', 'journal']) {
     const surface = previewState.surfaces[key];
     assert.equal(surface.readOnly, true);
-    assert.equal(surface.nonMaterialized, true);
+    const expectedNonMaterialized = key === 'actor' ? false : true;
+    assert.equal(surface.nonMaterialized, expectedNonMaterialized);
     assert.equal(typeof surface.preview.documentName, 'string');
     assert.equal(typeof surface.preview.name, 'string');
     assert.ok(Array.isArray(surface.preview.notes));
@@ -67,8 +68,8 @@ test('actor surface exposes structured npc-oriented preview clusters', () => {
   assert.equal(actor.classification.actorPath, 'npc-focused');
   assert.equal(typeof actor.identity.disposition, 'string');
   assert.equal(Array.isArray(actor.linkedReferences), true);
-  assert.equal(actor.previewMeta.materialization, 'deferred');
-  assert.equal(actor.validationTrace.readiness.status, 'preview-ready');
+  assert.equal(actor.previewMeta.materialization, 'partial');
+  assert.equal(actor.validationTrace.readiness.status, 'partially-ready');
   assert.equal(actor.materializationReadiness.readiness.status, 'partially-ready');
   assert.ok(actor.materializationReadiness.deferredClusters.includes('dnd5e.system.attributes'));
 });
