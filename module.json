@@ -46,6 +46,8 @@
     "scripts/authoring/shared/builder-workspace-state.js",
     "scripts/authoring/item/item-materialization.js",
     "scripts/authoring/item/item-post-create-inspection.js",
+    "scripts/authoring/actor/actor-materialization.js",
+    "scripts/authoring/actor/actor-post-create-inspection.js",
     "scripts/authoring/journal/journal-reference-presentation.js",
     "scripts/authoring/journal/journal-materialization.js",
     "scripts/authoring/journal/journal-post-create-inspection.js",

@@ -212,7 +212,7 @@
       Object.freeze({
         key: "actor-watch-captain",
         label: "Preview: Watch Captain",
-        description: "Preview-only actor sample to validate actor lane framing while actor materialization stays deferred.",
+        description: "NPC-focused actor sample to validate conservative actor lane creation and deferred system-field visibility.",
         previewOverrides: Object.freeze({
           name: "Watch Captain Iri Dane",
           typeHint: "npc",
