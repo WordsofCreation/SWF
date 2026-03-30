@@ -113,6 +113,7 @@
     documentName,
     sampleName,
     typeHint,
+    previewOverrides = {},
     notes,
     linkedReferences = [],
     validationTrace = {},
@@ -128,6 +129,7 @@
         documentName,
         typeHint,
         summary: `${label} builder preview only`,
+        ...previewOverrides,
         linkedReferences: Object.freeze(linkedReferences),
         validationTrace: createValidationTraceModel(validationTrace),
         materializationReadiness: createMaterializationReadinessModel(materializationReadiness),
@@ -145,8 +147,15 @@
       item: buildSurfacePreview({
         label: "Item",
         documentName: "Item",
-        sampleName: "Sample Item Blueprint",
+        sampleName: "SWF Guardian Posture",
         typeHint: "feat",
+        previewOverrides: {
+          summary: "Gain disciplined defensive posture fundamentals.",
+          classification: Object.freeze({
+            featSubtype: "class",
+            requirements: "Vanguard training"
+          })
+        },
         linkedReferences: [
           createReferenceModel({
             kind: "actor",
@@ -159,26 +168,26 @@
           })
         ],
         validationTrace: {
-          warnings: ["Item usage activities are not modeled in this stage-1 preview."],
+          warnings: ["Only one feat-only world Item creation path is enabled; activities remain deferred."],
           deferredFields: ["dnd5e.system.activities", "dnd5e.system.source"],
-          provisionalFields: ["typeHint", "summary"],
-          readiness: {
-            status: "preview-ready",
-            summary: "Item lane is reviewable in-memory and intentionally blocked from document creation."
-          },
-          traceNotes: ["No Item document write path is enabled."]
-        },
-        materializationReadiness: {
-          readyClusters: ["name", "summary", "linkedReferences"],
-          deferredClusters: ["dnd5e.system.activities", "dnd5e.system.source", "item ownership defaults"],
-          provisionalClusters: ["typeHint.feat"],
+          provisionalFields: ["classification.featSubtype", "classification.requirements"],
           readiness: {
             status: "partially-ready",
-            summary: "Item lane preview data is organized for review, but dnd5e item system fields required for creation are deferred."
+            summary: "Item lane supports one conservative feat-only creation path; broader dnd5e item system mapping remains deferred."
           },
-          nextStepNote: "Pick one documented dnd5e item type contract and map required system fields before item creation is attempted."
+          traceNotes: ["One explicit GM-only Item document write path is enabled for feat previews."]
         },
-        notes: ["Read-only preview model only.", "No Item document is created."]
+        materializationReadiness: {
+          readyClusters: ["name", "summary", "classification", "linkedReferences"],
+          deferredClusters: ["dnd5e.system.activities", "dnd5e.system.source", "item ownership defaults"],
+          provisionalClusters: ["feat subtype allow-list coverage"],
+          readiness: {
+            status: "partially-ready",
+            summary: "Item lane can now materialize one feat-style document path while complex item fields remain deferred."
+          },
+          nextStepNote: "Expand from feat-only creation to one additional item type only after validating required dnd5e system clusters."
+        },
+        notes: ["Preview model remains primary authoring source.", "One controlled GM-only feat Item create path is available."]
       }),
       actor: buildActorPreview(),
       journal: Object.freeze({

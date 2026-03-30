@@ -11,6 +11,8 @@
     referencePresentation,
     validationTracePresentation,
     materializationReadinessPresentation,
+    itemMaterialization,
+    itemPostCreateInspection,
     journalMaterialization,
     journalPostCreateInspection,
     journalPresetDefinitions,
@@ -20,6 +22,7 @@
 
   class SWFBuilderShellApp extends FormApplication {
     #activeSurface = "item";
+    #itemCreateInspection = null;
     #journalCreateInspection = null;
     #journalPresetKey = journalPresetDefinitions.DEFAULT_JOURNAL_PRESET_KEY;
     #journalDraft = null;
@@ -42,6 +45,8 @@
     activateListeners(html) {
       super.activateListeners(html);
       html.find("[data-builder-surface]").on("click", this.#onSelectSurface.bind(this));
+      html.find('[data-action="create-item"]').on("click", this.#onCreateItem.bind(this));
+      html.find('[data-action="open-created-item"]').on("click", this.#onOpenCreatedItem.bind(this));
       html.find('[data-action="create-journal"]').on("click", this.#onCreateJournal.bind(this));
       html.find('[data-action="open-created-journal"]').on("click", this.#onOpenCreatedJournal.bind(this));
       html.find('[data-action="select-journal-preset"]').on("change", this.#onSelectJournalPreset.bind(this));
@@ -79,6 +84,16 @@
       const journalSummaryDetailsFrame = journalPipeline?.shaping?.summaryDetailsFrame ?? null;
       const journalReferenceBlock = journalPipeline?.shaping?.referenceBlock ?? null;
       const journalSectionPlan = journalPipeline?.shaping?.sectionPlan ?? null;
+      const itemMaterializationPipeline =
+        activeSurface?.key === "item"
+          ? itemMaterialization.buildItemMaterializationPipelineFromPreview(activePreview?.preview ?? {})
+          : null;
+      const itemValidationResult = itemMaterializationPipeline?.stages?.validation ?? null;
+      const itemCreateIntentSummary =
+        activeSurface?.key === "item"
+          ? itemMaterialization.buildItemCreateIntentSummaryFromPreview(activePreview?.preview ?? {})
+          : null;
+      const canCreateItem = game.user?.isGM === true && activeSurface?.key === "item" && itemValidationResult?.ok === true;
 
       const canCreateJournal =
         game.user?.isGM === true && activeSurface?.key === "journal" && journalValidationResult?.ok === true;
@@ -102,6 +117,11 @@
           sessionId: previewState.sessionId
         },
         canCreateJournal,
+        canCreateItem,
+        itemValidation: itemValidationResult,
+        itemCreateIntentSummary,
+        itemCreateInspection: this.#itemCreateInspection,
+        canOpenCreatedItem: Boolean(this.#itemCreateInspection?.createdItem?.id),
         journalCreateInspection: this.#journalCreateInspection,
         canOpenCreatedJournal: Boolean(this.#journalCreateInspection?.createdJournal?.id),
         surfaces: surfaces.map((surface) => ({
@@ -133,7 +153,8 @@
         assumptions: [
           "Preview state is module-local and ephemeral in memory.",
           "Journal lane can create one world JournalEntry via explicit GM action.",
-          "Item and Actor lanes remain preview-only with no document writes.",
+          "Item lane can create one world feat Item via explicit GM action.",
+          "Actor lane remains preview-only with no document writes.",
           "Item/Actor/Journal tabs share one read-only preview state contract.",
           "Linked references use one shared preview-only reference model.",
           "This shell is additive and does not override dnd5e sheets."
@@ -147,8 +168,59 @@
       if (!surface) return;
 
       this.#activeSurface = surface;
+      this.#itemCreateInspection = null;
       this.#journalCreateInspection = null;
       await this.render(false);
+    }
+
+    async #onCreateItem(event) {
+      event.preventDefault();
+      if (!game.user?.isGM) return;
+
+      const previewState = authoringPreviewState.getDefaultPreviewState();
+      const itemPreview = previewState?.surfaces?.item?.preview ?? {};
+      const materializationPipeline = itemMaterialization.buildItemMaterializationPipelineFromPreview(itemPreview);
+      const itemValidationResult = materializationPipeline.stages.validation;
+
+      if (!itemValidationResult.ok) {
+        const message = "Item preview failed feat-only validation. Fix preview inputs before creating.";
+        this.#itemCreateInspection = itemPostCreateInspection.buildItemPostCreateInspection({
+          preview: itemPreview,
+          result: { ok: false, reason: "validation-failed", errorMessage: message, validation: itemValidationResult }
+        });
+        ui.notifications?.error(message);
+        await this.render(false);
+        return;
+      }
+
+      const result = await itemMaterialization.materializeItemPreviewAsWorldItem(itemPreview, {
+        materializationPipeline
+      });
+      this.#itemCreateInspection = itemPostCreateInspection.buildItemPostCreateInspection({
+        preview: itemPreview,
+        result
+      });
+
+      if (result.ok) ui.notifications?.info(result.statusMessage);
+      else ui.notifications?.error(result.errorMessage);
+
+      await this.render(false);
+    }
+
+    async #onOpenCreatedItem(event) {
+      event.preventDefault();
+      if (!game.user?.isGM) return;
+
+      const createdItemId = this.#itemCreateInspection?.createdItem?.id;
+      if (!createdItemId) return;
+
+      const createdItem = game.items?.get(createdItemId);
+      if (!createdItem) {
+        ui.notifications?.warn("Created Item could not be found in the Items sidebar.");
+        return;
+      }
+
+      createdItem.sheet?.render(true, { focus: true });
     }
 
 
