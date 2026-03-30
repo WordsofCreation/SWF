@@ -38,6 +38,23 @@
       <h4>Summary</h4>
       <p>{{activePreview.preview.summary}}</p>
 
+      {{#if sampleOptions.length}}
+        <h4>Sample Definition</h4>
+        <label>
+          Sample
+          <select data-action="select-sample" data-sample-surface="{{activeSurface.key}}">
+            {{#each sampleOptions}}
+              <option value="{{this.key}}" {{#if this.isSelected}}selected{{/if}}>{{this.label}}</option>
+            {{/each}}
+          </select>
+        </label>
+        {{#if selectedSample}}
+          <p class="swf-builder-shell__status-note">
+            <strong>{{selectedSample.key}}:</strong> {{selectedSample.description}}
+          </p>
+        {{/if}}
+      {{/if}}
+
       {{#if itemValidation}}
         <h4>Item Materialization (Controlled Slice)</h4>
         <section class="swf-builder-shell__inspection">
