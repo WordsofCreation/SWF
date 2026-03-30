@@ -11,14 +11,11 @@
     referencePresentation,
     validationTracePresentation,
     materializationReadinessPresentation,
-    journalReferencePresentation,
     journalMaterialization,
     journalPostCreateInspection,
     journalPresetDefinitions,
     journalDraftState,
-    journalValidation,
-    journalSummaryDetailsFraming,
-    journalSectionStructure
+    journalBuildPipeline
   } = globalThis.SWF;
   let builderShellApp = null;
 
@@ -66,8 +63,11 @@
         activeSurface?.key === "journal"
           ? journalDraftState.applyJournalDraftToPreview(activePreview?.preview ?? {}, this.#journalDraft ?? {})
           : null;
-      const journalValidationResult =
-        activeSurface?.key === "journal" ? journalValidation.validateJournalPreviewForCreate(journalPreview) : null;
+      const journalPipeline =
+        activeSurface?.key === "journal"
+          ? journalBuildPipeline.buildJournalBuildPipelineFromPreview(journalPreview ?? {})
+          : null;
+      const journalValidationResult = journalPipeline?.validation ?? null;
       const journalPresetDefaultDraft =
         activeSurface?.key === "journal"
           ? this.#buildJournalPresetDefaultDraft(activePreview?.preview ?? {})
@@ -76,26 +76,9 @@
         activeSurface?.key === "journal"
           ? journalDraftState.isJournalDraftDirty(this.#journalDraft ?? {}, journalPresetDefaultDraft ?? {})
           : false;
-      const journalSummaryDetailsFrame =
-        activeSurface?.key === "journal"
-          ? journalSummaryDetailsFraming.buildSummaryDetailsFrameFromPreview(journalPreview ?? {})
-          : null;
-      const journalReferenceBlock =
-        activeSurface?.key === "journal"
-          ? journalReferencePresentation.mapSharedReferencesToJournalReferenceBlock(journalPreview?.linkedReferences ?? linkedReferences, {
-              presetKey: journalPreview?.preset?.referenceEmphasisKey ?? journalPreview?.preset?.key,
-              targetPageName: journalPreview?.preset?.referencePageName || "Deferred References",
-              title: journalPreview?.preset?.referenceBlockTitle,
-              summary: journalPreview?.preset?.referenceBlockSummary
-            })
-          : null;
-      const journalSectionPlan =
-        activeSurface?.key === "journal"
-          ? journalSectionStructure.buildJournalSectionPlanFromPreview(journalPreview ?? {}, {
-              hasDetailsContent: (journalSummaryDetailsFrame?.detailCount ?? 0) > 0,
-              hasReferenceContent: (journalReferenceBlock?.surfacedCount ?? 0) > 0
-            })
-          : null;
+      const journalSummaryDetailsFrame = journalPipeline?.shaping?.summaryDetailsFrame ?? null;
+      const journalReferenceBlock = journalPipeline?.shaping?.referenceBlock ?? null;
+      const journalSectionPlan = journalPipeline?.shaping?.sectionPlan ?? null;
 
       const canCreateJournal =
         game.user?.isGM === true && activeSurface?.key === "journal" && journalValidationResult?.ok === true;
@@ -206,7 +189,8 @@
         previewState?.surfaces?.journal?.preview ?? {},
         this.#journalDraft ?? {}
       );
-      const journalValidationResult = journalValidation.validateJournalPreviewForCreate(journalPreview);
+      const journalPipeline = journalBuildPipeline.buildJournalBuildPipelineFromPreview(journalPreview);
+      const journalValidationResult = journalPipeline.validation;
       if (!journalPreview) {
         const message = "Journal preview is unavailable; creation was skipped.";
         this.#journalCreateInspection = journalPostCreateInspection.buildJournalPostCreateInspection({

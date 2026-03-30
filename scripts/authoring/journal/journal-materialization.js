@@ -4,7 +4,7 @@
  * Scope: first controlled world-document creation path for JournalEntry only.
  */
 (() => {
-  const { MODULE_ID, journalReferencePresentation, journalSummaryDetailsFraming, journalSectionStructure } = globalThis.SWF;
+  const { MODULE_ID, journalSectionStructure, journalBuildPipeline } = globalThis.SWF;
 
   function escapeHtml(value) {
     return String(value ?? "")
@@ -84,7 +84,7 @@
     return `<h2>${escapeHtml(detailsLabel)}</h2><ul>${rowsHtml}</ul>`;
   }
 
-  function buildJournalEntryCreateDataFromPreview(journalPreview = {}) {
+  function buildJournalMaterializationInputModelFromPreview(journalPreview = {}) {
     const name = toNonEmptyString(journalPreview.name) || "SWF Journal Draft";
     const summary = toNonEmptyString(journalPreview.summary) || "No summary provided.";
     const notes = Array.isArray(journalPreview.notes)
@@ -92,31 +92,33 @@
       : [];
 
     const presetKey = toNonEmptyString(journalPreview?.preset?.key) || "lore-entry";
-    const referenceBlockTitle = toNonEmptyString(journalPreview?.preset?.referenceBlockTitle);
-    const referenceBlockSummary = toNonEmptyString(journalPreview?.preset?.referenceBlockSummary);
+    const shapingStage = journalBuildPipeline.buildJournalShapingStageFromPreview(
+      {
+        ...journalPreview,
+        name,
+        summary,
+        notes
+      },
+      { referenceInclusionMode: "linked" }
+    );
+    const summaryDetailsFrame = shapingStage.summaryDetailsFrame;
+    const sectionPlan = shapingStage.sectionPlan;
+    const referenceBlock = shapingStage.referenceBlock;
 
-    const summaryDetailsFrame = journalSummaryDetailsFraming.buildSummaryDetailsFrameFromPreview({
-      ...journalPreview,
+    return Object.freeze({
       name,
       summary,
-      notes
+      notes,
+      presetKey,
+      sectionPlan,
+      summaryDetailsFrame,
+      referenceBlock
     });
+  }
 
-    const sectionPlan = journalSectionStructure.buildJournalSectionPlanFromPreview(journalPreview, {
-      hasDetailsContent: summaryDetailsFrame.detailCount > 0,
-      hasReferenceContent: Array.isArray(journalPreview.linkedReferences) && journalPreview.linkedReferences.length > 0
-    });
-    const referenceSection = sectionPlan.find((section) => section.key === journalSectionStructure.SECTION_KEYS.REFERENCES);
-
-    const referenceBlock = journalReferencePresentation.mapSharedReferencesToJournalReferenceBlock(
-      journalPreview.linkedReferences,
-      {
-        presetKey: toNonEmptyString(journalPreview?.preset?.referenceEmphasisKey) || presetKey,
-        targetPageName: toNonEmptyString(referenceSection?.pageName) || "Deferred References",
-        title: referenceBlockTitle,
-        summary: referenceBlockSummary
-      }
-    );
+  function buildJournalEntryCreateDataFromPreview(journalPreview = {}) {
+    const materializationInput = buildJournalMaterializationInputModelFromPreview(journalPreview);
+    const { name, presetKey, sectionPlan, summaryDetailsFrame, referenceBlock } = materializationInput;
     const referenceBlockHtml = buildStructuredReferenceHtml(referenceBlock);
 
     const format = CONST?.JOURNAL_ENTRY_PAGE_FORMATS?.HTML ?? 1;
@@ -248,8 +250,8 @@
   }
 
   function validateJournalPreview(journalPreview = {}) {
-    if (typeof globalThis.SWF?.journalValidation?.validateJournalPreviewForCreate === "function") {
-      return globalThis.SWF.journalValidation.validateJournalPreviewForCreate(journalPreview);
+    if (typeof globalThis.SWF?.journalBuildPipeline?.buildJournalBuildPipelineFromPreview === "function") {
+      return globalThis.SWF.journalBuildPipeline.buildJournalBuildPipelineFromPreview(journalPreview).validation;
     }
 
     return {
@@ -314,6 +316,7 @@
   }
 
   globalThis.SWF.journalMaterialization = {
+    buildJournalMaterializationInputModelFromPreview,
     buildJournalEntryCreateDataFromPreview,
     buildJournalCreateIntentSummaryFromPreview,
     materializeJournalPreviewAsWorldEntry,
