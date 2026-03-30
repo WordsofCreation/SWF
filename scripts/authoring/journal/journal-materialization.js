@@ -4,7 +4,7 @@
  * Scope: first controlled world-document creation path for JournalEntry only.
  */
 (() => {
-  const { MODULE_ID, journalReferencePresentation, journalSummaryDetailsFraming } = globalThis.SWF;
+  const { MODULE_ID, journalReferencePresentation, journalSummaryDetailsFraming, journalSectionStructure } = globalThis.SWF;
 
   function escapeHtml(value) {
     return String(value ?? "")
@@ -92,9 +92,6 @@
       : [];
 
     const presetKey = toNonEmptyString(journalPreview?.preset?.key) || "lore-entry";
-    const overviewPageName = toNonEmptyString(journalPreview?.preset?.overviewPageName) || "Overview";
-    const detailsPageName = toNonEmptyString(journalPreview?.preset?.detailsPageName) || "Details";
-    const referencePageName = toNonEmptyString(journalPreview?.preset?.referencePageName) || "Deferred References";
     const referenceBlockTitle = toNonEmptyString(journalPreview?.preset?.referenceBlockTitle);
     const referenceBlockSummary = toNonEmptyString(journalPreview?.preset?.referenceBlockSummary);
 
@@ -105,11 +102,17 @@
       notes
     });
 
+    const sectionPlan = journalSectionStructure.buildJournalSectionPlanFromPreview(journalPreview, {
+      hasDetailsContent: summaryDetailsFrame.detailCount > 0,
+      hasReferenceContent: Array.isArray(journalPreview.linkedReferences) && journalPreview.linkedReferences.length > 0
+    });
+    const referenceSection = sectionPlan.find((section) => section.key === journalSectionStructure.SECTION_KEYS.REFERENCES);
+
     const referenceBlock = journalReferencePresentation.mapSharedReferencesToJournalReferenceBlock(
       journalPreview.linkedReferences,
       {
         presetKey: toNonEmptyString(journalPreview?.preset?.referenceEmphasisKey) || presetKey,
-        targetPageName: referencePageName,
+        targetPageName: toNonEmptyString(referenceSection?.pageName) || "Deferred References",
         title: referenceBlockTitle,
         summary: referenceBlockSummary
       }
@@ -119,38 +122,29 @@
     const format = CONST?.JOURNAL_ENTRY_PAGE_FORMATS?.HTML ?? 1;
     const overviewPageContent = buildOverviewPageContent(summaryDetailsFrame);
     const detailsPageContent = buildDetailsPageContent(summaryDetailsFrame);
-    const pages = [
-      {
-        name: overviewPageName,
-        type: "text",
-        text: {
-          format,
-          content: overviewPageContent
-        }
-      }
-    ];
 
-    if (detailsPageContent) {
-      pages.push({
-        name: detailsPageName,
-        type: "text",
-        text: {
-          format,
-          content: detailsPageContent
-        }
-      });
-    }
+    const contentBySectionKey = {
+      [journalSectionStructure.SECTION_KEYS.OVERVIEW]: overviewPageContent,
+      [journalSectionStructure.SECTION_KEYS.DETAILS]: detailsPageContent,
+      [journalSectionStructure.SECTION_KEYS.REFERENCES]: referenceBlockHtml
+    };
 
-    if (referenceBlockHtml) {
-      pages.push({
-        name: referencePageName,
-        type: "text",
-        text: {
-          format,
-          content: referenceBlockHtml
-        }
-      });
-    }
+    const pages = sectionPlan
+      .map((section) => {
+        if (!section.included) return null;
+        const content = toNonEmptyString(contentBySectionKey[section.key]);
+        if (!content) return null;
+
+        return {
+          name: section.pageName,
+          type: "text",
+          text: {
+            format,
+            content
+          }
+        };
+      })
+      .filter(Boolean);
 
     return {
       name,
@@ -159,6 +153,15 @@
         [MODULE_ID]: {
           journalPresetKey: presetKey,
           journalPresetLabel: toNonEmptyString(journalPreview?.preset?.label) || "",
+          journalSectionPlan: sectionPlan.map((section) => ({
+            key: section.key,
+            order: section.order,
+            label: section.label,
+            pageName: section.pageName,
+            included: section.included,
+            conditional: section.conditional,
+            intentNote: section.intentNote
+          })),
           journalReferenceEmphasis: {
             presetKey: toNonEmptyString(referenceBlock?.emphasis?.presetKey),
             primaryGroupLabel: toNonEmptyString(referenceBlock?.emphasis?.primaryGroupLabel),
@@ -179,8 +182,14 @@
     const createData = buildJournalEntryCreateDataFromPreview(journalPreview);
     const presetKey = toNonEmptyString(journalPreview?.preset?.key) || "lore-entry";
     const presetLabel = toNonEmptyString(journalPreview?.preset?.label) || "(unlabeled preset)";
-    const detailsPageName = toNonEmptyString(journalPreview?.preset?.detailsPageName) || "Details";
-    const referencePageName = toNonEmptyString(journalPreview?.preset?.referencePageName) || "Deferred References";
+    const fullSectionPlan = journalSectionStructure.buildJournalSectionPlanFromPreview(journalPreview, {
+      hasDetailsContent: true,
+      hasReferenceContent: true
+    });
+    const detailsSection = fullSectionPlan.find((section) => section.key === journalSectionStructure.SECTION_KEYS.DETAILS);
+    const referenceSection = fullSectionPlan.find((section) => section.key === journalSectionStructure.SECTION_KEYS.REFERENCES);
+    const detailsPageName = toNonEmptyString(detailsSection?.pageName) || "Details";
+    const referencePageName = toNonEmptyString(referenceSection?.pageName) || "Deferred References";
     const pageRows = Array.isArray(createData.pages)
       ? createData.pages.map((page, index) => {
           const pageName = toNonEmptyString(page?.name) || `Page ${index + 1}`;
@@ -212,6 +221,19 @@
           toNonEmptyString(createData?.flags?.[MODULE_ID]?.journalReferenceEmphasis?.secondaryGroupLabel) || "Secondary References",
         note: toNonEmptyString(createData?.flags?.[MODULE_ID]?.journalReferenceEmphasis?.note)
       }),
+      sectionRows: Object.freeze(
+        fullSectionPlan
+          .map((section) =>
+            Object.freeze({
+              order: section.order,
+              key: section.key,
+              label: section.label,
+              pageName: section.pageName,
+              included: pageNames.includes(section.pageName),
+              intentNote: section.intentNote
+            })
+          )
+      ),
       pageRows: Object.freeze(pageRows),
       pageNames: Object.freeze(pageNames),
       includesDetailsPage: pageNames.includes(detailsPageName),

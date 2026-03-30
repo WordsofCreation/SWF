@@ -38,6 +38,16 @@
     });
   }
 
+  function toSectionStructureRows(sections) {
+    return toArray(sections).map((section) => {
+      const order = Number(section?.order) || 0;
+      const label = toNonEmptyString(section?.label) || toNonEmptyString(section?.key) || "(section)";
+      const pageName = toNonEmptyString(section?.pageName) || "(unnamed page)";
+      const inclusion = section?.included ? "included" : "omitted";
+      return `${order}. ${label} -> ${pageName} (${inclusion})`;
+    });
+  }
+
   function findPageByName(pages, targetName) {
     const normalizedTargetName = toNonEmptyString(targetName).toLowerCase();
     if (!normalizedTargetName) return null;
@@ -71,6 +81,18 @@
       requested: requestedOverviewLength > 0 ? `${requestedOverviewLength} chars mapped into ${overviewPageName} page` : "summary defaulted",
       actual: typeof getEntryPageCount(entry) === "number" ? `captured via ${overviewPageName} text page` : "not inspected",
       status: requestedOverviewLength > 0 ? "materialized" : "unknown"
+    });
+
+    const requestedSectionRows = toSectionStructureRows(createData?.flags?.[globalThis.SWF?.MODULE_ID]?.journalSectionPlan);
+    rows.push({
+      key: "preset section structure",
+      preview: toNonEmptyString(preview?.preset?.key) || "(default)",
+      requested:
+        requestedSectionRows.length > 0
+          ? requestedSectionRows.join("; ")
+          : "no explicit section structure captured",
+      actual: requestedSectionRows.length > 0 ? "captured in module flag payload" : "not inspected",
+      status: requestedSectionRows.length > 0 ? "materialized" : "deferred-inspection"
     });
 
     const requestedPageRows = toPageStructureRows(createData?.pages);
@@ -156,7 +178,7 @@
     ];
 
     const materializedClusters = success
-      ? ["name", "preset flag", "summary/details frame labels", "reference emphasis labels", "overview text page", "details text page when notes are present", "deferred references text page when references are present"]
+      ? ["name", "preset flag", "preset section structure", "summary/details frame labels", "reference emphasis labels", "overview text page", "details text page when notes are present", "deferred references text page when references are present"]
       : [];
 
     const warnings = [];
@@ -220,6 +242,7 @@
       getEntryPageCount,
       getPagesArray,
       toPageStructureRows,
+      toSectionStructureRows,
       mapMaterializedFieldRows,
       findPageByName
     }
