@@ -30,6 +30,22 @@
     return `<p>${foundry.utils.escapeHTML(normalizedSummary)}</p>`;
   }
 
+  function buildConservativeSourceCluster(sourceDetails = {}) {
+    const custom = toNonEmptyString(sourceDetails?.custom) || "SWF Builder";
+    const book = toNonEmptyString(sourceDetails?.book);
+    const page = toNonEmptyString(sourceDetails?.page);
+    const license = toNonEmptyString(sourceDetails?.license);
+    const rules = toNonEmptyString(sourceDetails?.rules);
+
+    return Object.freeze({
+      custom,
+      book,
+      page,
+      license,
+      rules
+    });
+  }
+
   function validateSupportedItemPreview(itemPreview = {}) {
     const normalizedName = toNonEmptyString(itemPreview?.name);
     const normalizedTypeHint = toNonEmptyString(itemPreview?.typeHint).toLowerCase();
@@ -65,6 +81,7 @@
     const summary = toNonEmptyString(itemPreview?.summary);
     const featSubtype = toNonEmptyString(itemPreview?.classification?.featSubtype) || DEFAULT_FEAT_SUBTYPE;
     const requirements = toNonEmptyString(itemPreview?.classification?.requirements);
+    const source = buildConservativeSourceCluster(itemPreview?.sourceDetails);
 
     return Object.freeze({
       name,
@@ -72,6 +89,7 @@
       type: SUPPORTED_ITEM_TYPE,
       featSubtype,
       requirements,
+      source,
       identifier: `swf-builder-${slugify(name)}`
     });
   }
@@ -93,7 +111,11 @@
           unidentified: ""
         },
         source: {
-          custom: "SWF Builder"
+          custom: materializationInput?.source?.custom || "SWF Builder",
+          book: materializationInput?.source?.book || "",
+          page: materializationInput?.source?.page || "",
+          license: materializationInput?.source?.license || "",
+          rules: materializationInput?.source?.rules || ""
         },
         type: {
           value: SUPPORTED_ITEM_TYPE,
@@ -136,12 +158,20 @@
           classification: Object.freeze({
             featSubtype: toNonEmptyString(itemPreview?.classification?.featSubtype),
             requirements: toNonEmptyString(itemPreview?.classification?.requirements)
+          }),
+          sourceDetails: Object.freeze({
+            custom: toNonEmptyString(itemPreview?.sourceDetails?.custom),
+            book: toNonEmptyString(itemPreview?.sourceDetails?.book),
+            page: toNonEmptyString(itemPreview?.sourceDetails?.page),
+            license: toNonEmptyString(itemPreview?.sourceDetails?.license),
+            rules: toNonEmptyString(itemPreview?.sourceDetails?.rules)
           })
         }),
         previewShaping: Object.freeze({
           path: "feat-only",
           summaryAsDescription: true,
-          classificationCluster: "classification.featSubtype + classification.requirements"
+          classificationCluster: "classification.featSubtype + classification.requirements",
+          sourceCluster: "sourceDetails.* -> system.source.* (conservative string pass-through)"
         }),
         validation,
         materializationInput
@@ -162,6 +192,13 @@
       featSubtype: toNonEmptyString(createData?.system?.type?.subtype),
       descriptionLength: toNonEmptyString(createData?.system?.description?.value).length,
       requirements: toNonEmptyString(createData?.system?.requirements) || "(empty)",
+      source: Object.freeze({
+        custom: toNonEmptyString(createData?.system?.source?.custom) || "(defaulted)",
+        book: toNonEmptyString(createData?.system?.source?.book) || "(empty)",
+        page: toNonEmptyString(createData?.system?.source?.page) || "(empty)",
+        license: toNonEmptyString(createData?.system?.source?.license) || "(empty)",
+        rules: toNonEmptyString(createData?.system?.source?.rules) || "(empty)"
+      }),
       deferredClusters: Object.freeze(["activities", "uses", "advancement", "effects automation", "linked references"])
     });
   }
@@ -250,7 +287,8 @@
       validateSupportedItemPreview,
       toNonEmptyString,
       toDescriptionHtml,
-      slugify
+      slugify,
+      buildConservativeSourceCluster
     }
   };
 })();
