@@ -132,6 +132,8 @@
               <ul class="swf-builder-shell__status">
                 <li>Name: {{itemCreateInspection.createdItem.name}}</li>
                 <li>Type: {{itemCreateInspection.createdItem.type}}</li>
+                <li>Image: <code>{{itemCreateInspection.createdItem.img}}</code></li>
+                <li>Folder: {{itemCreateInspection.createdItem.folder}}</li>
                 <li>ID: <code>{{itemCreateInspection.createdItem.id}}</code></li>
                 {{#if itemCreateInspection.createdItem.uuid}}
                   <li>UUID: <code>{{itemCreateInspection.createdItem.uuid}}</code></li>
@@ -184,6 +186,21 @@
                 </li>
               {{/each}}
             </ul>
+            <h6>Allowlisted Reconciliation (Normalized Draft ↔ Created Item)</h6>
+            <ul class="swf-builder-shell__status">
+              {{#each itemCreateInspection.inspectionRows}}
+                <li>
+                  <strong>{{this.label}}</strong> (<code>{{this.key}}</code>) [{{this.outcome}}]:
+                  expected={{this.expected}} |
+                  actual={{this.actual}}
+                  {{#if this.note}}<br />
+                    <em>{{this.note}}</em>{{/if}}
+                  {{#if this.readError}}<br />
+                    <em>read error: {{this.readError}}</em>{{/if}}
+                </li>
+              {{/each}}
+            </ul>
+
             {{#if itemCreateInspection.warnings.length}}
               <h6>Warnings / Review Notes</h6>
               <ul class="swf-builder-shell__status">

@@ -33,6 +33,7 @@ test('item post-create inspection summarizes successful equipment/loot creation 
       createData: {
         name: 'SWF Field Kit',
         type: 'equipment',
+        img: 'icons/svg/item-bag.svg',
         system: {
           description: { value: '<p>Compact mission-ready equipment pack.</p>' },
           type: { value: 'wondrous' },
@@ -55,6 +56,7 @@ test('item post-create inspection summarizes successful equipment/loot creation 
         id: 'abc123',
         name: 'SWF Field Kit',
         type: 'equipment',
+        img: 'icons/svg/item-bag.svg',
         uuid: 'Item.abc123',
         system: {
           description: { value: '<p>Compact mission-ready equipment pack.</p>' },
@@ -79,16 +81,25 @@ test('item post-create inspection summarizes successful equipment/loot creation 
 
   assert.equal(inspection.status.ok, true);
   assert.equal(inspection.createdItem.id, 'abc123');
-  assert.equal(inspection.materializedClusters.includes('Type profile cluster'), true);
+  assert.equal(inspection.createdItem.img, 'icons/svg/item-bag.svg');
+  assert.equal(inspection.materializedClusters.includes('Classification cluster'), true);
   assert.equal(inspection.materializedClusters.includes('Source details cluster'), true);
   assert.equal(inspection.deferredClusters.includes('system.activities'), true);
-  assert.match(inspection.fieldMapping.find((row) => row.key === 'classification')?.requested ?? '', /system.identifier=swf-builder-swf-field-kit/);
-  assert.equal(inspection.traceSummary.attempted, 5);
-  assert.equal(inspection.traceSummary.materialized, 5);
+  assert.equal(inspection.traceSummary.attempted, 6);
+  assert.equal(inspection.traceSummary.materialized, 6);
   assert.equal(inspection.traceSummary.reviewNeeded, 0);
+  assert.equal(inspection.traceSummary.deferredInspection, 1);
   assert.equal(
     inspection.clusterComparisons.find((row) => row.key === 'module-metadata')?.status,
-    'materialized'
+    'matched'
+  );
+  assert.equal(
+    inspection.inspectionRows.find((row) => row.key === 'folder')?.outcome,
+    'omitted by design'
+  );
+  assert.equal(
+    inspection.inspectionRows.find((row) => row.key === 'system.rarity')?.outcome,
+    'unsupported/deferred'
   );
 });
 
@@ -100,7 +111,7 @@ test('item post-create inspection flags conservative review when requested and o
   const inspection = globalThis.SWF.itemPostCreateInspection.buildItemPostCreateInspection({
     preview: {
       name: 'Mismatch Test',
-      typeHint: 'feat',
+      typeHint: 'equipment',
       summary: 'Preview summary',
       sourceDetails: { custom: 'Preview Source' }
     },
@@ -108,6 +119,7 @@ test('item post-create inspection flags conservative review when requested and o
       ok: true,
       createData: {
         name: 'Mismatch Test',
+        type: 'equipment',
         system: {
           description: { value: '<p>Preview summary</p>' },
           type: { value: 'treasure' },
@@ -142,5 +154,9 @@ test('item post-create inspection flags conservative review when requested and o
   assert.equal(
     inspection.warnings.some((warning) => warning.includes('needs manual review')),
     true
+  );
+  assert.equal(
+    inspection.clusterComparisons.find((row) => row.key === 'source')?.status,
+    'mismatch/error'
   );
 });
