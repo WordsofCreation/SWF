@@ -38,12 +38,62 @@
       <h4>Summary</h4>
       <p>{{activePreview.preview.summary}}</p>
 
-      <h4>Notes</h4>
-      <ul class="swf-builder-shell__status">
-        {{#each activePreview.preview.notes}}
-          <li>{{this}}</li>
-        {{/each}}
-      </ul>
+      {{#if activePreview.preview.roleLabel}}
+        <h4>Actor Authoring Structure</h4>
+        <ul class="swf-builder-shell__status">
+          <li>Role Label: {{activePreview.preview.roleLabel}}</li>
+          <li>Concept: {{activePreview.preview.concept}}</li>
+        </ul>
+
+        <div class="swf-builder-shell__cluster-grid">
+          <section class="swf-builder-shell__cluster">
+            <h5>Identity Cluster</h5>
+            <ul class="swf-builder-shell__status">
+              <li>Ancestry: {{activePreview.preview.identity.ancestry}}</li>
+              <li>Alignment: {{activePreview.preview.identity.alignment}}</li>
+              <li>Disposition: {{activePreview.preview.identity.disposition}}</li>
+            </ul>
+          </section>
+
+          <section class="swf-builder-shell__cluster">
+            <h5>Classification Cluster</h5>
+            <ul class="swf-builder-shell__status">
+              <li>Actor Path: {{activePreview.preview.classification.actorPath}}</li>
+              <li>Grouping: {{activePreview.preview.classification.grouping}}</li>
+              <li>Encounter Role: {{activePreview.preview.classification.encounterRole}}</li>
+            </ul>
+          </section>
+        </div>
+
+        <h5>Linked References (Preview-Only)</h5>
+        <ul class="swf-builder-shell__status">
+          {{#each activePreview.preview.linkedReferences}}
+            <li>
+              <strong>{{this.kind}}</strong> — {{this.label}}
+              (<code>{{this.localId}}</code>, {{this.status}})
+            </li>
+          {{/each}}
+        </ul>
+
+        <h5>Preview Metadata</h5>
+        <ul class="swf-builder-shell__status">
+          <li>Schema: v{{activePreview.preview.previewMeta.schemaVersion}}</li>
+          <li>Mode: {{activePreview.preview.previewMeta.mode}}</li>
+          <li>Materialization: {{activePreview.preview.previewMeta.materialization}}</li>
+        </ul>
+        <ul class="swf-builder-shell__status">
+          {{#each activePreview.preview.previewMeta.integrationNotes}}
+            <li>{{this}}</li>
+          {{/each}}
+        </ul>
+      {{else}}
+        <h4>Notes</h4>
+        <ul class="swf-builder-shell__status">
+          {{#each activePreview.preview.notes}}
+            <li>{{this}}</li>
+          {{/each}}
+        </ul>
+      {{/if}}
 
       <h4>Shared Preview Payload</h4>
       <pre class="swf-builder-shell__code">{{activePreviewJson}}</pre>
