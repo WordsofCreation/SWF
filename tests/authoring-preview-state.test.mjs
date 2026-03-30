@@ -11,6 +11,7 @@ function loadScript(path) {
 function loadPreviewStateDependencies() {
   loadScript('scripts/authoring/shared/reference-model.js');
   loadScript('scripts/authoring/shared/validation-trace-model.js');
+  loadScript('scripts/authoring/shared/materialization-readiness-model.js');
   loadScript('scripts/authoring/shared/authoring-preview-state.js');
 }
 
@@ -46,6 +47,8 @@ test('authoring preview state remains read-only and non-materialized for every s
     assert.ok(Array.isArray(surface.preview.notes));
     assert.equal(typeof surface.preview.validationTrace.readiness.status, 'string');
     assert.ok(Array.isArray(surface.preview.validationTrace.deferredFields));
+    assert.equal(typeof surface.preview.materializationReadiness.readiness.status, 'string');
+    assert.ok(Array.isArray(surface.preview.materializationReadiness.readyClusters));
   }
 });
 
@@ -65,4 +68,6 @@ test('actor surface exposes structured npc-oriented preview clusters', () => {
   assert.equal(Array.isArray(actor.linkedReferences), true);
   assert.equal(actor.previewMeta.materialization, 'deferred');
   assert.equal(actor.validationTrace.readiness.status, 'preview-ready');
+  assert.equal(actor.materializationReadiness.readiness.status, 'partially-ready');
+  assert.ok(actor.materializationReadiness.deferredClusters.includes('dnd5e.system.attributes'));
 });

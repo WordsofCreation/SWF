@@ -7,9 +7,10 @@
  * - No dnd5e sheet or document overrides.
  */
 (() => {
-  const { MODULE_ID, referenceModel, validationTraceModel } = globalThis.SWF;
+  const { MODULE_ID, referenceModel, validationTraceModel, materializationReadinessModel } = globalThis.SWF;
   const { createReferenceModel } = referenceModel;
   const { createValidationTraceModel } = validationTraceModel;
+  const { createMaterializationReadinessModel } = materializationReadinessModel;
 
   const AUTHORING_SURFACES = Object.freeze([
     Object.freeze({ key: "item", label: "Item", documentName: "Item" }),
@@ -73,6 +74,16 @@
             "Cross-surface links remain local preview references only."
           ]
         }),
+        materializationReadiness: createMaterializationReadinessModel({
+          readyClusters: ["identity", "classification", "linkedReferences"],
+          deferredClusters: ["dnd5e.system.attributes", "dnd5e.system.details", "ownership defaults"],
+          provisionalClusters: ["typeHint.npc", "encounter-role mapping"],
+          readiness: {
+            status: "partially-ready",
+            summary: "Actor preview clusters are inspectable, while document-safe actor system mapping remains deferred."
+          },
+          nextStepNote: "Confirm one dnd5e npc actor mapping contract for attributes/details before enabling actor materialization."
+        }),
         previewMeta: Object.freeze({
           schemaVersion: 1,
           mode: "read-only",
@@ -97,7 +108,8 @@
     typeHint,
     notes,
     linkedReferences = [],
-    validationTrace = {}
+    validationTrace = {},
+    materializationReadiness = {}
   }) {
     return Object.freeze({
       label,
@@ -111,6 +123,7 @@
         summary: `${label} builder preview only`,
         linkedReferences: Object.freeze(linkedReferences),
         validationTrace: createValidationTraceModel(validationTrace),
+        materializationReadiness: createMaterializationReadinessModel(materializationReadiness),
         notes: Object.freeze(notes)
       })
     });
@@ -147,6 +160,16 @@
             summary: "Item lane is reviewable in-memory and intentionally blocked from document creation."
           },
           traceNotes: ["No Item document write path is enabled."]
+        },
+        materializationReadiness: {
+          readyClusters: ["name", "summary", "linkedReferences"],
+          deferredClusters: ["dnd5e.system.activities", "dnd5e.system.source", "item ownership defaults"],
+          provisionalClusters: ["typeHint.feat"],
+          readiness: {
+            status: "partially-ready",
+            summary: "Item lane preview data is organized for review, but dnd5e item system fields required for creation are deferred."
+          },
+          nextStepNote: "Pick one documented dnd5e item type contract and map required system fields before item creation is attempted."
         },
         notes: ["Read-only preview model only.", "No Item document is created."]
       }),
@@ -185,6 +208,16 @@
             summary: "Journal lane is preview-ready with explicit deferred page materialization."
           },
           traceNotes: ["Narrative links are inspectable but not embedded into documents."]
+        },
+        materializationReadiness: {
+          readyClusters: ["name", "summary", "linkedReferences"],
+          deferredClusters: ["pages payload", "ownership defaults", "embedded links"],
+          provisionalClusters: ["entry structure conventions"],
+          readiness: {
+            status: "partially-ready",
+            summary: "Journal lane preview is clear for review while page materialization remains explicitly deferred."
+          },
+          nextStepNote: "Define one minimal JournalEntry page payload contract before enabling journal document creation."
         },
         notes: ["Read-only preview model only.", "No JournalEntry document is created."]
       })

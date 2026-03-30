@@ -29,6 +29,8 @@
     "scripts/authoring/shared/reference-presentation.js",
     "scripts/authoring/shared/validation-trace-model.js",
     "scripts/authoring/shared/validation-trace-presentation.js",
+    "scripts/authoring/shared/materialization-readiness-model.js",
+    "scripts/authoring/shared/materialization-readiness-presentation.js",
     "scripts/authoring/shared/authoring-preview-state.js",
     "scripts/data/manifest-validation.js",
     "scripts/data/canonical-field-inventory.js",

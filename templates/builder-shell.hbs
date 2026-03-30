@@ -61,6 +61,30 @@
         {{/each}}
       </div>
 
+      <h4>Materialization Readiness</h4>
+      <ul class="swf-builder-shell__status">
+        <li>Status: <strong>{{materializationReadiness.readiness.status}}</strong></li>
+        <li>{{materializationReadiness.readiness.summary}}</li>
+        <li>Next-Step Summary: {{materializationReadiness.nextStepSummary}}</li>
+      </ul>
+      <div class="swf-builder-shell__readiness-grid">
+        {{#each materializationReadiness.sections}}
+          <section class="swf-builder-shell__readiness-section">
+            <h5>{{this.label}}</h5>
+            {{#if this.hasItems}}
+              <ul class="swf-builder-shell__status swf-builder-shell__readiness-list" data-readiness-section="{{this.key}}">
+                {{#each this.items}}
+                  <li>{{this}}</li>
+                {{/each}}
+              </ul>
+            {{else}}
+              <p class="swf-builder-shell__empty">{{this.emptyText}}</p>
+            {{/if}}
+          </section>
+        {{/each}}
+      </div>
+      <p><strong>Next step:</strong> {{materializationReadiness.nextStepNote}}</p>
+
       {{#if activePreview.preview.roleLabel}}
         <h4>Actor Authoring Structure</h4>
         <ul class="swf-builder-shell__status">
