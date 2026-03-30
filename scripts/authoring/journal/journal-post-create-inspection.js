@@ -129,7 +129,7 @@
     return rows;
   }
 
-  function buildJournalPostCreateInspection({ preview = {}, result = {} } = {}) {
+  function buildJournalPostCreateInspection({ preview = {}, result = {}, draftState = {} } = {}) {
     const success = result?.ok === true;
     const entry = success ? result.entry ?? null : null;
     const createData = result?.createData ?? null;
@@ -160,7 +160,10 @@
 
     const notes = [
       "This inspection reports one creation attempt from the current Journal preview state.",
-      "Preview-only references remain descriptive text until explicit cross-document materialization is implemented."
+      "Preview-only references remain descriptive text until explicit cross-document materialization is implemented.",
+      draftState?.isDirty
+        ? "Creation attempt used a modified draft relative to the selected preset defaults."
+        : "Creation attempt used preset-derived draft defaults (clean draft state)."
     ];
 
     return {

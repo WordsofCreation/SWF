@@ -50,6 +50,7 @@
         </label>
         <ul class="swf-builder-shell__status">
           <li>Preset Key: <code>{{selectedJournalPreset.key}}</code></li>
+          <li>Draft Status: <strong>{{journalDraftStatus}}</strong></li>
           <li>{{selectedJournalPreset.description}}</li>
           <li>Overview Page: {{selectedJournalPreset.overviewPageName}}</li>
           <li>Details Page: {{selectedJournalPreset.detailsPageName}}</li>
@@ -60,8 +61,16 @@
         {{#if journalDraft}}
           <h4>Journal Draft Inputs (Ephemeral)</h4>
           <p>
-            Preset switching resets these fields to preset defaults for predictable behavior in this conservative slice.
+            Preset switching and Reset Draft restore these fields to preset-derived defaults for predictable behavior in this conservative slice.
           </p>
+          <button
+            type="button"
+            class="swf-builder-shell__action"
+            data-action="reset-journal-draft"
+            {{#unless isJournalDraftDirty}}disabled title="Draft already matches preset defaults."{{/unless}}
+          >
+            Reset Draft to Preset Defaults
+          </button>
           <div class="swf-builder-shell__draft-grid">
             <label>
               Name

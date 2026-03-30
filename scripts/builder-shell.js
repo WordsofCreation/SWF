@@ -47,6 +47,7 @@
       html.find('[data-action="create-journal"]').on("click", this.#onCreateJournal.bind(this));
       html.find('[data-action="open-created-journal"]').on("click", this.#onOpenCreatedJournal.bind(this));
       html.find('[data-action="select-journal-preset"]').on("change", this.#onSelectJournalPreset.bind(this));
+      html.find('[data-action="reset-journal-draft"]').on("click", this.#onResetJournalDraft.bind(this));
       html.find("[data-journal-draft-field]").on("change", this.#onEditJournalDraftField.bind(this));
     }
 
@@ -65,6 +66,17 @@
           : null;
       const journalValidationResult =
         activeSurface?.key === "journal" ? journalValidation.validateJournalPreviewForCreate(journalPreview) : null;
+      const journalPresetDefaultDraft =
+        activeSurface?.key === "journal"
+          ? journalDraftState.createJournalDraftFromPreset(
+              activePreview?.preview ?? {},
+              this.#journalDraft?.selectedPresetKey ?? this.#journalPresetKey
+            )
+          : null;
+      const isJournalDraftDirty =
+        activeSurface?.key === "journal"
+          ? journalDraftState.isJournalDraftDirty(this.#journalDraft ?? {}, journalPresetDefaultDraft ?? {})
+          : false;
       const journalReferenceBlock =
         activeSurface?.key === "journal"
           ? journalReferencePresentation.mapSharedReferencesToJournalReferenceBlock(linkedReferences, {
@@ -110,6 +122,8 @@
           isSelected: preset.key === this.#journalPresetKey
         })),
         selectedJournalPreset: journalPreview?.preset ?? null,
+        journalDraftStatus: activeSurface?.key === "journal" ? (isJournalDraftDirty ? "modified" : "clean") : null,
+        isJournalDraftDirty,
         journalDraft: this.#journalDraft ?? null,
         journalValidation: journalValidationResult,
         validationTrace: validationTracePresentation.buildValidationTraceDisplay(validationTrace),
@@ -156,6 +170,13 @@
       await this.render(false);
     }
 
+    async #onResetJournalDraft(event) {
+      event.preventDefault();
+      this.#resetJournalDraftFromPreset(this.#journalDraft?.selectedPresetKey ?? this.#journalPresetKey);
+      this.#journalCreateInspection = null;
+      await this.render(false);
+    }
+
     async #onCreateJournal(event) {
       event.preventDefault();
       if (!game.user?.isGM) return;
@@ -170,7 +191,8 @@
         const message = "Journal preview is unavailable; creation was skipped.";
         this.#journalCreateInspection = journalPostCreateInspection.buildJournalPostCreateInspection({
           preview: {},
-          result: { ok: false, errorMessage: message, validation: journalValidationResult }
+          result: { ok: false, errorMessage: message, validation: journalValidationResult },
+          draftState: { isDirty: false }
         });
         ui.notifications?.error(message);
         await this.render(false);
@@ -181,7 +203,16 @@
         const message = "Journal draft failed validation. Fix errors before creating a Journal entry.";
         this.#journalCreateInspection = journalPostCreateInspection.buildJournalPostCreateInspection({
           preview: journalPreview,
-          result: { ok: false, reason: "validation-failed", errorMessage: message, validation: journalValidationResult }
+          result: { ok: false, reason: "validation-failed", errorMessage: message, validation: journalValidationResult },
+          draftState: {
+            isDirty: journalDraftState.isJournalDraftDirty(
+              this.#journalDraft ?? {},
+              journalDraftState.createJournalDraftFromPreset(
+                previewState?.surfaces?.journal?.preview ?? {},
+                this.#journalDraft?.selectedPresetKey ?? this.#journalPresetKey
+              )
+            )
+          }
         });
         ui.notifications?.error(message);
         await this.render(false);
@@ -191,7 +222,16 @@
       const result = await journalMaterialization.materializeJournalPreviewAsWorldEntry(journalPreview);
       this.#journalCreateInspection = journalPostCreateInspection.buildJournalPostCreateInspection({
         preview: journalPreview,
-        result
+        result,
+        draftState: {
+          isDirty: journalDraftState.isJournalDraftDirty(
+            this.#journalDraft ?? {},
+            journalDraftState.createJournalDraftFromPreset(
+              previewState?.surfaces?.journal?.preview ?? {},
+              this.#journalDraft?.selectedPresetKey ?? this.#journalPresetKey
+            )
+          )
+        }
       });
 
       if (result.ok) ui.notifications?.info(result.statusMessage);
