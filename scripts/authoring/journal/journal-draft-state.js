@@ -6,6 +6,7 @@
 (() => {
   const { journalPresetDefinitions } = globalThis.SWF;
   const { DEFAULT_JOURNAL_PRESET_KEY, applyJournalPresetToPreview } = journalPresetDefinitions;
+  const JOURNAL_DIRTY_FIELDS = Object.freeze(["name", "summary", "notesText"]);
 
   function toNonEmptyString(value) {
     if (typeof value !== "string") return "";
@@ -30,13 +31,35 @@
 
   function createJournalDraftFromPreset(journalPreview = {}, presetKey = DEFAULT_JOURNAL_PRESET_KEY) {
     const presetPreview = applyJournalPresetToPreview(journalPreview, presetKey);
+    return buildJournalPresetDefaultDraft(presetPreview);
+  }
 
+  function buildJournalPresetDefaultDraft(journalPreview = {}) {
     return {
-      selectedPresetKey: presetPreview?.preset?.key ?? DEFAULT_JOURNAL_PRESET_KEY,
-      name: toNonEmptyString(presetPreview?.name),
-      summary: toNonEmptyString(presetPreview?.summary),
-      notesText: toNotesText(presetPreview?.notes)
+      selectedPresetKey: journalPreview?.preset?.key ?? DEFAULT_JOURNAL_PRESET_KEY,
+      name: toNonEmptyString(journalPreview?.name),
+      summary: toNonEmptyString(journalPreview?.summary),
+      notesText: toNotesText(journalPreview?.notes)
     };
+  }
+
+  function normalizeDraftForDirtyComparison(draft = {}) {
+    return {
+      selectedPresetKey: toNonEmptyString(draft?.selectedPresetKey) || DEFAULT_JOURNAL_PRESET_KEY,
+      name: toNonEmptyString(draft?.name),
+      summary: toNonEmptyString(draft?.summary),
+      notesText: toNotesText(toNotesArray(draft?.notesText))
+    };
+  }
+
+  function isJournalDraftDirty(currentDraft = {}, presetDefaultDraft = {}) {
+    const normalizedCurrent = normalizeDraftForDirtyComparison(currentDraft);
+    const normalizedPresetDefaults = normalizeDraftForDirtyComparison({
+      ...presetDefaultDraft,
+      selectedPresetKey: normalizedCurrent.selectedPresetKey
+    });
+
+    return JOURNAL_DIRTY_FIELDS.some((field) => normalizedCurrent[field] !== normalizedPresetDefaults[field]);
   }
 
   function applyJournalDraftToPreview(journalPreview = {}, draft = {}) {
@@ -67,12 +90,16 @@
 
   globalThis.SWF.journalDraftState = {
     createJournalDraftFromPreset,
+    buildJournalPresetDefaultDraft,
+    isJournalDraftDirty,
     applyJournalDraftToPreview,
     updateDraftField,
     INTERNALS: {
+      JOURNAL_DIRTY_FIELDS,
       toNonEmptyString,
       toNotesArray,
-      toNotesText
+      toNotesText,
+      normalizeDraftForDirtyComparison
     }
   };
 })();
