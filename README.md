@@ -22,7 +22,7 @@ Image-aligned item-type coverage planning now has an explicit capability tracker
 ## Module Manifest URLs (Foundry v13)
 - Repository URL (`url`): `https://github.com/WordsofCreation/SWF`
 - Public manifest URL (`manifest`): `https://raw.githubusercontent.com/WordsofCreation/SWF/main/module.json`
-- Package download URL (`download`): intentionally deferred until a stable release ZIP URL exists.
+- Package download URL (`download`): intentionally deferred until a stable release ZIP URL exists. Until then, install via manifest URL and treat auto-update as deferred.
 
 ## Next Recommended Tasks
 1. Inspect 2–3 analogous dnd5e reference examples for a first target content type (e.g., one simple item).
