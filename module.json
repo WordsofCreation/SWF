@@ -40,6 +40,8 @@
     "scripts/authoring/journal/journal-validation.js",
     "scripts/authoring/journal/journal-build-pipeline.js",
     "scripts/authoring/shared/authoring-preview-state.js",
+    "scripts/authoring/item/item-materialization.js",
+    "scripts/authoring/item/item-post-create-inspection.js",
     "scripts/authoring/journal/journal-reference-presentation.js",
     "scripts/authoring/journal/journal-materialization.js",
     "scripts/authoring/journal/journal-post-create-inspection.js",
