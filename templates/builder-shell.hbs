@@ -31,7 +31,7 @@
         <li>Document: {{activePreview.preview.documentName}}</li>
         <li>Name: {{activePreview.preview.name}}</li>
         <li>Type Hint: {{activePreview.preview.typeHint}}</li>
-        <li>Read-Only: {{#if activePreview.readOnly}}yes{{else}}no{{/if}}</li>
+        <li>Read-Only: {{#if selectedJournalPreset}}mostly (tiny Journal draft fields are editable){{else}}{{#if activePreview.readOnly}}yes{{else}}no{{/if}}{{/if}}</li>
         <li>Materialization: {{#if activePreview.nonMaterialized}}deferred{{else}}active{{/if}}</li>
       </ul>
 
@@ -55,8 +55,42 @@
           <li>Details Page: {{selectedJournalPreset.detailsPageName}}</li>
           <li>Reference Page: {{selectedJournalPreset.referencePageName}}</li>
           <li>Reference Block Title: {{selectedJournalPreset.referenceBlockTitle}}</li>
-          <li>Reference Emphasis: {{selectedJournalPreset.referenceBlockSummary}}</li>
-        </ul>
+            <li>Reference Emphasis: {{selectedJournalPreset.referenceBlockSummary}}</li>
+          </ul>
+        {{#if journalDraft}}
+          <h4>Journal Draft Inputs (Ephemeral)</h4>
+          <p>
+            Preset switching resets these fields to preset defaults for predictable behavior in this conservative slice.
+          </p>
+          <div class="swf-builder-shell__draft-grid">
+            <label>
+              Name
+              <input
+                type="text"
+                data-journal-draft-field="name"
+                value="{{journalDraft.name}}"
+                placeholder="Journal name"
+              />
+            </label>
+            <label>
+              Summary
+              <input
+                type="text"
+                data-journal-draft-field="summary"
+                value="{{journalDraft.summary}}"
+                placeholder="One-line summary used in overview content"
+              />
+            </label>
+            <label>
+              Notes / Details (one line per bullet)
+              <textarea
+                data-journal-draft-field="notesText"
+                rows="5"
+                placeholder="Each non-empty line becomes one details bullet"
+              >{{journalDraft.notesText}}</textarea>
+            </label>
+          </div>
+        {{/if}}
       {{/if}}
 
       {{#if canCreateJournal}}

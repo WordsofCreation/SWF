@@ -38,6 +38,15 @@
     });
   }
 
+  function findPageByName(pages, targetName) {
+    const normalizedTargetName = toNonEmptyString(targetName).toLowerCase();
+    if (!normalizedTargetName) return null;
+
+    return (
+      getPagesArray(pages).find((page) => toNonEmptyString(page?.name).toLowerCase() === normalizedTargetName) ?? null
+    );
+  }
+
   function mapMaterializedFieldRows({ preview, createData, entry }) {
     const rows = [];
 
@@ -53,6 +62,17 @@
     });
 
     const previewSummary = toNonEmptyString(preview?.summary);
+    const overviewPageName = toNonEmptyString(preview?.preset?.overviewPageName) || "Overview";
+    const requestedOverviewPage = findPageByName(createData?.pages, overviewPageName);
+    const requestedOverviewLength = toNonEmptyString(requestedOverviewPage?.text?.content).length;
+    rows.push({
+      key: "summary",
+      preview: previewSummary || "(empty)",
+      requested: requestedOverviewLength > 0 ? `${requestedOverviewLength} chars mapped into ${overviewPageName} page` : "summary defaulted",
+      actual: typeof getEntryPageCount(entry) === "number" ? `captured via ${overviewPageName} text page` : "not inspected",
+      status: requestedOverviewLength > 0 ? "materialized" : "unknown"
+    });
+
     const requestedPageRows = toPageStructureRows(createData?.pages);
     const requestedPages = requestedPageRows.length;
     const createdPageCount = getEntryPageCount(entry);
@@ -87,12 +107,14 @@
     });
 
     const previewNotesCount = toArray(preview?.notes).length;
+    const detailsPageName = toNonEmptyString(preview?.preset?.detailsPageName) || "Details";
+    const detailsPageRequested = Boolean(findPageByName(createData?.pages, detailsPageName));
     rows.push({
-      key: "notes",
+      key: "notes/details",
       preview: `${previewNotesCount} note(s) in preview`,
-      requested: previewNotesCount > 0 ? "mapped into preset-defined details page content" : "no details page requested",
-      actual: "not compared at field level",
-      status: "deferred-inspection"
+      requested: detailsPageRequested ? `details page requested (${detailsPageName})` : "no details page requested",
+      actual: detailsPageRequested ? "details captured in text page (line-level diff deferred)" : "none requested",
+      status: detailsPageRequested ? "materialized" : "deferred-inspection"
     });
 
     const previewReferenceCount = toArray(preview?.linkedReferences).length;
@@ -165,7 +187,8 @@
       getEntryPageCount,
       getPagesArray,
       toPageStructureRows,
-      mapMaterializedFieldRows
+      mapMaterializedFieldRows,
+      findPageByName
     }
   };
 })();

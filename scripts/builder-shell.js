@@ -14,7 +14,8 @@
     journalReferencePresentation,
     journalMaterialization,
     journalPostCreateInspection,
-    journalPresetDefinitions
+    journalPresetDefinitions,
+    journalDraftState
   } = globalThis.SWF;
   let builderShellApp = null;
 
@@ -22,6 +23,7 @@
     #activeSurface = "item";
     #journalCreateInspection = null;
     #journalPresetKey = journalPresetDefinitions.DEFAULT_JOURNAL_PRESET_KEY;
+    #journalDraft = null;
 
     static get defaultOptions() {
       return foundry.utils.mergeObject(super.defaultOptions, {
@@ -44,6 +46,7 @@
       html.find('[data-action="create-journal"]').on("click", this.#onCreateJournal.bind(this));
       html.find('[data-action="open-created-journal"]').on("click", this.#onOpenCreatedJournal.bind(this));
       html.find('[data-action="select-journal-preset"]').on("change", this.#onSelectJournalPreset.bind(this));
+      html.find("[data-journal-draft-field]").on("change", this.#onEditJournalDraftField.bind(this));
     }
 
     getData() {
@@ -54,9 +57,10 @@
       const linkedReferences = activePreview?.preview?.linkedReferences ?? [];
       const validationTrace = activePreview?.preview?.validationTrace ?? {};
       const materializationReadiness = activePreview?.preview?.materializationReadiness ?? {};
+      if (activeSurface?.key === "journal" && !this.#journalDraft) this.#resetJournalDraftFromPreset(this.#journalPresetKey);
       const journalPreview =
         activeSurface?.key === "journal"
-          ? journalPresetDefinitions.applyJournalPresetToPreview(activePreview?.preview ?? {}, this.#journalPresetKey)
+          ? journalDraftState.applyJournalDraftToPreview(activePreview?.preview ?? {}, this.#journalDraft ?? {})
           : null;
       const journalReferenceBlock =
         activeSurface?.key === "journal"
@@ -102,6 +106,7 @@
           isSelected: preset.key === this.#journalPresetKey
         })),
         selectedJournalPreset: journalPreview?.preset ?? null,
+        journalDraft: this.#journalDraft ?? null,
         validationTrace: validationTracePresentation.buildValidationTraceDisplay(validationTrace),
         materializationReadiness:
           materializationReadinessPresentation.buildMaterializationReadinessDisplay(materializationReadiness),
@@ -132,7 +137,16 @@
       const nextPresetKey = event.currentTarget?.value;
       if (!nextPresetKey) return;
 
-      this.#journalPresetKey = nextPresetKey;
+      this.#resetJournalDraftFromPreset(nextPresetKey);
+      this.#journalCreateInspection = null;
+      await this.render(false);
+    }
+
+    async #onEditJournalDraftField(event) {
+      const field = event.currentTarget?.dataset?.journalDraftField;
+      if (!field) return;
+
+      this.#journalDraft = journalDraftState.updateDraftField(this.#journalDraft ?? {}, field, event.currentTarget?.value);
       this.#journalCreateInspection = null;
       await this.render(false);
     }
@@ -142,9 +156,9 @@
       if (!game.user?.isGM) return;
 
       const previewState = authoringPreviewState.getDefaultPreviewState();
-      const journalPreview = journalPresetDefinitions.applyJournalPresetToPreview(
+      const journalPreview = journalDraftState.applyJournalDraftToPreview(
         previewState?.surfaces?.journal?.preview ?? {},
-        this.#journalPresetKey
+        this.#journalDraft ?? {}
       );
       if (!journalPreview) {
         const message = "Journal preview is unavailable; creation was skipped.";
@@ -187,6 +201,15 @@
 
     async _updateObject() {
       // Intentionally empty: stage-1 builder shell has no persistence.
+    }
+
+    #resetJournalDraftFromPreset(presetKey) {
+      const previewState = authoringPreviewState.getDefaultPreviewState();
+      this.#journalDraft = journalDraftState.createJournalDraftFromPreset(
+        previewState?.surfaces?.journal?.preview ?? {},
+        presetKey
+      );
+      this.#journalPresetKey = this.#journalDraft.selectedPresetKey;
     }
   }
 
