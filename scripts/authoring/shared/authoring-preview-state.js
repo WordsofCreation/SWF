@@ -7,8 +7,9 @@
  * - No dnd5e sheet or document overrides.
  */
 (() => {
-  const { MODULE_ID, referenceModel } = globalThis.SWF;
+  const { MODULE_ID, referenceModel, validationTraceModel } = globalThis.SWF;
   const { createReferenceModel } = referenceModel;
+  const { createValidationTraceModel } = validationTraceModel;
 
   const AUTHORING_SURFACES = Object.freeze([
     Object.freeze({ key: "item", label: "Item", documentName: "Item" }),
@@ -59,6 +60,19 @@
             meta: { localId: "swf.item.guardian-posture" }
           })
         ]),
+        validationTrace: createValidationTraceModel({
+          warnings: ["Actor system-data mapping is not finalized in this preview slice."],
+          deferredFields: ["dnd5e.system.attributes", "dnd5e.system.details"],
+          provisionalFields: ["typeHint", "classification.encounterRole"],
+          readiness: {
+            status: "preview-ready",
+            summary: "Actor lane is ready for review as read-only preview data; materialization remains deferred."
+          },
+          traceNotes: [
+            "No Actor document is created during preview.",
+            "Cross-surface links remain local preview references only."
+          ]
+        }),
         previewMeta: Object.freeze({
           schemaVersion: 1,
           mode: "read-only",
@@ -76,7 +90,15 @@
     });
   }
 
-  function buildSurfacePreview({ label, documentName, sampleName, typeHint, notes, linkedReferences = [] }) {
+  function buildSurfacePreview({
+    label,
+    documentName,
+    sampleName,
+    typeHint,
+    notes,
+    linkedReferences = [],
+    validationTrace = {}
+  }) {
     return Object.freeze({
       label,
       status: "available",
@@ -88,6 +110,7 @@
         typeHint,
         summary: `${label} builder preview only`,
         linkedReferences: Object.freeze(linkedReferences),
+        validationTrace: createValidationTraceModel(validationTrace),
         notes: Object.freeze(notes)
       })
     });
@@ -115,6 +138,16 @@
             meta: { localId: "swf.actor.vanguard-drill-sergeant" }
           })
         ],
+        validationTrace: {
+          warnings: ["Item usage activities are not modeled in this stage-1 preview."],
+          deferredFields: ["dnd5e.system.activities", "dnd5e.system.source"],
+          provisionalFields: ["typeHint", "summary"],
+          readiness: {
+            status: "preview-ready",
+            summary: "Item lane is reviewable in-memory and intentionally blocked from document creation."
+          },
+          traceNotes: ["No Item document write path is enabled."]
+        },
         notes: ["Read-only preview model only.", "No Item document is created."]
       }),
       actor: buildActorPreview(),
@@ -143,6 +176,16 @@
             meta: { localId: "swf.item.guardian-posture" }
           })
         ],
+        validationTrace: {
+          warnings: ["Journal page structure is represented as summary text only in this preview."],
+          deferredFields: ["pages", "ownership"],
+          provisionalFields: ["name", "linkedReferences"],
+          readiness: {
+            status: "preview-ready",
+            summary: "Journal lane is preview-ready with explicit deferred page materialization."
+          },
+          traceNotes: ["Narrative links are inspectable but not embedded into documents."]
+        },
         notes: ["Read-only preview model only.", "No JournalEntry document is created."]
       })
     })

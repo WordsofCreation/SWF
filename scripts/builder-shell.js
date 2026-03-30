@@ -4,7 +4,7 @@
  * The shell is intentionally read-only and preview-oriented.
  */
 (() => {
-  const { MODULE_ID, log, authoringPreviewState, referencePresentation } = globalThis.SWF;
+  const { MODULE_ID, log, authoringPreviewState, referencePresentation, validationTracePresentation } = globalThis.SWF;
   let builderShellApp = null;
 
   class SWFBuilderShellApp extends FormApplication {
@@ -36,6 +36,7 @@
       const activeSurface = surfaces.find((surface) => surface.key === this.#activeSurface) ?? surfaces[0];
       const activePreview = activeSurface ? previewState.surfaces[activeSurface.key] ?? null : null;
       const linkedReferences = activePreview?.preview?.linkedReferences ?? [];
+      const validationTrace = activePreview?.preview?.validationTrace ?? {};
 
       return {
         shell: {
@@ -52,6 +53,7 @@
         activePreview,
         activePreviewJson: activePreview ? JSON.stringify(activePreview.preview, null, 2) : "",
         referenceRows: referencePresentation.buildReferenceDisplayRows(linkedReferences),
+        validationTrace: validationTracePresentation.buildValidationTraceDisplay(validationTrace),
         assumptions: [
           "Preview state is module-local and ephemeral in memory.",
           "No world or compendium documents are created or updated.",

@@ -8,11 +8,17 @@ function loadScript(path) {
   vm.runInThisContext(source, { filename: path });
 }
 
+function loadPreviewStateDependencies() {
+  loadScript('scripts/authoring/shared/reference-model.js');
+  loadScript('scripts/authoring/shared/validation-trace-model.js');
+  loadScript('scripts/authoring/shared/authoring-preview-state.js');
+}
+
 test('authoring preview state exposes three shared surfaces', () => {
   globalThis.SWF = { MODULE_ID: 'swf-module' };
   globalThis.foundry = { utils: { deepClone: (value) => structuredClone(value) } };
 
-  loadScript('scripts/authoring/shared/authoring-preview-state.js');
+  loadPreviewStateDependencies();
 
   const surfaces = globalThis.SWF.authoringPreviewState.getAuthoringSurfaces();
   assert.deepEqual(
@@ -25,7 +31,7 @@ test('authoring preview state remains read-only and non-materialized for every s
   globalThis.SWF = { MODULE_ID: 'swf-module' };
   globalThis.foundry = { utils: { deepClone: (value) => structuredClone(value) } };
 
-  loadScript('scripts/authoring/shared/authoring-preview-state.js');
+  loadPreviewStateDependencies();
 
   const previewState = globalThis.SWF.authoringPreviewState.getDefaultPreviewState();
   assert.equal(previewState.mode, 'read-only');
@@ -38,6 +44,8 @@ test('authoring preview state remains read-only and non-materialized for every s
     assert.equal(typeof surface.preview.documentName, 'string');
     assert.equal(typeof surface.preview.name, 'string');
     assert.ok(Array.isArray(surface.preview.notes));
+    assert.equal(typeof surface.preview.validationTrace.readiness.status, 'string');
+    assert.ok(Array.isArray(surface.preview.validationTrace.deferredFields));
   }
 });
 
@@ -45,7 +53,7 @@ test('actor surface exposes structured npc-oriented preview clusters', () => {
   globalThis.SWF = { MODULE_ID: 'swf-module' };
   globalThis.foundry = { utils: { deepClone: (value) => structuredClone(value) } };
 
-  loadScript('scripts/authoring/shared/authoring-preview-state.js');
+  loadPreviewStateDependencies();
 
   const previewState = globalThis.SWF.authoringPreviewState.getDefaultPreviewState();
   const actor = previewState.surfaces.actor.preview;
@@ -56,4 +64,5 @@ test('actor surface exposes structured npc-oriented preview clusters', () => {
   assert.equal(typeof actor.identity.disposition, 'string');
   assert.equal(Array.isArray(actor.linkedReferences), true);
   assert.equal(actor.previewMeta.materialization, 'deferred');
+  assert.equal(actor.validationTrace.readiness.status, 'preview-ready');
 });
