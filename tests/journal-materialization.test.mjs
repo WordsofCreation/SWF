@@ -8,7 +8,7 @@ function loadScript(path) {
   vm.runInThisContext(source, { filename: path });
 }
 
-test('journal materialization builds minimal JournalEntry create payload with deferred notes', () => {
+test('journal materialization builds explicit overview and details pages when details content exists', () => {
   globalThis.SWF = { MODULE_ID: 'swf-module' };
   globalThis.CONST = { JOURNAL_ENTRY_PAGE_FORMATS: { HTML: 1 } };
 
@@ -31,11 +31,32 @@ test('journal materialization builds minimal JournalEntry create payload with de
   const data = globalThis.SWF.journalMaterialization.buildJournalEntryCreateDataFromPreview(preview);
   assert.equal(data.name, 'Sample Journal Blueprint');
   assert.equal(Array.isArray(data.pages), true);
-  assert.equal(data.pages.length, 1);
+  assert.equal(data.pages.length, 2);
+  assert.equal(data.pages[0].name, 'Overview');
   assert.equal(data.pages[0].type, 'text');
   assert.equal(data.pages[0].text.format, 1);
-  assert.match(data.pages[0].text.content, /Deferred References/);
-  assert.match(data.pages[0].text.content, /SWF Vanguard Drill Sergeant/);
+  assert.match(data.pages[0].text.content, /Journal builder preview only/);
+  assert.equal(data.pages[1].name, 'Details');
+  assert.equal(data.pages[1].type, 'text');
+  assert.equal(data.pages[1].text.format, 1);
+  assert.match(data.pages[1].text.content, /Deferred References/);
+  assert.match(data.pages[1].text.content, /SWF Vanguard Drill Sergeant/);
+});
+
+test('journal materialization creates only overview page when notes and references are absent', () => {
+  globalThis.SWF = { MODULE_ID: 'swf-module' };
+  globalThis.CONST = { JOURNAL_ENTRY_PAGE_FORMATS: { HTML: 1 } };
+
+  loadScript('scripts/authoring/journal/journal-materialization.js');
+
+  const data = globalThis.SWF.journalMaterialization.buildJournalEntryCreateDataFromPreview({
+    name: 'One Page Journal',
+    summary: 'Overview only.'
+  });
+
+  assert.equal(data.pages.length, 1);
+  assert.equal(data.pages[0].name, 'Overview');
+  assert.match(data.pages[0].text.content, /Overview only/);
 });
 
 test('journal materialization enforces GM-only and returns created entry on success', async () => {
