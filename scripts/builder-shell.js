@@ -14,8 +14,7 @@
     journalMaterialization,
     journalPostCreateInspection,
     journalPresetDefinitions,
-    journalDraftState,
-    journalBuildPipeline
+    journalDraftState
   } = globalThis.SWF;
   let builderShellApp = null;
 
@@ -63,10 +62,11 @@
         activeSurface?.key === "journal"
           ? journalDraftState.applyJournalDraftToPreview(activePreview?.preview ?? {}, this.#journalDraft ?? {})
           : null;
-      const journalPipeline =
+      const journalMaterializationPipeline =
         activeSurface?.key === "journal"
-          ? journalBuildPipeline.buildJournalBuildPipelineFromPreview(journalPreview ?? {})
+          ? journalMaterialization.buildJournalMaterializationPipelineFromPreview(journalPreview ?? {})
           : null;
+      const journalPipeline = journalMaterializationPipeline?.stages ?? null;
       const journalValidationResult = journalPipeline?.validation ?? null;
       const journalPresetDefaultDraft =
         activeSurface?.key === "journal"
@@ -189,8 +189,8 @@
         previewState?.surfaces?.journal?.preview ?? {},
         this.#journalDraft ?? {}
       );
-      const journalPipeline = journalBuildPipeline.buildJournalBuildPipelineFromPreview(journalPreview);
-      const journalValidationResult = journalPipeline.validation;
+      const materializationPipeline = journalMaterialization.buildJournalMaterializationPipelineFromPreview(journalPreview);
+      const journalValidationResult = materializationPipeline.stages.validation;
       if (!journalPreview) {
         const message = "Journal preview is unavailable; creation was skipped.";
         this.#journalCreateInspection = journalPostCreateInspection.buildJournalPostCreateInspection({
@@ -215,7 +215,9 @@
         return;
       }
 
-      const result = await journalMaterialization.materializeJournalPreviewAsWorldEntry(journalPreview);
+      const result = await journalMaterialization.materializeJournalPreviewAsWorldEntry(journalPreview, {
+        materializationPipeline
+      });
       this.#journalCreateInspection = journalPostCreateInspection.buildJournalPostCreateInspection({
         preview: journalPreview,
         result,

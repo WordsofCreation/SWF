@@ -79,6 +79,38 @@ test('journal materialization builds explicit overview, details, and deferred-re
   );
 });
 
+test('journal materialization pipeline exposes explicit staged flow for journal creation', () => {
+  globalThis.SWF = { MODULE_ID: 'swf-module' };
+  globalThis.CONST = { JOURNAL_ENTRY_PAGE_FORMATS: { HTML: 1 } };
+
+  loadJournalMaterializationDependencies();
+
+  const pipeline = globalThis.SWF.journalMaterialization.buildJournalMaterializationPipelineFromPreview({
+    name: 'NPC Profile: Koro Venn',
+    summary: 'A fixer with shifting loyalties.',
+    notes: ['Motivations: Stay employed.'],
+    linkedReferences: [{ kind: 'actor', label: 'Dock Marshal' }],
+    preset: {
+      key: 'npc-profile',
+      label: 'NPC Profile',
+      referenceEmphasisKey: 'npc-profile',
+      overviewPageName: 'Profile',
+      detailsPageName: 'Profile Details',
+      referencePageName: 'Deferred References'
+    }
+  });
+
+  assert.equal(pipeline.stages.presetSelection.key, 'npc-profile');
+  assert.equal(pipeline.stages.authoringModel.name, 'NPC Profile: Koro Venn');
+  assert.equal(pipeline.stages.previewShaping.sectionPlan[0].pageName, 'Profile');
+  assert.equal(pipeline.stages.validation.ok, true);
+  assert.equal(pipeline.stages.materializationInput.sectionPlan[1].pageName, 'Deferred References');
+  assert.deepEqual(
+    pipeline.createData.pages.map((page) => page.name),
+    ['Profile', 'Deferred References', 'Profile Details']
+  );
+});
+
 test('journal materialization applies preset page naming when provided', () => {
   globalThis.SWF = { MODULE_ID: 'swf-module' };
   globalThis.CONST = { JOURNAL_ENTRY_PAGE_FORMATS: { HTML: 1 } };

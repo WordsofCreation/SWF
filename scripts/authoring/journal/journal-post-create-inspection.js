@@ -196,6 +196,7 @@
 
     const notes = [
       "This inspection reports one creation attempt from the current Journal preview state.",
+      "Staged Journal lane trace: preset selection -> authoring model -> preview shaping -> materialization -> post-create inspection.",
       "Preview-only references remain descriptive text until explicit cross-document materialization is implemented.",
       draftState?.isDirty
         ? "Creation attempt used a modified draft relative to the selected preset defaults."
