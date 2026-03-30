@@ -1,0 +1,42 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import vm from 'node:vm';
+
+function loadScript(path) {
+  const source = fs.readFileSync(path, 'utf8');
+  vm.runInThisContext(source, { filename: path });
+}
+
+test('authoring preview state exposes three shared surfaces', () => {
+  globalThis.SWF = { MODULE_ID: 'swf-module' };
+  globalThis.foundry = { utils: { deepClone: (value) => structuredClone(value) } };
+
+  loadScript('scripts/authoring/shared/authoring-preview-state.js');
+
+  const surfaces = globalThis.SWF.authoringPreviewState.getAuthoringSurfaces();
+  assert.deepEqual(
+    surfaces.map((surface) => surface.key),
+    ['item', 'actor', 'journal']
+  );
+});
+
+test('authoring preview state remains read-only and non-materialized for every surface', () => {
+  globalThis.SWF = { MODULE_ID: 'swf-module' };
+  globalThis.foundry = { utils: { deepClone: (value) => structuredClone(value) } };
+
+  loadScript('scripts/authoring/shared/authoring-preview-state.js');
+
+  const previewState = globalThis.SWF.authoringPreviewState.getDefaultPreviewState();
+  assert.equal(previewState.mode, 'read-only');
+  assert.equal(previewState.schemaVersion, 1);
+
+  for (const key of ['item', 'actor', 'journal']) {
+    const surface = previewState.surfaces[key];
+    assert.equal(surface.readOnly, true);
+    assert.equal(surface.nonMaterialized, true);
+    assert.equal(typeof surface.preview.documentName, 'string');
+    assert.equal(typeof surface.preview.name, 'string');
+    assert.ok(Array.isArray(surface.preview.notes));
+  }
+});

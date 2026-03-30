@@ -33,17 +33,18 @@
       const surfaces = authoringPreviewState.getAuthoringSurfaces();
       const previewState = authoringPreviewState.getDefaultPreviewState();
       const activeSurface = surfaces.find((surface) => surface.key === this.#activeSurface) ?? surfaces[0];
-      const activePreview = previewState.surfaces[activeSurface.key] ?? null;
+      const activePreview = activeSurface ? previewState.surfaces[activeSurface.key] ?? null : null;
 
       return {
         shell: {
+          schemaVersion: previewState.schemaVersion,
           mode: previewState.mode,
           source: previewState.source,
           sessionId: previewState.sessionId
         },
         surfaces: surfaces.map((surface) => ({
           ...surface,
-          isActive: surface.key === activeSurface.key
+          isActive: activeSurface ? surface.key === activeSurface.key : false
         })),
         activeSurface,
         activePreview,
@@ -51,7 +52,8 @@
         assumptions: [
           "Preview state is module-local and ephemeral in memory.",
           "No world or compendium documents are created or updated.",
-          "Item/Actor/Journal tabs share one read-only preview state contract."
+          "Item/Actor/Journal tabs share one read-only preview state contract.",
+          "This shell is additive and does not override dnd5e sheets."
         ]
       };
     }
