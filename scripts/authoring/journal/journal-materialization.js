@@ -32,16 +32,12 @@
       .filter(Boolean);
   }
 
-  function buildJournalEntryCreateDataFromPreview(journalPreview = {}) {
-    const name = toNonEmptyString(journalPreview.name) || "SWF Journal Draft";
-    const summary = toNonEmptyString(journalPreview.summary) || "No summary provided.";
-    const notes = Array.isArray(journalPreview.notes)
-      ? journalPreview.notes.map((note) => toNonEmptyString(note)).filter(Boolean)
-      : [];
-    const deferredReferenceLines = toDeferredReferenceLines(journalPreview.linkedReferences);
+  function buildOverviewPageContent(summary) {
+    return `<p>${escapeHtml(summary)}</p>`;
+  }
 
-    const pageBody = [
-      `<p>${escapeHtml(summary)}</p>`,
+  function buildDetailsPageContent({ notes, deferredReferenceLines }) {
+    return [
       notes.length > 0
         ? `<h2>Preview Notes</h2><ul>${notes.map((note) => `<li>${escapeHtml(note)}</li>`).join("")}</ul>`
         : "",
@@ -51,21 +47,44 @@
     ]
       .filter(Boolean)
       .join("\n");
+  }
+
+  function buildJournalEntryCreateDataFromPreview(journalPreview = {}) {
+    const name = toNonEmptyString(journalPreview.name) || "SWF Journal Draft";
+    const summary = toNonEmptyString(journalPreview.summary) || "No summary provided.";
+    const notes = Array.isArray(journalPreview.notes)
+      ? journalPreview.notes.map((note) => toNonEmptyString(note)).filter(Boolean)
+      : [];
+    const deferredReferenceLines = toDeferredReferenceLines(journalPreview.linkedReferences);
 
     const format = CONST?.JOURNAL_ENTRY_PAGE_FORMATS?.HTML ?? 1;
+    const overviewPageContent = buildOverviewPageContent(summary);
+    const detailsPageContent = buildDetailsPageContent({ notes, deferredReferenceLines });
+    const pages = [
+      {
+        name: "Overview",
+        type: "text",
+        text: {
+          format,
+          content: overviewPageContent
+        }
+      }
+    ];
+
+    if (detailsPageContent) {
+      pages.push({
+        name: "Details",
+        type: "text",
+        text: {
+          format,
+          content: detailsPageContent
+        }
+      });
+    }
 
     return {
       name,
-      pages: [
-        {
-          name: "Overview",
-          type: "text",
-          text: {
-            format,
-            content: pageBody
-          }
-        }
-      ]
+      pages
     };
   }
 
@@ -112,6 +131,8 @@
     buildJournalEntryCreateDataFromPreview,
     materializeJournalPreviewAsWorldEntry,
     INTERNALS: {
+      buildOverviewPageContent,
+      buildDetailsPageContent,
       toDeferredReferenceLines,
       escapeHtml,
       toNonEmptyString

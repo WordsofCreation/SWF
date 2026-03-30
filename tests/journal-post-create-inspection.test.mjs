@@ -25,13 +25,13 @@ test('journal post-create inspection summarizes successful creation conservative
       statusMessage: 'Created Journal entry: Sample Journal Blueprint',
       createData: {
         name: 'Sample Journal Blueprint',
-        pages: [{ type: 'text' }]
+        pages: [{ name: 'Overview', type: 'text' }, { name: 'Details', type: 'text' }]
       },
       entry: {
         id: 'abc123',
         name: 'Sample Journal Blueprint',
         uuid: 'JournalEntry.abc123',
-        pages: { size: 1 }
+        pages: { size: 2, contents: [{ name: 'Overview', type: 'text' }, { name: 'Details', type: 'text' }] }
       }
     }
   });
@@ -39,6 +39,8 @@ test('journal post-create inspection summarizes successful creation conservative
   assert.equal(inspection.status.ok, true);
   assert.equal(inspection.createdJournal.id, 'abc123');
   assert.match(inspection.fieldMapping.find((row) => row.key === 'name')?.actual ?? '', /Sample Journal Blueprint/);
+  assert.match(inspection.fieldMapping.find((row) => row.key === 'pages')?.requested ?? '', /Overview/);
+  assert.match(inspection.fieldMapping.find((row) => row.key === 'pages')?.actual ?? '', /Details/);
   assert.equal(inspection.materializedClusters.length > 0, true);
   assert.equal(inspection.deferredClusters.includes('cross-document references (actor/item)'), true);
 });

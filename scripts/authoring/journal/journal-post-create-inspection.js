@@ -20,6 +20,24 @@
     return null;
   }
 
+  function getPagesArray(value) {
+    if (Array.isArray(value)) return value;
+    if (Array.isArray(value?.contents)) return value.contents;
+    if (typeof value?.toObject === "function") {
+      const objectValue = value.toObject();
+      if (Array.isArray(objectValue)) return objectValue;
+    }
+    return [];
+  }
+
+  function toPageStructureRows(pages) {
+    return getPagesArray(pages).map((page, index) => {
+      const pageName = toNonEmptyString(page?.name) || `Page ${index + 1}`;
+      const pageType = toNonEmptyString(page?.type) || "unknown";
+      return `${index + 1}. ${pageName} (${pageType})`;
+    });
+  }
+
   function mapMaterializedFieldRows({ preview, createData, entry }) {
     const rows = [];
 
@@ -35,13 +53,22 @@
     });
 
     const previewSummary = toNonEmptyString(preview?.summary);
-    const requestedPages = Array.isArray(createData?.pages) ? createData.pages.length : 0;
+    const requestedPageRows = toPageStructureRows(createData?.pages);
+    const requestedPages = requestedPageRows.length;
     const createdPageCount = getEntryPageCount(entry);
+    const actualPageRows = toPageStructureRows(entry?.pages);
+    const actualPagesLabel = actualPageRows.length > 0 ? actualPageRows.join("; ") : "not inspected";
     rows.push({
       key: "pages",
       preview: previewSummary ? "summary text prepared" : "summary defaulted",
-      requested: `${requestedPages} page(s) requested`,
-      actual: typeof createdPageCount === "number" ? `${createdPageCount} page(s) present` : "not inspected",
+      requested:
+        requestedPages > 0
+          ? `${requestedPages} page(s) requested: ${requestedPageRows.join("; ")}`
+          : "0 page(s) requested",
+      actual:
+        typeof createdPageCount === "number"
+          ? `${createdPageCount} page(s) present: ${actualPagesLabel}`
+          : "not inspected",
       status: typeof createdPageCount === "number" ? "materialized" : "unknown"
     });
 
@@ -78,7 +105,7 @@
     ];
 
     const materializedClusters = success
-      ? ["name", "single overview text page", "preview notes in overview page", "deferred reference summary text"]
+      ? ["name", "overview text page", "details text page when supported", "deferred reference summary text"]
       : [];
 
     const warnings = [];
@@ -122,6 +149,8 @@
       toArray,
       toNonEmptyString,
       getEntryPageCount,
+      getPagesArray,
+      toPageStructureRows,
       mapMaterializedFieldRows
     }
   };
