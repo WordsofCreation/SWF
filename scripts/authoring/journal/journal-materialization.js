@@ -4,6 +4,8 @@
  * Scope: first controlled world-document creation path for JournalEntry only.
  */
 (() => {
+  const { journalReferencePresentation } = globalThis.SWF;
+
   function escapeHtml(value) {
     return String(value ?? "")
       .replaceAll("&", "&amp;")
@@ -18,42 +20,46 @@
     return value.trim();
   }
 
-  function toDeferredReferenceLines(linkedReferences = []) {
-    if (!Array.isArray(linkedReferences) || linkedReferences.length === 0) return [];
-
-    return linkedReferences
-      .map((reference) => {
-        const kind = toNonEmptyString(reference?.kind) || "reference";
-        const label = toNonEmptyString(reference?.label) || "(unnamed)";
-        const status = toNonEmptyString(reference?.status) || "deferred";
-        const note = toNonEmptyString(reference?.provisionalNote) || "Materialization deferred for safety.";
-        return `<li><strong>${escapeHtml(kind)}:</strong> ${escapeHtml(label)} (${escapeHtml(status)}) — ${escapeHtml(note)}</li>`;
-      })
-      .filter(Boolean);
-  }
-
   function buildOverviewPageContent(summary) {
-    return [`<h1>Summary</h1>`, `<p>${escapeHtml(summary)}</p>`].join("\n");
+    return `<p>${escapeHtml(summary)}</p>`;
   }
 
-  function buildDetailsPageContent(notes) {
-    if (!Array.isArray(notes) || notes.length === 0) return "";
+  function buildStructuredReferenceHtml(referenceBlock) {
+    if (!referenceBlock || referenceBlock.surfacedCount === 0) return "";
+
+    const sectionHtml = referenceBlock.sections
+      .filter((section) => section.count > 0)
+      .map((section) => {
+        const rows = section.entries
+          .map((entry) => {
+            const roleSegment = entry.role ? ` · role: ${escapeHtml(entry.role)}` : "";
+            return `<li><strong>${escapeHtml(entry.label)}</strong>${roleSegment} · status: ${escapeHtml(entry.status)} · ${escapeHtml(entry.note)}</li>`;
+          })
+          .join("");
+        return `<h3>${escapeHtml(section.label)}</h3><ul>${rows}</ul>`;
+      })
+      .join("\n");
 
     return [
-      `<h1>Details</h1>`,
-      `<p>These notes are carried from the Journal preview model.</p>`,
-      `<ul>${notes.map((note) => `<li>${escapeHtml(note)}</li>`).join("")}</ul>`
-    ].join("\n");
+      `<h2>${escapeHtml(referenceBlock.title)} (${escapeHtml(referenceBlock.statusLabel)})</h2>`,
+      `<p>${escapeHtml(referenceBlock.summary)}</p>`,
+      `<p><strong>Target page:</strong> ${escapeHtml(referenceBlock.targetPageName)}</p>`,
+      sectionHtml,
+      "<p>Future cross-document links are intentionally deferred.</p>"
+    ]
+      .filter(Boolean)
+      .join("\n");
   }
 
-  function buildDeferredReferencesPageContent(deferredReferenceLines) {
-    if (!Array.isArray(deferredReferenceLines) || deferredReferenceLines.length === 0) return "";
-
+  function buildDetailsPageContent({ notes, referenceBlockHtml }) {
     return [
-      `<h1>Deferred References</h1>`,
-      `<p>These references remain preview-only in this Journal materialization slice.</p>`,
-      `<ul>${deferredReferenceLines.join("")}</ul>`
-    ].join("\n");
+      notes.length > 0
+        ? `<h2>Preview Notes</h2><ul>${notes.map((note) => `<li>${escapeHtml(note)}</li>`).join("")}</ul>`
+        : "",
+      referenceBlockHtml
+    ]
+      .filter(Boolean)
+      .join("\n");
   }
 
   function buildJournalEntryCreateDataFromPreview(journalPreview = {}) {
@@ -62,12 +68,15 @@
     const notes = Array.isArray(journalPreview.notes)
       ? journalPreview.notes.map((note) => toNonEmptyString(note)).filter(Boolean)
       : [];
-    const deferredReferenceLines = toDeferredReferenceLines(journalPreview.linkedReferences);
+    const referenceBlock = journalReferencePresentation.mapSharedReferencesToJournalReferenceBlock(
+      journalPreview.linkedReferences,
+      { targetPageName: "Details" }
+    );
+    const referenceBlockHtml = buildStructuredReferenceHtml(referenceBlock);
 
     const format = CONST?.JOURNAL_ENTRY_PAGE_FORMATS?.HTML ?? 1;
     const overviewPageContent = buildOverviewPageContent(summary);
-    const detailsPageContent = buildDetailsPageContent(notes);
-    const deferredReferencesPageContent = buildDeferredReferencesPageContent(deferredReferenceLines);
+    const detailsPageContent = buildDetailsPageContent({ notes, referenceBlockHtml });
     const pages = [
       {
         name: "Overview",
@@ -152,8 +161,7 @@
     INTERNALS: {
       buildOverviewPageContent,
       buildDetailsPageContent,
-      buildDeferredReferencesPageContent,
-      toDeferredReferenceLines,
+      buildStructuredReferenceHtml,
       escapeHtml,
       toNonEmptyString
     }

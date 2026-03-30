@@ -221,6 +221,38 @@
         <p class="swf-builder-shell__empty">No linked references are defined for this preview.</p>
       {{/if}}
 
+      {{#if journalReferenceBlock}}
+        <h4>Journal Structured References</h4>
+        <ul class="swf-builder-shell__status">
+          <li>Title: {{journalReferenceBlock.title}}</li>
+          <li>Status: {{journalReferenceBlock.statusLabel}}</li>
+          <li>Target Page: {{journalReferenceBlock.targetPageName}}</li>
+          <li>Surfaced Item/Actor References: {{journalReferenceBlock.surfacedCount}}</li>
+          <li>Total Deferred References: {{journalReferenceBlock.deferredCount}}</li>
+        </ul>
+        <p>{{journalReferenceBlock.summary}}</p>
+
+        {{#each journalReferenceBlock.sections}}
+          <section class="swf-builder-shell__cluster">
+            <h5>{{this.label}} ({{this.count}})</h5>
+            {{#if this.count}}
+              <ul class="swf-builder-shell__status">
+                {{#each this.entries}}
+                  <li>
+                    <strong>{{this.label}}</strong>
+                    {{#if this.role}} · role={{this.role}}{{/if}}
+                    · status={{this.status}}
+                    · {{this.note}}
+                  </li>
+                {{/each}}
+              </ul>
+            {{else}}
+              <p class="swf-builder-shell__empty">No {{this.kind}} references surfaced.</p>
+            {{/if}}
+          </section>
+        {{/each}}
+      {{/if}}
+
       <h4>Notes</h4>
       <ul class="swf-builder-shell__status">
         {{#each activePreview.preview.notes}}
