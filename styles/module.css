@@ -84,6 +84,24 @@
   padding-left: 1.2rem;
 }
 
+.swf-builder-shell__action {
+  margin-bottom: 0.35rem;
+}
+
+.swf-builder-shell__status-note {
+  margin: 0.2rem 0 0.5rem;
+  font-size: 0.9em;
+}
+
+.swf-builder-shell__status-note--success {
+  color: var(--color-text-light-highlight);
+}
+
+.swf-builder-shell__status-note--error {
+  color: var(--color-text-dark-warning);
+  font-weight: 600;
+}
+
 .swf-builder-shell__code {
   white-space: pre-wrap;
   margin: 0;
