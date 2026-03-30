@@ -48,9 +48,12 @@
             {{/each}}
           </select>
         </label>
+        <p class="swf-builder-shell__status-note">
+          Preset changes and Reset Draft both restore preset-derived defaults for this Journal lane.
+        </p>
         <ul class="swf-builder-shell__status">
           <li>Preset Key: <code>{{selectedJournalPreset.key}}</code></li>
-          <li>Draft Status: <strong>{{journalDraftStatus}}</strong></li>
+          <li>Draft Status: <strong>{{#if isJournalDraftDirty}}Modified{{else}}Clean{{/if}}</strong></li>
           <li>{{selectedJournalPreset.description}}</li>
           <li>Overview Page: {{selectedJournalPreset.overviewPageName}}</li>
           <li>Details Page: {{selectedJournalPreset.detailsPageName}}</li>

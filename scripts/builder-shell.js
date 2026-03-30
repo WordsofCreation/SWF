@@ -68,10 +68,7 @@
         activeSurface?.key === "journal" ? journalValidation.validateJournalPreviewForCreate(journalPreview) : null;
       const journalPresetDefaultDraft =
         activeSurface?.key === "journal"
-          ? journalDraftState.createJournalDraftFromPreset(
-              activePreview?.preview ?? {},
-              this.#journalDraft?.selectedPresetKey ?? this.#journalPresetKey
-            )
+          ? this.#buildJournalPresetDefaultDraft(activePreview?.preview ?? {})
           : null;
       const isJournalDraftDirty =
         activeSurface?.key === "journal"
@@ -182,6 +179,8 @@
       if (!game.user?.isGM) return;
 
       const previewState = authoringPreviewState.getDefaultPreviewState();
+      const journalPresetDefaultDraft = this.#buildJournalPresetDefaultDraft(previewState?.surfaces?.journal?.preview ?? {});
+      const isJournalDraftDirty = journalDraftState.isJournalDraftDirty(this.#journalDraft ?? {}, journalPresetDefaultDraft);
       const journalPreview = journalDraftState.applyJournalDraftToPreview(
         previewState?.surfaces?.journal?.preview ?? {},
         this.#journalDraft ?? {}
@@ -192,7 +191,7 @@
         this.#journalCreateInspection = journalPostCreateInspection.buildJournalPostCreateInspection({
           preview: {},
           result: { ok: false, errorMessage: message, validation: journalValidationResult },
-          draftState: { isDirty: false }
+          draftState: { isDirty: isJournalDraftDirty }
         });
         ui.notifications?.error(message);
         await this.render(false);
@@ -204,15 +203,7 @@
         this.#journalCreateInspection = journalPostCreateInspection.buildJournalPostCreateInspection({
           preview: journalPreview,
           result: { ok: false, reason: "validation-failed", errorMessage: message, validation: journalValidationResult },
-          draftState: {
-            isDirty: journalDraftState.isJournalDraftDirty(
-              this.#journalDraft ?? {},
-              journalDraftState.createJournalDraftFromPreset(
-                previewState?.surfaces?.journal?.preview ?? {},
-                this.#journalDraft?.selectedPresetKey ?? this.#journalPresetKey
-              )
-            )
-          }
+          draftState: { isDirty: isJournalDraftDirty }
         });
         ui.notifications?.error(message);
         await this.render(false);
@@ -223,15 +214,7 @@
       this.#journalCreateInspection = journalPostCreateInspection.buildJournalPostCreateInspection({
         preview: journalPreview,
         result,
-        draftState: {
-          isDirty: journalDraftState.isJournalDraftDirty(
-            this.#journalDraft ?? {},
-            journalDraftState.createJournalDraftFromPreset(
-              previewState?.surfaces?.journal?.preview ?? {},
-              this.#journalDraft?.selectedPresetKey ?? this.#journalPresetKey
-            )
-          )
-        }
+        draftState: { isDirty: isJournalDraftDirty }
       });
 
       if (result.ok) ui.notifications?.info(result.statusMessage);
@@ -267,6 +250,10 @@
         presetKey
       );
       this.#journalPresetKey = this.#journalDraft.selectedPresetKey;
+    }
+
+    #buildJournalPresetDefaultDraft(journalPreview = {}) {
+      return journalDraftState.createJournalDraftFromPreset(journalPreview, this.#journalDraft?.selectedPresetKey ?? this.#journalPresetKey);
     }
   }
 
