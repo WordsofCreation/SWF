@@ -172,7 +172,7 @@
         </section>
         {{#if journalCreateIntentSummary}}
           <section class="swf-builder-shell__inspection">
-            <h5>Journal Creation Summary</h5>
+            <h5>Journal Pipeline Stage: Create Intent Summary</h5>
             <p class="swf-builder-shell__status-note">
               Exact normalized create intent derived from the current Journal preview/draft state.
             </p>
@@ -231,7 +231,7 @@
       {{#if selectedJournalPreset}}
         {{#if journalCreateInspection}}
           <section class="swf-builder-shell__inspection">
-            <h5>Post-Creation Inspection</h5>
+            <h5>Journal Pipeline Stage: Post-Creation Inspection</h5>
             <p
               class="swf-builder-shell__status-note swf-builder-shell__status-note--{{#if journalCreateInspection.status.ok}}success{{else}}error{{/if}}"
             >

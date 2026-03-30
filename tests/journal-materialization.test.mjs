@@ -14,6 +14,8 @@ function loadJournalMaterializationDependencies() {
   loadScript('scripts/authoring/journal/journal-reference-emphasis.js');
   loadScript('scripts/authoring/journal/journal-summary-details-framing.js');
   loadScript('scripts/authoring/journal/journal-reference-presentation.js');
+  loadScript('scripts/authoring/journal/journal-validation.js');
+  loadScript('scripts/authoring/journal/journal-build-pipeline.js');
   loadScript('scripts/authoring/journal/journal-materialization.js');
 }
 
@@ -140,7 +142,8 @@ test('journal materialization enforces GM-only and returns created entry on succ
 
   const created = await globalThis.SWF.journalMaterialization.materializeJournalPreviewAsWorldEntry({
     name: 'Created Journal',
-    summary: 'Safe test summary.'
+    summary: 'Safe test summary.',
+    preset: { key: 'lore-entry' }
   });
 
   assert.equal(created.ok, true);
