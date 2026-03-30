@@ -1,19 +1,26 @@
 # packs/
 
-Contains compendium-related content and source YAML.
+Contains compendium databases and source YAML used by this module.
 
-Current state:
-- Source item definitions live in `packs/_source/swf-items/`.
-- `module.json` currently registers:
-  - `packs/star-wars-compendium.db` as `JournalEntry` (**Star Wars Compendium**) for conversion/rules journal visibility.
-  - `packs/star-wars-equipment.db` as `Item` (**Star Wars Equipment**) for starter Star Wars-themed dnd5e-compatible gear.
+## Star Wars compendium taxonomy scaffold (v13 / dnd5e-compatible)
 
-- Starter Star Wars equipment set in this slice:
-  - `Blaster Pistol`
-  - `Blaster Rifle`
-  - `Vibroknife`
-  - `Training Lightsaber`
-  - `Medpac`
-  - `Light Combat Gear`
+The module now declares explicit, growth-oriented compendium packs by content family:
 
-- Source-of-truth YAML for review remains in `_source/swf-items/`.
+- `star-wars-compendium` (`JournalEntry`) — **Star Wars Rules**
+- `star-wars-species` (`Item`) — **Star Wars Species**
+- `star-wars-classes` (`Item`) — **Star Wars Classes**
+- `star-wars-backgrounds` (`Item`) — **Star Wars Backgrounds**
+- `star-wars-feats` (`Item`) — **Star Wars Feats**
+- `star-wars-equipment` (`Item`) — **Star Wars Equipment**
+- `star-wars-powers` (`Item`) — **Star Wars Powers** (future-facing Force/tech ability slot)
+- `star-wars-creatures` (`Actor`) — **Star Wars Creatures**
+- `star-wars-npcs` (`Actor`) — **Star Wars NPCs**
+
+Pack declarations are intentionally conservative and use only dnd5e-compatible document types (`JournalEntry`, `Item`, `Actor`).
+
+## Source YAML
+
+Current source-of-truth YAML remains in:
+- `packs/_source/swf-items/`
+
+This architecture step is structural only. Most newly added packs are intentionally empty and reserved for staged content growth.

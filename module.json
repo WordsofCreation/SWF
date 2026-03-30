@@ -65,15 +65,57 @@
   "packs": [
     {
       "name": "star-wars-compendium",
-      "label": "Star Wars Compendium",
+      "label": "Star Wars Rules",
       "path": "packs/star-wars-compendium.db",
       "type": "JournalEntry"
+    },
+    {
+      "name": "star-wars-species",
+      "label": "Star Wars Species",
+      "path": "packs/star-wars-species.db",
+      "type": "Item"
+    },
+    {
+      "name": "star-wars-classes",
+      "label": "Star Wars Classes",
+      "path": "packs/star-wars-classes.db",
+      "type": "Item"
+    },
+    {
+      "name": "star-wars-backgrounds",
+      "label": "Star Wars Backgrounds",
+      "path": "packs/star-wars-backgrounds.db",
+      "type": "Item"
+    },
+    {
+      "name": "star-wars-feats",
+      "label": "Star Wars Feats",
+      "path": "packs/star-wars-feats.db",
+      "type": "Item"
     },
     {
       "name": "star-wars-equipment",
       "label": "Star Wars Equipment",
       "path": "packs/star-wars-equipment.db",
       "type": "Item"
+    },
+    {
+      "name": "star-wars-powers",
+      "label": "Star Wars Powers",
+      "path": "packs/star-wars-powers.db",
+      "type": "Item"
+    },
+    {
+      "name": "star-wars-creatures",
+      "label": "Star Wars Creatures",
+      "path": "packs/star-wars-creatures.db",
+      "type": "Actor"
+    },
+    {
+      "name": "star-wars-npcs",
+      "label": "Star Wars NPCs",
+      "path": "packs/star-wars-npcs.db",
+      "type": "Actor"
     }
   ],
   "languages": [],
@@ -81,5 +123,34 @@
   "manifest": "https://raw.githubusercontent.com/WordsofCreation/SWF/main/module.json",
   "download": "https://github.com/WordsofCreation/SWF/archive/refs/heads/main.zip",
   "license": "MIT",
-  "readme": "README.md"
+  "readme": "README.md",
+  "packFolders": [
+    {
+      "name": "Star Wars Journals",
+      "sorting": "a",
+      "packs": [
+        "star-wars-compendium"
+      ]
+    },
+    {
+      "name": "Star Wars Items",
+      "sorting": "a",
+      "packs": [
+        "star-wars-species",
+        "star-wars-classes",
+        "star-wars-backgrounds",
+        "star-wars-feats",
+        "star-wars-equipment",
+        "star-wars-powers"
+      ]
+    },
+    {
+      "name": "Star Wars Actors",
+      "sorting": "a",
+      "packs": [
+        "star-wars-creatures",
+        "star-wars-npcs"
+      ]
+    }
+  ]
 }
