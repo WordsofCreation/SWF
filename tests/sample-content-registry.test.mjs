@@ -54,7 +54,7 @@ test('journal sample application remains preset-aware and keeps references expli
   assert.equal(applied.preview.linkedReferences.length, 2);
 });
 
-test('item sample application stays on currently supported feat-only path inputs', () => {
+test('item sample application stays on currently supported equipment/loot path inputs', () => {
   globalThis.SWF = { MODULE_ID: 'swf-module' };
   globalThis.foundry = { utils: { deepClone: (value) => structuredClone(value) } };
 
@@ -64,8 +64,8 @@ test('item sample application stays on currently supported feat-only path inputs
     label: 'Item',
     preview: {
       name: 'Base Item',
-      typeHint: 'feat',
-      classification: { featSubtype: 'origin', requirements: '' },
+      typeHint: 'equipment',
+      classification: { itemCategory: 'wondrous' },
       sourceDetails: {}
     }
   };
@@ -73,10 +73,10 @@ test('item sample application stays on currently supported feat-only path inputs
   const applied = globalThis.SWF.sampleContentRegistry.applySampleToSurfacePreview(
     baseItemSurface,
     'item',
-    'item-steady-breath'
+    'item-salvage-cache'
   );
 
-  assert.equal(applied.preview.typeHint, 'feat');
-  assert.equal(applied.preview.classification.featSubtype, 'origin');
-  assert.match(applied.preview.summary, /measured breathing drills/);
+  assert.equal(applied.preview.typeHint, 'loot');
+  assert.equal(applied.preview.classification.itemCategory, 'treasure');
+  assert.match(applied.preview.summary, /tradable salvage/);
 });
