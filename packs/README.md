@@ -4,10 +4,16 @@ Contains compendium-related content and source YAML.
 
 Current state:
 - Source item definitions live in `packs/_source/swf-items/`.
-- One initial module compendium pack is now registered in `module.json` at `packs/star-wars-compendium.db` as a `JournalEntry` pack labeled **Star Wars Compendium**.
-- The first registered pack is intentionally scaffold-only (empty) for safe in-Foundry visibility testing.
+- `module.json` currently registers:
+  - `packs/star-wars-compendium.db` as `JournalEntry` (**Star Wars Compendium**) for conversion/rules journal visibility.
+  - `packs/star-wars-equipment.db` as `Item` (**Star Wars Equipment**) for starter Star Wars-themed dnd5e-compatible gear.
 
-- Current workflow-oriented sample trio in `_source/swf-items/`:
-  - `swf-training-dagger.yml` (weapon attack)
-  - `swf-second-breath.yml` (feat-like limited-use action/heal)
-  - `swf-restorative-tonic.yml` (consumable use/consume)
+- Starter Star Wars equipment set in this slice:
+  - `Blaster Pistol`
+  - `Blaster Rifle`
+  - `Vibroknife`
+  - `Training Lightsaber`
+  - `Medpac`
+  - `Light Combat Gear`
+
+- Source-of-truth YAML for review remains in `_source/swf-items/`.

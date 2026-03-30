@@ -68,6 +68,12 @@
       "label": "Star Wars Compendium",
       "path": "packs/star-wars-compendium.db",
       "type": "JournalEntry"
+    },
+    {
+      "name": "star-wars-equipment",
+      "label": "Star Wars Equipment",
+      "path": "packs/star-wars-equipment.db",
+      "type": "Item"
     }
   ],
   "languages": [],

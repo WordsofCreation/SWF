@@ -1,0 +1,98 @@
+_id: swfEqBlasterPst1
+name: Blaster Pistol
+type: weapon
+img: icons/weapons/guns/gun-pistol-flintlock-metal.webp
+system:
+  description:
+    value: >-
+      <p>A compact sidearm that uses standard power packs. In this conversion, treat it as a conservative simple ranged weapon equivalent.</p>
+    chat: ''
+    unidentified: ''
+  source:
+    custom: SWF
+  quantity: 1
+  weight:
+    value: 3
+    units: lb
+  price:
+    value: 25
+    denomination: gp
+  attunement: 0
+  equipped: true
+  rarity: ''
+  identified: true
+  type:
+    value: simpleR
+    subtype: ''
+  baseItem: handcrossbow
+  damage:
+    base:
+      number: 1
+      denomination: 6
+      bonus: ''
+      types:
+        - piercing
+      custom:
+        enabled: false
+      scaling:
+        mode: ''
+        number: null
+        formula: ''
+    versatile: ''
+  magicalBonus: null
+  properties:
+    - amm
+    - lod
+  range:
+    value: 30
+    long: 120
+    units: ft
+    reach: null
+  activities:
+    dnd5eactivity000:
+      type: attack
+      _id: dnd5eactivity000
+      name: ''
+      sort: 0
+      activation:
+        type: action
+        value: null
+        condition: ''
+      consumption:
+        spellSlot: false
+        targets: []
+      target:
+        template:
+          contiguous: false
+        affects:
+          choice: false
+          count: '1'
+          type: creature
+          special: ''
+        prompt: true
+      range:
+        value: '30'
+        units: ft
+        special: ''
+      attack:
+        ability: ''
+        bonus: ''
+        critical:
+          threshold: null
+      damage:
+        includeBase: true
+        parts: []
+  identifier: swf-blaster-pistol
+effects: []
+folder: null
+sort: 0
+ownership:
+  default: 0
+flags: {}
+_stats:
+  coreVersion: '13.350'
+  systemId: dnd5e
+  systemVersion: '5.3.0'
+  createdTime: 0
+  modifiedTime: 0
+  lastModifiedBy: ''
