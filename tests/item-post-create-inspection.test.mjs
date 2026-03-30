@@ -43,7 +43,14 @@ test('item post-create inspection summarizes successful feat-only creation conse
         type: 'feat',
         uuid: 'Item.abc123',
         system: {
-          description: { value: '<p>Gain disciplined defensive posture fundamentals.</p>' }
+          description: { value: '<p>Gain disciplined defensive posture fundamentals.</p>' },
+          type: { subtype: 'class' },
+          requirements: 'Vanguard training'
+        },
+        flags: {
+          'swf-module': {
+            itemBuilderPath: 'feat-only-v1'
+          }
         }
       }
     }
@@ -51,7 +58,63 @@ test('item post-create inspection summarizes successful feat-only creation conse
 
   assert.equal(inspection.status.ok, true);
   assert.equal(inspection.createdItem.id, 'abc123');
-  assert.equal(inspection.materializedClusters.includes('classification cluster'), true);
+  assert.equal(inspection.materializedClusters.includes('Classification cluster'), true);
   assert.equal(inspection.deferredClusters.includes('system.activities'), true);
   assert.match(inspection.fieldMapping.find((row) => row.key === 'classification')?.requested ?? '', /system.type.subtype=class/);
+  assert.equal(inspection.traceSummary.attempted, 4);
+  assert.equal(inspection.traceSummary.materialized, 4);
+  assert.equal(inspection.traceSummary.reviewNeeded, 0);
+  assert.equal(
+    inspection.clusterComparisons.find((row) => row.key === 'module-metadata')?.status,
+    'materialized'
+  );
+});
+
+test('item post-create inspection flags conservative review when requested and observed values diverge', () => {
+  globalThis.SWF = { MODULE_ID: 'swf-module' };
+
+  loadScript('scripts/authoring/item/item-post-create-inspection.js');
+
+  const inspection = globalThis.SWF.itemPostCreateInspection.buildItemPostCreateInspection({
+    preview: {
+      name: 'Mismatch Test',
+      typeHint: 'feat',
+      summary: 'Preview summary'
+    },
+    result: {
+      ok: true,
+      createData: {
+        name: 'Mismatch Test',
+        system: {
+          description: { value: '<p>Preview summary</p>' },
+          type: { subtype: 'class' },
+          requirements: 'Vanguard'
+        },
+        flags: {
+          'swf-module': {
+            itemBuilderPath: 'feat-only-v1'
+          }
+        }
+      },
+      item: {
+        name: 'Mismatch Test',
+        system: {
+          description: { value: '<p>different</p>' },
+          type: { subtype: 'general' },
+          requirements: 'None'
+        },
+        flags: {
+          'swf-module': {
+            itemBuilderPath: 'feat-only-v2'
+          }
+        }
+      }
+    }
+  });
+
+  assert.equal(inspection.traceSummary.reviewNeeded > 0, true);
+  assert.equal(
+    inspection.warnings.some((warning) => warning.includes('needs manual review')),
+    true
+  );
 });

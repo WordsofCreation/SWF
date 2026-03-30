@@ -13,6 +13,86 @@
     return Array.isArray(values) ? values.filter(Boolean) : [];
   }
 
+  function compareValue(requested, actual) {
+    if (!requested && !actual) return "deferred-inspection";
+    if (requested === actual) return "materialized";
+    if (requested && actual) return "mismatch";
+    if (requested && !actual) return "requested-not-observed";
+    return "deferred-inspection";
+  }
+
+  function getModuleFlagValue(documentOrData, key) {
+    const moduleId = globalThis.SWF?.MODULE_ID;
+    if (!moduleId || !key) return "";
+    const objectValue = documentOrData?.getFlag?.(moduleId, key);
+    if (typeof objectValue === "string") return objectValue;
+    return toNonEmptyString(documentOrData?.flags?.[moduleId]?.[key]);
+  }
+
+  function buildClusterComparisonRows({ preview, createData, item }) {
+    const previewName = toNonEmptyString(preview?.name);
+    const requestedName = toNonEmptyString(createData?.name);
+    const actualName = toNonEmptyString(item?.name);
+
+    const requestedDescription = toNonEmptyString(createData?.system?.description?.value);
+    const actualDescription = toNonEmptyString(item?.system?.description?.value);
+
+    const requestedSubtype = toNonEmptyString(createData?.system?.type?.subtype);
+    const actualSubtype = toNonEmptyString(item?.system?.type?.subtype);
+
+    const requestedRequirements = toNonEmptyString(createData?.system?.requirements);
+    const actualRequirements = toNonEmptyString(item?.system?.requirements);
+
+    const requestedPathFlag = getModuleFlagValue(createData, "itemBuilderPath");
+    const actualPathFlag = getModuleFlagValue(item, "itemBuilderPath");
+
+    return [
+      {
+        key: "identity",
+        label: "Identity",
+        status: compareValue(requestedName, actualName),
+        requested: requestedName || "(defaulted)",
+        actual: actualName || "(not observed)",
+        preview: previewName || "(empty)",
+        note: "Preview name should map directly to created Item name."
+      },
+      {
+        key: "description",
+        label: "Description summary mapping",
+        status: compareValue(requestedDescription, actualDescription),
+        requested: requestedDescription ? `${requestedDescription.length} chars requested` : "defaulted description",
+        actual: actualDescription ? `${actualDescription.length} chars observed` : "(not observed)",
+        preview: toNonEmptyString(preview?.summary) || "(empty)",
+        note: "Conservative check compares requested/observed HTML string."
+      },
+      {
+        key: "classification",
+        label: "Classification cluster",
+        status:
+          compareValue(requestedSubtype, actualSubtype) === "materialized" &&
+          compareValue(requestedRequirements, actualRequirements) === "materialized"
+            ? "materialized"
+            : item
+              ? "partial"
+              : "deferred-inspection",
+        requested: `subtype=${requestedSubtype || "(default)"}; requirements=${requestedRequirements || "(empty)"}`,
+        actual: item
+          ? `subtype=${actualSubtype || "(unknown)"}; requirements=${actualRequirements || "(empty)"}`
+          : "(not observed)",
+        preview: `featSubtype=${toNonEmptyString(preview?.classification?.featSubtype) || "(default)"}`
+      },
+      {
+        key: "module-metadata",
+        label: "Module creation metadata",
+        status: compareValue(requestedPathFlag, actualPathFlag),
+        requested: requestedPathFlag || "(missing)",
+        actual: actualPathFlag || "(not observed)",
+        preview: "n/a",
+        note: "Flag confirms create path lineage for this lane."
+      }
+    ];
+  }
+
   function mapMaterializedFieldRows({ preview, createData, item }) {
     const rows = [];
 
@@ -75,8 +155,9 @@
       "cross-document references"
     ];
 
+    const clusterComparisons = buildClusterComparisonRows({ preview, createData, item });
     const materializedClusters = success
-      ? ["name", "item type", "description summary mapping", "classification cluster", "module create metadata"]
+      ? clusterComparisons.filter((cluster) => cluster.status === "materialized").map((cluster) => cluster.label)
       : [];
 
     const warnings = [];
@@ -85,6 +166,12 @@
     if (validation?.ok && Array.isArray(validation.warnings) && validation.warnings.length > 0) {
       warnings.push(...validation.warnings);
     }
+    if (success) {
+      const mismatchRows = clusterComparisons.filter((cluster) =>
+        ["mismatch", "requested-not-observed", "partial"].includes(cluster.status)
+      );
+      mismatchRows.forEach((cluster) => warnings.push(`${cluster.label} needs manual review (${cluster.status}).`));
+    }
     warnings.push("Inspection is conservative: no deep diff is performed against full dnd5e item system defaults.");
 
     const notes = [
@@ -92,6 +179,15 @@
       "Staged Item lane trace: authoring model -> preview shaping -> validation -> materialization -> post-create inspection.",
       "Only one feat-only create path is enabled in this slice."
     ];
+
+    const traceSummary = {
+      attempted: clusterComparisons.length,
+      materialized: clusterComparisons.filter((cluster) => cluster.status === "materialized").length,
+      reviewNeeded: clusterComparisons.filter((cluster) =>
+        ["mismatch", "requested-not-observed", "partial"].includes(cluster.status)
+      ).length,
+      deferredInspection: clusterComparisons.filter((cluster) => cluster.status === "deferred-inspection").length
+    };
 
     return {
       status: {
@@ -109,6 +205,8 @@
         : null,
       materializedClusters,
       deferredClusters,
+      traceSummary,
+      clusterComparisons,
       fieldMapping: mapMaterializedFieldRows({ preview, createData, item }),
       validation: validation
         ? {
@@ -129,6 +227,9 @@
     INTERNALS: {
       toArray,
       toNonEmptyString,
+      compareValue,
+      getModuleFlagValue,
+      buildClusterComparisonRows,
       mapMaterializedFieldRows
     }
   };
