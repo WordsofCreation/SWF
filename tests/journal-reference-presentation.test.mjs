@@ -10,6 +10,7 @@ function loadScript(path) {
 
 test('journal reference presentation maps shared references into actor/item sections', () => {
   globalThis.SWF = { MODULE_ID: 'swf-module' };
+  loadScript('scripts/authoring/journal/journal-reference-emphasis.js');
   loadScript('scripts/authoring/journal/journal-reference-presentation.js');
 
   const block = globalThis.SWF.journalReferencePresentation.mapSharedReferencesToJournalReferenceBlock(
@@ -18,15 +19,18 @@ test('journal reference presentation maps shared references into actor/item sect
       { kind: 'item', label: 'Guardian Posture', status: 'candidate' },
       { kind: 'journal', label: 'Nested Journal Link' }
     ],
-    { targetPageName: 'Details' }
+    { targetPageName: 'Details', presetKey: 'quest-brief' }
   );
 
   assert.equal(block.title, 'References');
   assert.equal(block.targetPageName, 'Details');
   assert.equal(block.surfacedCount, 2);
   assert.equal(block.deferredCount, 3);
+  assert.equal(block.sections[0].kind, 'item');
   assert.equal(block.sections.find((section) => section.kind === 'actor')?.count, 1);
   assert.equal(block.sections.find((section) => section.kind === 'item')?.count, 1);
+  assert.equal(block.primarySections[0].kind, 'item');
+  assert.equal(block.emphasis.primaryGroupLabel, 'Primary Mission Assets');
   assert.equal(block.deferredReferences.length, 1);
   assert.equal(block.deferredReferences[0].kind, 'journal');
 });

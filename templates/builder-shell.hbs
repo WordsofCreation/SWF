@@ -171,9 +171,15 @@
               <li>Frame Summary Label: {{journalCreateIntentSummary.summaryDetailsFrame.title}}</li>
               <li>Frame Identity Label: {{journalCreateIntentSummary.summaryDetailsFrame.identityLabel}}</li>
               <li>Frame Details Label: {{journalCreateIntentSummary.summaryDetailsFrame.detailsLabel}}</li>
+              <li>Reference Emphasis Key: <code>{{journalCreateIntentSummary.referenceEmphasis.presetKey}}</code></li>
+              <li>Reference Emphasis Primary Label: {{journalCreateIntentSummary.referenceEmphasis.primaryGroupLabel}}</li>
+              <li>Reference Emphasis Secondary Label: {{journalCreateIntentSummary.referenceEmphasis.secondaryGroupLabel}}</li>
               <li>Details Page Included: {{#if journalCreateIntentSummary.includesDetailsPage}}yes{{else}}no{{/if}}</li>
               <li>Deferred References Page Included: {{#if journalCreateIntentSummary.includesDeferredReferencesPage}}yes{{else}}no{{/if}}</li>
             </ul>
+            {{#if journalCreateIntentSummary.referenceEmphasis.note}}
+              <p class="swf-builder-shell__status-note">{{journalCreateIntentSummary.referenceEmphasis.note}}</p>
+            {{/if}}
             {{#if journalCreateIntentSummary.pageRows.length}}
               <h6>Requested Page Names</h6>
               <ul class="swf-builder-shell__status">
@@ -399,30 +405,66 @@
           <li>Title: {{journalReferenceBlock.title}}</li>
           <li>Status: {{journalReferenceBlock.statusLabel}}</li>
           <li>Target Page: {{journalReferenceBlock.targetPageName}}</li>
+          <li>Emphasis Primary Group: {{journalReferenceBlock.emphasis.primaryGroupLabel}}</li>
+          <li>Emphasis Secondary Group: {{journalReferenceBlock.emphasis.secondaryGroupLabel}}</li>
           <li>Surfaced Item/Actor References: {{journalReferenceBlock.surfacedCount}}</li>
           <li>Total Deferred References: {{journalReferenceBlock.deferredCount}}</li>
         </ul>
         <p>{{journalReferenceBlock.summary}}</p>
+        {{#if journalReferenceBlock.emphasis.note}}
+          <p class="swf-builder-shell__status-note">{{journalReferenceBlock.emphasis.note}}</p>
+        {{/if}}
 
-        {{#each journalReferenceBlock.sections}}
-          <section class="swf-builder-shell__cluster">
-            <h5>{{this.label}} ({{this.count}})</h5>
-            {{#if this.count}}
-              <ul class="swf-builder-shell__status">
-                {{#each this.entries}}
-                  <li>
-                    <strong>{{this.label}}</strong>
-                    {{#if this.role}} · role={{this.role}}{{/if}}
-                    · status={{this.status}}
-                    · {{this.note}}
-                  </li>
-                {{/each}}
-              </ul>
-            {{else}}
-              <p class="swf-builder-shell__empty">No {{this.kind}} references surfaced.</p>
-            {{/if}}
-          </section>
-        {{/each}}
+        <h5>{{journalReferenceBlock.emphasis.primaryGroupLabel}}</h5>
+        {{#if journalReferenceBlock.primarySections.length}}
+          {{#each journalReferenceBlock.primarySections}}
+            <section class="swf-builder-shell__cluster">
+              <h6>{{this.label}} ({{this.count}})</h6>
+              {{#if this.count}}
+                <ul class="swf-builder-shell__status">
+                  {{#each this.entries}}
+                    <li>
+                      <strong>{{this.label}}</strong>
+                      {{#if this.role}} · role={{this.role}}{{/if}}
+                      · status={{this.status}}
+                      · {{this.note}}
+                    </li>
+                  {{/each}}
+                </ul>
+              {{else}}
+                <p class="swf-builder-shell__empty">No {{this.kind}} references surfaced.</p>
+              {{/if}}
+            </section>
+          {{/each}}
+        {{else}}
+          <p class="swf-builder-shell__empty">No primary references surfaced for this preset.</p>
+        {{/if}}
+
+        <h5>{{journalReferenceBlock.emphasis.secondaryGroupLabel}}</h5>
+        {{#if journalReferenceBlock.secondarySections.length}}
+          {{#each journalReferenceBlock.secondarySections}}
+            <section class="swf-builder-shell__cluster">
+              <h6>{{this.label}} ({{this.count}})</h6>
+              {{#if this.count}}
+                <ul class="swf-builder-shell__status">
+                  {{#each this.entries}}
+                    <li>
+                      <strong>{{this.label}}</strong>
+                      {{#if this.role}} · role={{this.role}}{{/if}}
+                      · status={{this.status}}
+                      · {{this.note}}
+                    </li>
+                  {{/each}}
+                </ul>
+              {{else}}
+                <p class="swf-builder-shell__empty">No {{this.kind}} references surfaced.</p>
+              {{/if}}
+            </section>
+          {{/each}}
+        {{else}}
+          <p class="swf-builder-shell__empty">No secondary references surfaced for this preset.</p>
+        {{/if}}
+
       {{/if}}
 
       <h4>Notes</h4>

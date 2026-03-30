@@ -43,4 +43,5 @@ test('journal preset application seeds only existing journal preview fields plus
   assert.equal(applied.linkedReferences.length, 1);
   assert.equal(applied.preset.key, 'npc-profile');
   assert.equal(applied.preset.overviewPageName, 'Profile');
+  assert.equal(applied.preset.referenceEmphasisKey, 'npc-profile');
 });

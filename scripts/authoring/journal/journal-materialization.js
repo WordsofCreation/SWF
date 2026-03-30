@@ -36,6 +36,7 @@
   function buildStructuredReferenceHtml(referenceBlock) {
     if (!referenceBlock || referenceBlock.surfacedCount === 0) return "";
 
+    const emphasisNote = toNonEmptyString(referenceBlock?.emphasis?.note);
     const sectionHtml = referenceBlock.sections
       .filter((section) => section.count > 0)
       .map((section) => {
@@ -53,6 +54,7 @@
       `<h2>${escapeHtml(referenceBlock.title)} (${escapeHtml(referenceBlock.statusLabel)})</h2>`,
       `<p>${escapeHtml(referenceBlock.summary)}</p>`,
       `<p><strong>Target page:</strong> ${escapeHtml(referenceBlock.targetPageName)}</p>`,
+      emphasisNote ? `<p><strong>Preset emphasis:</strong> ${escapeHtml(emphasisNote)}</p>` : "",
       sectionHtml,
       "<p>Future cross-document links are intentionally deferred.</p>"
     ]
@@ -106,6 +108,7 @@
     const referenceBlock = journalReferencePresentation.mapSharedReferencesToJournalReferenceBlock(
       journalPreview.linkedReferences,
       {
+        presetKey: toNonEmptyString(journalPreview?.preset?.referenceEmphasisKey) || presetKey,
         targetPageName: referencePageName,
         title: referenceBlockTitle,
         summary: referenceBlockSummary
@@ -156,6 +159,12 @@
         [MODULE_ID]: {
           journalPresetKey: presetKey,
           journalPresetLabel: toNonEmptyString(journalPreview?.preset?.label) || "",
+          journalReferenceEmphasis: {
+            presetKey: toNonEmptyString(referenceBlock?.emphasis?.presetKey),
+            primaryGroupLabel: toNonEmptyString(referenceBlock?.emphasis?.primaryGroupLabel),
+            secondaryGroupLabel: toNonEmptyString(referenceBlock?.emphasis?.secondaryGroupLabel),
+            note: toNonEmptyString(referenceBlock?.emphasis?.note)
+          },
           journalSummaryDetailsFrame: {
             identityLabel: toNonEmptyString(summaryDetailsFrame?.identityLabel),
             summaryLabel: toNonEmptyString(summaryDetailsFrame?.summaryLabel),
@@ -194,6 +203,14 @@
         title: toNonEmptyString(createData?.flags?.[MODULE_ID]?.journalSummaryDetailsFrame?.summaryLabel) || "Summary",
         identityLabel: toNonEmptyString(createData?.flags?.[MODULE_ID]?.journalSummaryDetailsFrame?.identityLabel) || "Journal Identity",
         detailsLabel: toNonEmptyString(createData?.flags?.[MODULE_ID]?.journalSummaryDetailsFrame?.detailsLabel) || "Core Details"
+      }),
+      referenceEmphasis: Object.freeze({
+        presetKey: toNonEmptyString(createData?.flags?.[MODULE_ID]?.journalReferenceEmphasis?.presetKey) || "(default)",
+        primaryGroupLabel:
+          toNonEmptyString(createData?.flags?.[MODULE_ID]?.journalReferenceEmphasis?.primaryGroupLabel) || "Primary References",
+        secondaryGroupLabel:
+          toNonEmptyString(createData?.flags?.[MODULE_ID]?.journalReferenceEmphasis?.secondaryGroupLabel) || "Secondary References",
+        note: toNonEmptyString(createData?.flags?.[MODULE_ID]?.journalReferenceEmphasis?.note)
       }),
       pageRows: Object.freeze(pageRows),
       pageNames: Object.freeze(pageNames),

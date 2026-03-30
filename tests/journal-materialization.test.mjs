@@ -10,6 +10,7 @@ function loadScript(path) {
 
 function loadJournalMaterializationDependencies() {
   loadScript('scripts/authoring/journal/journal-preset-definitions.js');
+  loadScript('scripts/authoring/journal/journal-reference-emphasis.js');
   loadScript('scripts/authoring/journal/journal-summary-details-framing.js');
   loadScript('scripts/authoring/journal/journal-reference-presentation.js');
   loadScript('scripts/authoring/journal/journal-materialization.js');
@@ -27,6 +28,7 @@ test('journal materialization builds explicit overview, details, and deferred-re
     notes: ['Read-only preview model only.'],
     preset: {
       key: 'lore-entry',
+      referenceEmphasisKey: 'lore-entry',
       overviewPageName: 'Overview',
       detailsPageName: 'Details',
       referencePageName: 'Deferred References'
@@ -61,10 +63,12 @@ test('journal materialization builds explicit overview, details, and deferred-re
   assert.equal(data.pages[2].text.format, 1);
   assert.match(data.pages[2].text.content, /References \(Deferred\)/);
   assert.match(data.pages[2].text.content, /SWF Vanguard Drill Sergeant/);
-  assert.match(data.pages[2].text.content, /Actor References/);
+  assert.match(data.pages[2].text.content, /Core Lore Mentions/);
   assert.match(data.pages[2].text.content, /Target page:/);
+  assert.match(data.pages[2].text.content, /Preset emphasis:/);
 
   assert.equal(data.flags['swf-module'].journalPresetKey, 'lore-entry');
+  assert.equal(data.flags['swf-module'].journalReferenceEmphasis.primaryGroupLabel, 'Core Lore Mentions');
   assert.equal(data.flags['swf-module'].journalSummaryDetailsFrame.summaryLabel, 'Lore Summary');
 });
 

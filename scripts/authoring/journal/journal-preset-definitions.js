@@ -24,6 +24,7 @@
       referenceBlockTitle: "Related References",
       referenceBlockSummary:
         "Balanced mention list for related actors and items. References remain descriptive and deferred.",
+      referenceEmphasisKey: "lore-entry",
       notes: Object.freeze([
         "Context: State where this lore is most relevant.",
         "Current Significance: Explain why a GM might surface this entry now.",
@@ -42,6 +43,7 @@
       referenceBlockTitle: "Related Entities and Features",
       referenceBlockSummary:
         "Entity-focused mention list for this NPC profile. References stay deferred with no created links.",
+      referenceEmphasisKey: "npc-profile",
       notes: Object.freeze([
         "Identity Snapshot: Name, role, and one-sentence impression.",
         "Motivations: What this NPC wants right now.",
@@ -60,6 +62,7 @@
       referenceBlockTitle: "Involved Actors and Items",
       referenceBlockSummary:
         "Mission-facing mention list for involved actors and items. All links remain deferred text.",
+      referenceEmphasisKey: "quest-brief",
       notes: Object.freeze([
         "Objective: The concrete success condition.",
         "Constraints: Time pressure, risks, or resource limits.",
@@ -102,7 +105,8 @@
         detailsPageName: preset.detailsPageName,
         referencePageName: preset.referencePageName,
         referenceBlockTitle: preset.referenceBlockTitle,
-        referenceBlockSummary: preset.referenceBlockSummary
+        referenceBlockSummary: preset.referenceBlockSummary,
+        referenceEmphasisKey: preset.referenceEmphasisKey
       })
     });
   }
