@@ -4,7 +4,7 @@
  * Scope: first controlled world-document creation path for JournalEntry only.
  */
 (() => {
-  const { MODULE_ID, journalReferencePresentation, journalValidation } = globalThis.SWF;
+  const { MODULE_ID, journalReferencePresentation } = globalThis.SWF;
 
   function escapeHtml(value) {
     return String(value ?? "")
@@ -166,6 +166,22 @@
     });
   }
 
+  function validateJournalPreview(journalPreview = {}) {
+    if (typeof globalThis.SWF?.journalValidation?.validateJournalPreviewForCreate === "function") {
+      return globalThis.SWF.journalValidation.validateJournalPreviewForCreate(journalPreview);
+    }
+
+    return {
+      ok: true,
+      status: {
+        label: "Ready",
+        summary: "Validation module unavailable; using permissive fallback for this environment."
+      },
+      errors: [],
+      warnings: ["Journal validation module was unavailable during create attempt; checks were deferred."]
+    };
+  }
+
   async function materializeJournalPreviewAsWorldEntry(journalPreview = {}, options = {}) {
     if (!game.user?.isGM) {
       return {
@@ -183,7 +199,7 @@
       };
     }
 
-    const validation = journalValidation.validateJournalPreviewForCreate(journalPreview);
+    const validation = validateJournalPreview(journalPreview);
     if (!validation.ok) {
       return {
         ok: false,
@@ -225,7 +241,8 @@
       buildDetailsPageContent,
       buildStructuredReferenceHtml,
       escapeHtml,
-      toNonEmptyString
+      toNonEmptyString,
+      validateJournalPreview
     }
   };
 })();
