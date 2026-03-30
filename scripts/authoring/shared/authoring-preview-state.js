@@ -15,6 +15,60 @@
     Object.freeze({ key: "journal", label: "Journal", documentName: "JournalEntry" })
   ]);
 
+  function buildActorPreview() {
+    return Object.freeze({
+      label: "Actor",
+      status: "available",
+      readOnly: true,
+      nonMaterialized: true,
+      preview: Object.freeze({
+        name: "SWF Vanguard Drill Sergeant",
+        documentName: "Actor",
+        typeHint: "npc",
+        summary: "NPC-oriented actor authoring preview only",
+        roleLabel: "Frontline Trainer NPC",
+        concept: "Disciplined Vanguard mentor used for encounter and training scenes.",
+        identity: Object.freeze({
+          ancestry: "Human",
+          alignment: "Lawful Neutral",
+          disposition: "Firm but fair instructor"
+        }),
+        classification: Object.freeze({
+          actorPath: "npc-focused",
+          grouping: "vanguard-order",
+          encounterRole: "controller-support"
+        }),
+        linkedReferences: Object.freeze([
+          Object.freeze({
+            kind: "journal",
+            localId: "swf.journal.vanguard-field-briefing",
+            label: "Vanguard Field Briefing",
+            status: "deferred"
+          }),
+          Object.freeze({
+            kind: "item",
+            localId: "swf.item.guardian-posture",
+            label: "Guardian Posture (planned feature link)",
+            status: "deferred"
+          })
+        ]),
+        previewMeta: Object.freeze({
+          schemaVersion: 1,
+          mode: "read-only",
+          materialization: "deferred",
+          integrationNotes: Object.freeze([
+            "Actor document creation is not implemented in this slice.",
+            "dnd5e actor system-data mapping remains explicitly deferred."
+          ])
+        }),
+        notes: Object.freeze([
+          "Read-only preview model only.",
+          "No Actor document is created."
+        ])
+      })
+    });
+  }
+
   function buildSurfacePreview({ label, documentName, sampleName, typeHint, notes }) {
     return Object.freeze({
       label,
@@ -44,13 +98,7 @@
         typeHint: "feat",
         notes: ["Read-only preview model only.", "No Item document is created."]
       }),
-      actor: buildSurfacePreview({
-        label: "Actor",
-        documentName: "Actor",
-        sampleName: "Sample Actor Blueprint",
-        typeHint: "npc",
-        notes: ["Read-only preview model only.", "No Actor document is created."]
-      }),
+      actor: buildActorPreview(),
       journal: buildSurfacePreview({
         label: "Journal",
         documentName: "JournalEntry",

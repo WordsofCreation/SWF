@@ -40,3 +40,20 @@ test('authoring preview state remains read-only and non-materialized for every s
     assert.ok(Array.isArray(surface.preview.notes));
   }
 });
+
+test('actor surface exposes structured npc-oriented preview clusters', () => {
+  globalThis.SWF = { MODULE_ID: 'swf-module' };
+  globalThis.foundry = { utils: { deepClone: (value) => structuredClone(value) } };
+
+  loadScript('scripts/authoring/shared/authoring-preview-state.js');
+
+  const previewState = globalThis.SWF.authoringPreviewState.getDefaultPreviewState();
+  const actor = previewState.surfaces.actor.preview;
+
+  assert.equal(actor.documentName, 'Actor');
+  assert.equal(actor.typeHint, 'npc');
+  assert.equal(actor.classification.actorPath, 'npc-focused');
+  assert.equal(typeof actor.identity.disposition, 'string');
+  assert.equal(Array.isArray(actor.linkedReferences), true);
+  assert.equal(actor.previewMeta.materialization, 'deferred');
+});
