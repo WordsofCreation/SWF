@@ -11,6 +11,7 @@
     referencePresentation,
     validationTracePresentation,
     materializationReadinessPresentation,
+    journalReferencePresentation,
     journalMaterialization,
     journalPostCreateInspection
   } = globalThis.SWF;
@@ -50,6 +51,12 @@
       const linkedReferences = activePreview?.preview?.linkedReferences ?? [];
       const validationTrace = activePreview?.preview?.validationTrace ?? {};
       const materializationReadiness = activePreview?.preview?.materializationReadiness ?? {};
+      const journalReferenceBlock =
+        activeSurface?.key === "journal"
+          ? journalReferencePresentation.mapSharedReferencesToJournalReferenceBlock(linkedReferences, {
+              targetPageName: "Details"
+            })
+          : null;
 
       const canCreateJournal = game.user?.isGM === true && activeSurface?.key === "journal";
 
@@ -71,6 +78,7 @@
         activePreview,
         activePreviewJson: activePreview ? JSON.stringify(activePreview.preview, null, 2) : "",
         referenceRows: referencePresentation.buildReferenceDisplayRows(linkedReferences),
+        journalReferenceBlock,
         validationTrace: validationTracePresentation.buildValidationTraceDisplay(validationTrace),
         materializationReadiness:
           materializationReadinessPresentation.buildMaterializationReadinessDisplay(materializationReadiness),

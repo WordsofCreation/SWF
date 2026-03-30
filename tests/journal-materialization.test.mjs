@@ -8,11 +8,16 @@ function loadScript(path) {
   vm.runInThisContext(source, { filename: path });
 }
 
+function loadJournalMaterializationDependencies() {
+  loadScript('scripts/authoring/journal/journal-reference-presentation.js');
+  loadScript('scripts/authoring/journal/journal-materialization.js');
+}
+
 test('journal materialization builds explicit overview and details pages when details content exists', () => {
   globalThis.SWF = { MODULE_ID: 'swf-module' };
   globalThis.CONST = { JOURNAL_ENTRY_PAGE_FORMATS: { HTML: 1 } };
 
-  loadScript('scripts/authoring/journal/journal-materialization.js');
+  loadJournalMaterializationDependencies();
 
   const preview = {
     name: 'Sample Journal Blueprint',
@@ -39,15 +44,17 @@ test('journal materialization builds explicit overview and details pages when de
   assert.equal(data.pages[1].name, 'Details');
   assert.equal(data.pages[1].type, 'text');
   assert.equal(data.pages[1].text.format, 1);
-  assert.match(data.pages[1].text.content, /Deferred References/);
+  assert.match(data.pages[1].text.content, /References \(Deferred\)/);
   assert.match(data.pages[1].text.content, /SWF Vanguard Drill Sergeant/);
+  assert.match(data.pages[1].text.content, /Actor References/);
+  assert.match(data.pages[1].text.content, /Target page:/);
 });
 
 test('journal materialization creates only overview page when notes and references are absent', () => {
   globalThis.SWF = { MODULE_ID: 'swf-module' };
   globalThis.CONST = { JOURNAL_ENTRY_PAGE_FORMATS: { HTML: 1 } };
 
-  loadScript('scripts/authoring/journal/journal-materialization.js');
+  loadJournalMaterializationDependencies();
 
   const data = globalThis.SWF.journalMaterialization.buildJournalEntryCreateDataFromPreview({
     name: 'One Page Journal',
@@ -63,7 +70,7 @@ test('journal materialization enforces GM-only and returns created entry on succ
   globalThis.SWF = { MODULE_ID: 'swf-module' };
   globalThis.CONST = { JOURNAL_ENTRY_PAGE_FORMATS: { HTML: 1 } };
 
-  loadScript('scripts/authoring/journal/journal-materialization.js');
+  loadJournalMaterializationDependencies();
 
   globalThis.game = { user: { isGM: false } };
   globalThis.JournalEntry = { create: async () => ({ id: 'x' }) };

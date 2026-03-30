@@ -85,7 +85,7 @@
     rows.push({
       key: "linkedReferences",
       preview: `${previewReferenceCount} preview reference(s)`,
-      requested: "listed as deferred references in page content",
+      requested: "mapped into a structured References (Deferred) block on the Details page",
       actual: "document links intentionally not created",
       status: "deferred"
     });

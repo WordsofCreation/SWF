@@ -41,6 +41,10 @@ test('journal post-create inspection summarizes successful creation conservative
   assert.match(inspection.fieldMapping.find((row) => row.key === 'name')?.actual ?? '', /Sample Journal Blueprint/);
   assert.match(inspection.fieldMapping.find((row) => row.key === 'pages')?.requested ?? '', /Overview/);
   assert.match(inspection.fieldMapping.find((row) => row.key === 'pages')?.actual ?? '', /Details/);
+  assert.match(
+    inspection.fieldMapping.find((row) => row.key === 'linkedReferences')?.requested ?? '',
+    /structured References \(Deferred\) block/
+  );
   assert.equal(inspection.materializedClusters.length > 0, true);
   assert.equal(inspection.deferredClusters.includes('cross-document references (actor/item)'), true);
 });
