@@ -26,7 +26,13 @@ test('journal post-create inspection summarizes successful creation conservative
       statusMessage: 'Created Journal entry: Sample Journal Blueprint',
       createData: {
         name: 'Sample Journal Blueprint',
-        flags: { 'swf-module': { journalPresetKey: 'lore-entry', journalSummaryDetailsFrame: { summaryLabel: 'Lore Summary', identityLabel: 'Lore Entry', detailsLabel: 'Lore Details' } } },
+        flags: {
+          'swf-module': {
+            journalPresetKey: 'lore-entry',
+            journalReferenceEmphasis: { presetKey: 'lore-entry', primaryGroupLabel: 'Core Lore Mentions' },
+            journalSummaryDetailsFrame: { summaryLabel: 'Lore Summary', identityLabel: 'Lore Entry', detailsLabel: 'Lore Details' }
+          }
+        },
         pages: [
           { name: 'Overview', type: 'text' },
           { name: 'Details', type: 'text' },
@@ -56,11 +62,12 @@ test('journal post-create inspection summarizes successful creation conservative
   assert.match(inspection.fieldMapping.find((row) => row.key === 'pages')?.actual ?? '', /Details/);
   assert.match(
     inspection.fieldMapping.find((row) => row.key === 'linkedReferences')?.requested ?? '',
-    /structured References \(Deferred\) text page/
+    /structured References \(Deferred\) text page.*emphasis=lore-entry/
   );
   assert.match(inspection.fieldMapping.find((row) => row.key === 'preset')?.requested ?? '', /lore-entry/);
   assert.match(inspection.fieldMapping.find((row) => row.key === 'summary\/details frame')?.requested ?? '', /Lore Summary/);
   assert.equal(inspection.materializedClusters.includes('summary/details frame labels'), true);
+  assert.equal(inspection.materializedClusters.includes('reference emphasis labels'), true);
   assert.equal(inspection.deferredClusters.includes('cross-document references (actor/item)'), true);
 });
 

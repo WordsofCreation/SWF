@@ -129,10 +129,13 @@
     });
 
     const previewReferenceCount = toArray(preview?.linkedReferences).length;
+    const requestedReferenceEmphasis = createData?.flags?.[globalThis.SWF?.MODULE_ID]?.journalReferenceEmphasis;
     rows.push({
       key: "linkedReferences",
       preview: `${previewReferenceCount} preview reference(s)`,
-      requested: "mapped into a structured References (Deferred) text page when references are present",
+      requested: requestedReferenceEmphasis
+        ? `mapped into a structured References (Deferred) text page when references are present; emphasis=${toNonEmptyString(requestedReferenceEmphasis?.presetKey) || "(default)"}; primary=${toNonEmptyString(requestedReferenceEmphasis?.primaryGroupLabel) || "Primary References"}`
+        : "mapped into a structured References (Deferred) text page when references are present",
       actual: "document links intentionally not created",
       status: "deferred"
     });
@@ -153,7 +156,7 @@
     ];
 
     const materializedClusters = success
-      ? ["name", "preset flag", "summary/details frame labels", "overview text page", "details text page when notes are present", "deferred references text page when references are present"]
+      ? ["name", "preset flag", "summary/details frame labels", "reference emphasis labels", "overview text page", "details text page when notes are present", "deferred references text page when references are present"]
       : [];
 
     const warnings = [];
