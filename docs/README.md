@@ -6,6 +6,8 @@ Project documentation for SWF module architecture, research notes, and vertical-
 - `swf-gm-builder-architecture-stage1-2026-03-30.md` — architecture-first stage-1 plan for a safe GM-facing builder pipeline.
 - `swf-authoring-architecture-next-step-2026-03-30.md` — next-step architecture for item/actor/journal authoring paths (non-destructive).
 
+- `swf-builder-architecture-next-step-2026-03-30.md` — consolidated architecture proposal for shared Item/Actor/Journal builder layers and safest next slice.
+
 ## Additional references
 - dnd5e deep dives and pattern analyses
 - module architecture and workflow slice notes
