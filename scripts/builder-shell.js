@@ -11,13 +11,14 @@
     referencePresentation,
     validationTracePresentation,
     materializationReadinessPresentation,
-    journalMaterialization
+    journalMaterialization,
+    journalPostCreateInspection
   } = globalThis.SWF;
   let builderShellApp = null;
 
   class SWFBuilderShellApp extends FormApplication {
     #activeSurface = "item";
-    #journalCreateStatus = null;
+    #journalCreateInspection = null;
 
     static get defaultOptions() {
       return foundry.utils.mergeObject(super.defaultOptions, {
@@ -38,6 +39,7 @@
       super.activateListeners(html);
       html.find("[data-builder-surface]").on("click", this.#onSelectSurface.bind(this));
       html.find('[data-action="create-journal"]').on("click", this.#onCreateJournal.bind(this));
+      html.find('[data-action="open-created-journal"]').on("click", this.#onOpenCreatedJournal.bind(this));
     }
 
     getData() {
@@ -59,7 +61,8 @@
           sessionId: previewState.sessionId
         },
         canCreateJournal,
-        journalCreateStatus: this.#journalCreateStatus,
+        journalCreateInspection: this.#journalCreateInspection,
+        canOpenCreatedJournal: Boolean(this.#journalCreateInspection?.createdJournal?.id),
         surfaces: surfaces.map((surface) => ({
           ...surface,
           isActive: activeSurface ? surface.key === activeSurface.key : false
@@ -88,7 +91,7 @@
       if (!surface) return;
 
       this.#activeSurface = surface;
-      this.#journalCreateStatus = null;
+      this.#journalCreateInspection = null;
       await this.render(false);
     }
 
@@ -99,31 +102,42 @@
       const previewState = authoringPreviewState.getDefaultPreviewState();
       const journalPreview = previewState?.surfaces?.journal?.preview;
       if (!journalPreview) {
-        this.#journalCreateStatus = {
-          type: "error",
-          message: "Journal preview is unavailable; creation was skipped."
-        };
-        ui.notifications?.error(this.#journalCreateStatus.message);
+        const message = "Journal preview is unavailable; creation was skipped.";
+        this.#journalCreateInspection = journalPostCreateInspection.buildJournalPostCreateInspection({
+          preview: {},
+          result: { ok: false, errorMessage: message }
+        });
+        ui.notifications?.error(message);
         await this.render(false);
         return;
       }
 
       const result = await journalMaterialization.materializeJournalPreviewAsWorldEntry(journalPreview);
-      if (result.ok) {
-        this.#journalCreateStatus = {
-          type: "success",
-          message: result.statusMessage
-        };
-        ui.notifications?.info(result.statusMessage);
-      } else {
-        this.#journalCreateStatus = {
-          type: "error",
-          message: result.errorMessage
-        };
-        ui.notifications?.error(result.errorMessage);
-      }
+      this.#journalCreateInspection = journalPostCreateInspection.buildJournalPostCreateInspection({
+        preview: journalPreview,
+        result
+      });
+
+      if (result.ok) ui.notifications?.info(result.statusMessage);
+      else ui.notifications?.error(result.errorMessage);
 
       await this.render(false);
+    }
+
+    async #onOpenCreatedJournal(event) {
+      event.preventDefault();
+      if (!game.user?.isGM) return;
+
+      const createdJournalId = this.#journalCreateInspection?.createdJournal?.id;
+      if (!createdJournalId) return;
+
+      const createdEntry = game.journal?.get(createdJournalId);
+      if (!createdEntry) {
+        ui.notifications?.warn("Created Journal entry could not be found in the sidebar.");
+        return;
+      }
+
+      createdEntry.sheet?.render(true, { focus: true });
     }
 
     async _updateObject() {
