@@ -42,6 +42,10 @@
 
   function mapSharedReferencesToJournalReferenceBlock(linkedReferences = [], options = {}) {
     const targetPageName = toNonEmptyString(options?.targetPageName) || "Details";
+    const title = toNonEmptyString(options?.title) || "References";
+    const summary =
+      toNonEmptyString(options?.summary) ||
+      "Structured reference listing for this Journal preview. Item/Actor references are surfaced as deferred text only.";
     const normalizedRows = Array.isArray(linkedReferences)
       ? linkedReferences.map((reference) => normalizeReferenceRow(reference))
       : [];
@@ -50,11 +54,10 @@
     const sections = TARGET_REFERENCE_KINDS.map((kind) => buildKindSection(kind, surfacedReferences));
 
     return Object.freeze({
-      title: "References",
+      title,
       targetPageName,
       statusLabel: "Deferred",
-      summary:
-        "Structured reference listing for this Journal preview. Item/Actor references are surfaced as deferred text only.",
+      summary,
       sections: Object.freeze(sections),
       surfacedCount: surfacedReferences.length,
       deferredCount: normalizedRows.length,

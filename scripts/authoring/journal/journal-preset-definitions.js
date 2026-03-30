@@ -21,6 +21,9 @@
       overviewPageName: "Overview",
       detailsPageName: "Details",
       referencePageName: "Deferred References",
+      referenceBlockTitle: "Related References",
+      referenceBlockSummary:
+        "Balanced mention list for related actors and items. References remain descriptive and deferred.",
       notes: Object.freeze([
         "Context: State where this lore is most relevant.",
         "Current Significance: Explain why a GM might surface this entry now.",
@@ -33,9 +36,12 @@
       description: "Compact NPC profile with identity, motives, and play-facing cues.",
       summaryHint: "Summarize the NPC's role at the table and immediate relevance.",
       nameTemplate: "NPC Profile: [Name]",
-      overviewPageName: "Profile",
-      detailsPageName: "Details",
+      overviewPageName: "Overview",
+      detailsPageName: "Profile Details",
       referencePageName: "Deferred References",
+      referenceBlockTitle: "Related Entities and Features",
+      referenceBlockSummary:
+        "Entity-focused mention list for this NPC profile. References stay deferred with no created links.",
       notes: Object.freeze([
         "Identity Snapshot: Name, role, and one-sentence impression.",
         "Motivations: What this NPC wants right now.",
@@ -49,8 +55,11 @@
       summaryHint: "Summarize the quest objective and immediate call to action.",
       nameTemplate: "Quest Brief: [Objective]",
       overviewPageName: "Brief",
-      detailsPageName: "Mission Details",
+      detailsPageName: "Objectives and Details",
       referencePageName: "Deferred References",
+      referenceBlockTitle: "Involved Actors and Items",
+      referenceBlockSummary:
+        "Mission-facing mention list for involved actors and items. All links remain deferred text.",
       notes: Object.freeze([
         "Objective: The concrete success condition.",
         "Constraints: Time pressure, risks, or resource limits.",
@@ -91,7 +100,9 @@
         description: preset.description,
         overviewPageName: preset.overviewPageName,
         detailsPageName: preset.detailsPageName,
-        referencePageName: preset.referencePageName
+        referencePageName: preset.referencePageName,
+        referenceBlockTitle: preset.referenceBlockTitle,
+        referenceBlockSummary: preset.referenceBlockSummary
       })
     });
   }

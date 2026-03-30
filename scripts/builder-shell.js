@@ -61,7 +61,9 @@
       const journalReferenceBlock =
         activeSurface?.key === "journal"
           ? journalReferencePresentation.mapSharedReferencesToJournalReferenceBlock(linkedReferences, {
-              targetPageName: journalPreview?.preset?.detailsPageName || "Details"
+              targetPageName: journalPreview?.preset?.referencePageName || "Deferred References",
+              title: journalPreview?.preset?.referenceBlockTitle,
+              summary: journalPreview?.preset?.referenceBlockSummary
             })
           : null;
 

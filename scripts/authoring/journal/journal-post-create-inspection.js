@@ -74,11 +74,15 @@
 
     const previewPresetKey = toNonEmptyString(preview?.preset?.key);
     const requestedPresetKey = toNonEmptyString(createData?.flags?.[globalThis.SWF?.MODULE_ID]?.journalPresetKey);
+    const previewPresetLabel = toNonEmptyString(preview?.preset?.label);
+    const requestedPresetLabel = toNonEmptyString(createData?.flags?.[globalThis.SWF?.MODULE_ID]?.journalPresetLabel);
     rows.push({
       key: "preset",
-      preview: previewPresetKey || "(default)",
-      requested: requestedPresetKey || "(default)",
-      actual: requestedPresetKey || "not inspected",
+      preview: previewPresetKey ? `${previewPresetKey}${previewPresetLabel ? ` (${previewPresetLabel})` : ""}` : "(default)",
+      requested: requestedPresetKey
+        ? `${requestedPresetKey}${requestedPresetLabel ? ` (${requestedPresetLabel})` : ""}`
+        : "(default)",
+      actual: requestedPresetKey ? "captured in module flag payload" : "not inspected",
       status: requestedPresetKey ? "materialized" : "deferred-inspection"
     });
 
