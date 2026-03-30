@@ -55,8 +55,8 @@
   ],
   "packs": [],
   "languages": [],
-  "url": "",
-  "manifest": "",
+  "url": "https://github.com/WordsofCreation/SWF",
+  "manifest": "https://raw.githubusercontent.com/WordsofCreation/SWF/main/module.json",
   "download": "",
   "license": "MIT",
   "readme": "README.md"
