@@ -15,9 +15,9 @@ Scope: packaging and public distribution basics only. No gameplay behavior.
 
 ## 2) Deferred / not yet ready
 
-- [ ] `module.json` `download` URL is still intentionally deferred until a stable release ZIP URL exists.
-- [ ] Foundry auto-update expectations remain deferred until `download` is set to a durable public release asset.
-- [ ] Do not claim “installable from package listing/auto-update ready” until release ZIP hosting is finalized.
+- [x] `module.json` `download` URL is set for direct package retrieval (`https://github.com/WordsofCreation/SWF/archive/refs/heads/main.zip`).
+- [ ] Foundry auto-update hardening is still deferred until release-tag ZIP assets are published per version.
+- [x] Install-from-manifest and direct-download install can now be shared for current progress visibility.
 
 ## 3) Pre-release verification (before sharing install URL with users)
 
