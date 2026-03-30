@@ -10,6 +10,7 @@ function loadScript(path) {
 
 function loadJournalMaterializationDependencies() {
   loadScript('scripts/authoring/journal/journal-preset-definitions.js');
+  loadScript('scripts/authoring/journal/journal-section-structure.js');
   loadScript('scripts/authoring/journal/journal-reference-emphasis.js');
   loadScript('scripts/authoring/journal/journal-summary-details-framing.js');
   loadScript('scripts/authoring/journal/journal-reference-presentation.js');
@@ -70,6 +71,10 @@ test('journal materialization builds explicit overview, details, and deferred-re
   assert.equal(data.flags['swf-module'].journalPresetKey, 'lore-entry');
   assert.equal(data.flags['swf-module'].journalReferenceEmphasis.primaryGroupLabel, 'Core Lore Mentions');
   assert.equal(data.flags['swf-module'].journalSummaryDetailsFrame.summaryLabel, 'Lore Summary');
+  assert.deepEqual(
+    data.flags['swf-module'].journalSectionPlan.map((section) => section.key),
+    ['overview', 'details', 'references']
+  );
 });
 
 test('journal materialization applies preset page naming when provided', () => {
@@ -141,4 +146,31 @@ test('journal materialization enforces GM-only and returns created entry on succ
   assert.equal(created.ok, true);
   assert.equal(created.entry.id, 'abc123');
   assert.equal(created.createData.name, 'Created Journal');
+});
+
+
+test('journal materialization applies npc preset section order when all section content exists', () => {
+  globalThis.SWF = { MODULE_ID: 'swf-module' };
+  globalThis.CONST = { JOURNAL_ENTRY_PAGE_FORMATS: { HTML: 1 } };
+
+  loadJournalMaterializationDependencies();
+
+  const data = globalThis.SWF.journalMaterialization.buildJournalEntryCreateDataFromPreview({
+    name: 'NPC Profile: Koro Venn',
+    summary: 'A fixer with shifting loyalties.',
+    notes: ['Motivations: Stay employed.', 'Interaction Cues: Speaks quickly.'],
+    linkedReferences: [{ kind: 'actor', label: 'Dock Marshal' }],
+    preset: {
+      key: 'npc-profile',
+      referenceEmphasisKey: 'npc-profile',
+      overviewPageName: 'Profile',
+      detailsPageName: 'Profile Details',
+      referencePageName: 'Deferred References'
+    }
+  });
+
+  assert.deepEqual(
+    data.pages.map((page) => page.name),
+    ['Profile', 'Deferred References', 'Profile Details']
+  );
 });

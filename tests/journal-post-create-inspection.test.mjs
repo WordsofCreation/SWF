@@ -29,6 +29,11 @@ test('journal post-create inspection summarizes successful creation conservative
         flags: {
           'swf-module': {
             journalPresetKey: 'lore-entry',
+            journalSectionPlan: [
+              { key: 'overview', order: 1, label: 'Lore Overview', pageName: 'Overview', included: true },
+              { key: 'details', order: 2, label: 'Lore Details', pageName: 'Details', included: true },
+              { key: 'references', order: 3, label: 'Deferred References', pageName: 'Deferred References', included: true }
+            ],
             journalReferenceEmphasis: { presetKey: 'lore-entry', primaryGroupLabel: 'Core Lore Mentions' },
             journalSummaryDetailsFrame: { summaryLabel: 'Lore Summary', identityLabel: 'Lore Entry', detailsLabel: 'Lore Details' }
           }
@@ -65,7 +70,9 @@ test('journal post-create inspection summarizes successful creation conservative
     /structured References \(Deferred\) text page.*emphasis=lore-entry/
   );
   assert.match(inspection.fieldMapping.find((row) => row.key === 'preset')?.requested ?? '', /lore-entry/);
+  assert.match(inspection.fieldMapping.find((row) => row.key === 'preset section structure')?.requested ?? '', /Lore Overview/);
   assert.match(inspection.fieldMapping.find((row) => row.key === 'summary\/details frame')?.requested ?? '', /Lore Summary/);
+  assert.equal(inspection.materializedClusters.includes('preset section structure'), true);
   assert.equal(inspection.materializedClusters.includes('summary/details frame labels'), true);
   assert.equal(inspection.materializedClusters.includes('reference emphasis labels'), true);
   assert.equal(inspection.deferredClusters.includes('cross-document references (actor/item)'), true);

@@ -17,7 +17,8 @@
     journalPresetDefinitions,
     journalDraftState,
     journalValidation,
-    journalSummaryDetailsFraming
+    journalSummaryDetailsFraming,
+    journalSectionStructure
   } = globalThis.SWF;
   let builderShellApp = null;
 
@@ -88,6 +89,13 @@
               summary: journalPreview?.preset?.referenceBlockSummary
             })
           : null;
+      const journalSectionPlan =
+        activeSurface?.key === "journal"
+          ? journalSectionStructure.buildJournalSectionPlanFromPreview(journalPreview ?? {}, {
+              hasDetailsContent: (journalSummaryDetailsFrame?.detailCount ?? 0) > 0,
+              hasReferenceContent: (journalReferenceBlock?.surfacedCount ?? 0) > 0
+            })
+          : null;
 
       const canCreateJournal =
         game.user?.isGM === true && activeSurface?.key === "journal" && journalValidationResult?.ok === true;
@@ -123,6 +131,7 @@
         referenceRows: referencePresentation.buildReferenceDisplayRows(linkedReferences),
         journalReferenceBlock,
         journalSummaryDetailsFrame,
+        journalSectionPlan,
         journalPresetOptions: journalPresetDefinitions.getJournalPresets().map((preset) => ({
           key: preset.key,
           label: preset.label,

@@ -79,8 +79,20 @@
           <li>Details Page: {{selectedJournalPreset.detailsPageName}}</li>
           <li>Reference Page: {{selectedJournalPreset.referencePageName}}</li>
           <li>Reference Block Title: {{selectedJournalPreset.referenceBlockTitle}}</li>
-            <li>Reference Emphasis: {{selectedJournalPreset.referenceBlockSummary}}</li>
+          <li>Reference Emphasis: {{selectedJournalPreset.referenceBlockSummary}}</li>
           </ul>
+        {{#if journalSectionPlan}}
+          <h5>Preset Section Structure</h5>
+          <ul class="swf-builder-shell__status">
+            {{#each journalSectionPlan}}
+              <li>
+                {{this.order}}. {{this.label}} → page <code>{{this.pageName}}</code>
+                {{#if this.conditional}}({{#if this.included}}included{{else}}omitted when empty{{/if}}){{/if}}
+                {{#if this.intentNote}} — {{this.intentNote}}{{/if}}
+              </li>
+            {{/each}}
+          </ul>
+        {{/if}}
         {{#if journalDraft}}
           <h4>Journal Draft Inputs (Ephemeral)</h4>
           <p>
@@ -179,6 +191,14 @@
             </ul>
             {{#if journalCreateIntentSummary.referenceEmphasis.note}}
               <p class="swf-builder-shell__status-note">{{journalCreateIntentSummary.referenceEmphasis.note}}</p>
+            {{/if}}
+            {{#if journalCreateIntentSummary.sectionRows.length}}
+              <h6>Preset Section Plan</h6>
+              <ul class="swf-builder-shell__status">
+                {{#each journalCreateIntentSummary.sectionRows}}
+                  <li>{{this.order}}. {{this.label}} → {{this.pageName}} ({{#if this.included}}included{{else}}omitted{{/if}}){{#if this.intentNote}} — {{this.intentNote}}{{/if}}</li>
+                {{/each}}
+              </ul>
             {{/if}}
             {{#if journalCreateIntentSummary.pageRows.length}}
               <h6>Requested Page Names</h6>
