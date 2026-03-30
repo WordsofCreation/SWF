@@ -18,7 +18,8 @@
     journalPresetDefinitions,
     journalDraftState,
     sampleContentRegistry,
-    builderSampleState
+    builderSampleState,
+    builderWorkspaceState
   } = globalThis.SWF;
   let builderShellApp = null;
 
@@ -29,6 +30,12 @@
     #journalPresetKey = journalPresetDefinitions.DEFAULT_JOURNAL_PRESET_KEY;
     #journalDraft = null;
     #sampleSelectionState = builderSampleState.createBuilderSampleSelectionState();
+    #displayPreferences = { showValidation: true, showMaterializationReadiness: true };
+
+    constructor(...args) {
+      super(...args);
+      this.#hydrateFromWorkspaceState(builderWorkspaceState.loadWorkspaceState());
+    }
 
     static get defaultOptions() {
       return foundry.utils.mergeObject(super.defaultOptions, {
@@ -55,6 +62,7 @@
       html.find('[data-action="select-journal-preset"]').on("change", this.#onSelectJournalPreset.bind(this));
       html.find('[data-action="select-sample"]').on("change", this.#onSelectSample.bind(this));
       html.find('[data-action="reset-journal-draft"]').on("click", this.#onResetJournalDraft.bind(this));
+      html.find('[data-action="reset-workspace-state"]').on("click", this.#onResetWorkspaceState.bind(this));
       html.find("[data-journal-draft-field]").on("change", this.#onEditJournalDraftField.bind(this));
     }
 
@@ -177,6 +185,7 @@
         journalDraftStatus: activeSurface?.key === "journal" ? (isJournalDraftDirty ? "modified" : "clean") : null,
         isJournalDraftDirty,
         journalDraft: this.#journalDraft ?? null,
+        displayPreferences: this.#displayPreferences,
         journalValidation: journalValidationResult,
         journalCreateIntentSummary,
         validationTrace: validationTracePresentation.buildValidationTraceDisplay(validationTrace),
@@ -202,6 +211,7 @@
       this.#activeSurface = surface;
       this.#itemCreateInspection = null;
       this.#journalCreateInspection = null;
+      await this.#persistWorkspaceState();
       await this.render(false);
     }
 
@@ -262,6 +272,7 @@
 
       this.#resetJournalDraftFromPreset(nextPresetKey);
       this.#journalCreateInspection = null;
+      await this.#persistWorkspaceState();
       await this.render(false);
     }
 
@@ -271,6 +282,7 @@
 
       this.#journalDraft = journalDraftState.updateDraftField(this.#journalDraft ?? {}, field, event.currentTarget?.value);
       this.#journalCreateInspection = null;
+      await this.#persistWorkspaceState();
       await this.render(false);
     }
 
@@ -278,6 +290,7 @@
       event.preventDefault();
       this.#resetJournalDraftFromPreset(this.#journalDraft?.selectedPresetKey ?? this.#journalPresetKey);
       this.#journalCreateInspection = null;
+      await this.#persistWorkspaceState();
       await this.render(false);
     }
 
@@ -350,7 +363,7 @@
     }
 
     async _updateObject() {
-      // Intentionally empty: stage-1 builder shell has no persistence.
+      await this.#persistWorkspaceState();
     }
 
     async #onSelectSample(event) {
@@ -369,6 +382,16 @@
         this.#resetJournalDraftFromPreset(nextPresetKey);
       }
 
+      await this.#persistWorkspaceState();
+      await this.render(false);
+    }
+
+    async #onResetWorkspaceState(event) {
+      event.preventDefault();
+      const clearedState = await builderWorkspaceState.clearWorkspaceState();
+      this.#hydrateFromWorkspaceState(clearedState);
+      this.#clearStateForSampleLoad();
+      ui.notifications?.info("Builder workspace state reset to defaults for this GM client.");
       await this.render(false);
     }
 
@@ -402,6 +425,31 @@
 
     #getPreviewStateWithSamples() {
       return this.#buildPreviewStateWithSamples().previewState;
+    }
+
+    #buildWorkspaceStateSnapshot() {
+      return {
+        version: builderWorkspaceState.WORKSPACE_STATE_VERSION,
+        activeSurface: this.#activeSurface,
+        journalPresetKey: this.#journalPresetKey,
+        journalDraft: this.#journalDraft,
+        sampleSelectionState: this.#sampleSelectionState,
+        displayPreferences: this.#displayPreferences
+      };
+    }
+
+    #hydrateFromWorkspaceState(workspaceState = {}) {
+      const normalizedState = builderWorkspaceState.normalizeWorkspaceState(workspaceState);
+      this.#activeSurface = normalizedState.activeSurface;
+      this.#journalPresetKey = normalizedState.journalPresetKey;
+      this.#journalDraft = normalizedState.journalDraft;
+      this.#sampleSelectionState = normalizedState.sampleSelectionState;
+      this.#displayPreferences = normalizedState.displayPreferences;
+    }
+
+    async #persistWorkspaceState() {
+      const normalizedState = await builderWorkspaceState.saveWorkspaceState(this.#buildWorkspaceStateSnapshot());
+      this.#hydrateFromWorkspaceState(normalizedState);
     }
   }
 
