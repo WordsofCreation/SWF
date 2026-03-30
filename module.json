@@ -2,7 +2,7 @@
   "id": "swf-module",
   "title": "SWF Module (Scaffold)",
   "description": "Starter scaffold for a Foundry VTT v13 add-on module that extends the dnd5e system.",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "authors": [
     {
       "name": "SWF Contributors"
@@ -18,7 +18,8 @@
         "id": "dnd5e",
         "type": "system",
         "compatibility": {
-          "minimum": "4"
+          "minimum": "5.2.4",
+          "verified": "5.2.4"
         }
       }
     ]
@@ -65,6 +66,7 @@
   "languages": [],
   "url": "https://github.com/WordsofCreation/SWF",
   "manifest": "https://raw.githubusercontent.com/WordsofCreation/SWF/main/module.json",
+  "download": "https://github.com/WordsofCreation/SWF/archive/refs/heads/main.zip",
   "license": "MIT",
   "readme": "README.md"
 }

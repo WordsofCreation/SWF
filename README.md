@@ -19,10 +19,14 @@ Image-aligned item-type coverage planning now has an explicit capability tracker
 - `docs/dnd5e-item-type-capability-matrix-2026-03-29.md`
 
 
-## Module Manifest URLs (Foundry v13)
+## Module Manifest URLs (Foundry v13 / dnd5e 5.2.4 baseline)
 - Repository URL (`url`): `https://github.com/WordsofCreation/SWF`
 - Public manifest URL (`manifest`): `https://raw.githubusercontent.com/WordsofCreation/SWF/main/module.json`
-- Package download URL (`download`): intentionally deferred until a stable release ZIP URL exists. Until then, install via manifest URL and treat auto-update as deferred.
+- Package download URL (`download`): `https://github.com/WordsofCreation/SWF/archive/refs/heads/main.zip`
+
+Compatibility baseline in `module.json`:
+- Foundry compatibility: `minimum: 13`, `verified: 13`
+- dnd5e relationship compatibility: `minimum: 5.2.4`, `verified: 5.2.4`
 
 
 Release/install metadata guardrails checklist:
