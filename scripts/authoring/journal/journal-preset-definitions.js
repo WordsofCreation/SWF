@@ -49,6 +49,31 @@
       ])
     }),
     Object.freeze({
+      key: "sw-conversion-reference",
+      label: "SW Conversion Reference",
+      description: "Module-facing reference for using dnd5e mechanics with Star Wars-themed content naming and flavor.",
+      summaryHint:
+        "Use the dnd5e rules chassis as-is; apply Star Wars framing through names, flavor text, and conservative content mappings.",
+      nameTemplate: "SW Conversion Reference: dnd5e Chassis",
+      overviewPageName: "Conversion Principle",
+      detailsPageName: "Conservative Mappings",
+      referencePageName: "Deferred Expansion Notes",
+      referenceBlockTitle: "Planned Follow-on Content",
+      referenceBlockSummary:
+        "Future species, classes, and item work should follow this conversion reference without changing dnd5e document structure.",
+      notes: Object.freeze([
+        "Core Rule: Keep dnd5e mechanics, abilities, sheet structure, and core document compatibility intact.",
+        "Authoring Rule: Apply Star Wars conversion through naming, flavor, and controlled content replacements only.",
+        "Concept Mapping (descriptive only): crossbow -> blaster.",
+        "Concept Mapping (descriptive only): sword -> lightsaber or vibroblade.",
+        "Concept Mapping (descriptive only): dagger -> vibroknife.",
+        "Concept Mapping (descriptive only): healer's kit -> medpac.",
+        "Concept Mapping (descriptive only): leather armor -> light combat gear.",
+        "Vocabulary Mapping (descriptive only): race -> species.",
+        "Deferred Scope: No bulk replacement items, actors, automation, or dnd5e schema changes are introduced in this slice."
+      ])
+    }),
+    Object.freeze({
       key: "quest-brief",
       label: "Quest Brief",
       description: "Mission-style brief with objective framing and completion checkpoints.",
