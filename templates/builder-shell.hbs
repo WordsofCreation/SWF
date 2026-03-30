@@ -95,10 +95,48 @@
 
       {{#if canCreateJournal}}
         <h4>Journal Materialization (Controlled Slice)</h4>
+      {{else}}
+        {{#if selectedJournalPreset}}
+          <h4>Journal Materialization (Controlled Slice)</h4>
+        {{/if}}
+      {{/if}}
+      {{#if selectedJournalPreset}}
+        <section class="swf-builder-shell__inspection">
+          <h5>Journal Draft Validation</h5>
+          <p
+            class="swf-builder-shell__status-note swf-builder-shell__status-note--{{#if journalValidation.ok}}success{{else}}error{{/if}}"
+          >
+            <strong>{{journalValidation.status.label}}:</strong>
+            {{journalValidation.status.summary}}
+          </p>
+          {{#if journalValidation.errors.length}}
+            <h6>Errors (creation blocked)</h6>
+            <ul class="swf-builder-shell__status">
+              {{#each journalValidation.errors}}
+                <li>{{this}}</li>
+              {{/each}}
+            </ul>
+          {{/if}}
+          {{#if journalValidation.warnings.length}}
+            <h6>Warnings</h6>
+            <ul class="swf-builder-shell__status">
+              {{#each journalValidation.warnings}}
+                <li>{{this}}</li>
+              {{/each}}
+            </ul>
+          {{/if}}
+        </section>
         <p>Creates one world JournalEntry from the current Journal preview using minimal v13-safe fields.</p>
-        <button type="button" class="swf-builder-shell__action" data-action="create-journal">
+        <button
+          type="button"
+          class="swf-builder-shell__action"
+          data-action="create-journal"
+          {{#unless journalValidation.ok}}disabled title="Journal creation is blocked until validation errors are resolved."{{/unless}}
+        >
           Create Journal Entry
         </button>
+      {{/if}}
+      {{#if selectedJournalPreset}}
         {{#if journalCreateInspection}}
           <section class="swf-builder-shell__inspection">
             <h5>Post-Creation Inspection</h5>
@@ -169,6 +207,19 @@
                 <li>{{this}}</li>
               {{/each}}
             </ul>
+            {{#if journalCreateInspection.validation}}
+              <h6>Validation Used for Attempt</h6>
+              <ul class="swf-builder-shell__status">
+                <li>Status: {{journalCreateInspection.validation.label}}</li>
+                <li>{{journalCreateInspection.validation.summary}}</li>
+                {{#each journalCreateInspection.validation.errors}}
+                  <li>Error: {{this}}</li>
+                {{/each}}
+                {{#each journalCreateInspection.validation.warnings}}
+                  <li>Warning: {{this}}</li>
+                {{/each}}
+              </ul>
+            {{/if}}
           </section>
         {{/if}}
       {{/if}}

@@ -133,6 +133,7 @@
     const success = result?.ok === true;
     const entry = success ? result.entry ?? null : null;
     const createData = result?.createData ?? null;
+    const validation = result?.validation ?? null;
 
     const deferredClusters = [
       "ownership defaults",
@@ -147,6 +148,12 @@
     const warnings = [];
     if (!success) {
       warnings.push(result?.errorMessage || "Journal creation did not complete.");
+    }
+    if (validation && !validation.ok) {
+      warnings.push(...toArray(validation.errors));
+    }
+    if (validation?.ok && Array.isArray(validation.warnings) && validation.warnings.length > 0) {
+      warnings.push(...validation.warnings);
     }
 
     warnings.push("Inspection is conservative: page body text is not deep-diffed against preview fields.");
@@ -174,6 +181,15 @@
       materializedClusters,
       deferredClusters,
       fieldMapping: mapMaterializedFieldRows({ preview, createData, entry }),
+      validation: validation
+        ? {
+            ok: validation.ok === true,
+            label: validation?.status?.label ?? (validation.ok ? "Ready" : "Blocked"),
+            summary: validation?.status?.summary ?? "",
+            errors: toArray(validation.errors),
+            warnings: toArray(validation.warnings)
+          }
+        : null,
       warnings,
       notes
     };
