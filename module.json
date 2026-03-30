@@ -25,6 +25,7 @@
   },
   "scripts": [
     "scripts/constants.js",
+    "scripts/authoring/shared/authoring-preview-state.js",
     "scripts/data/manifest-validation.js",
     "scripts/data/canonical-field-inventory.js",
     "scripts/data/manifest-builders.js",
@@ -41,6 +42,7 @@
     "scripts/data/feat-conversion-trace.js",
     "scripts/data/manifest-loader.js",
     "scripts/tool-shell.js",
+    "scripts/builder-shell.js",
     "scripts/settings.js",
     "scripts/module.js"
   ],
