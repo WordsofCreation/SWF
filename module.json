@@ -38,6 +38,7 @@
     "scripts/authoring/journal/journal-reference-emphasis.js",
     "scripts/authoring/journal/journal-summary-details-framing.js",
     "scripts/authoring/journal/journal-draft-state.js",
+    "scripts/authoring/shared/lane-draft-state.js",
     "scripts/authoring/journal/journal-validation.js",
     "scripts/authoring/journal/journal-build-pipeline.js",
     "scripts/authoring/shared/authoring-preview-state.js",
