@@ -4,7 +4,7 @@
  * Scope: first controlled world-document creation path for JournalEntry only.
  */
 (() => {
-  const { MODULE_ID, journalReferencePresentation } = globalThis.SWF;
+  const { MODULE_ID, journalReferencePresentation, journalSummaryDetailsFraming } = globalThis.SWF;
 
   function escapeHtml(value) {
     return String(value ?? "")
@@ -20,8 +20,17 @@
     return value.trim();
   }
 
-  function buildOverviewPageContent(summary) {
-    return `<h2>Summary</h2><p>${escapeHtml(summary)}</p>`;
+  function buildOverviewPageContent(summaryDetailsFrame) {
+    const title = toNonEmptyString(summaryDetailsFrame?.summaryLabel) || "Summary";
+    const identityLabel = toNonEmptyString(summaryDetailsFrame?.identityLabel) || "Journal Identity";
+    const identityValue = toNonEmptyString(summaryDetailsFrame?.identityValue) || "(unnamed journal draft)";
+    const summaryValue = toNonEmptyString(summaryDetailsFrame?.summaryValue) || "No summary provided.";
+
+    return [
+      `<h2>${escapeHtml(title)}</h2>`,
+      `<p>${escapeHtml(summaryValue)}</p>`,
+      `<p><strong>${escapeHtml(identityLabel)}:</strong> ${escapeHtml(identityValue)}</p>`
+    ].join("\n");
   }
 
   function buildStructuredReferenceHtml(referenceBlock) {
@@ -51,10 +60,26 @@
       .join("\n");
   }
 
-  function buildDetailsPageContent({ notes }) {
-    return notes.length > 0
-      ? `<h2>Preview Notes</h2><ul>${notes.map((note) => `<li>${escapeHtml(note)}</li>`).join("")}</ul>`
-      : "";
+  function buildDetailsPageContent(summaryDetailsFrame) {
+    const detailsLabel = toNonEmptyString(summaryDetailsFrame?.detailsLabel) || "Core Details";
+    const detailRows = Array.isArray(summaryDetailsFrame?.detailRows) ? summaryDetailsFrame.detailRows : [];
+
+    if (detailRows.length === 0) return "";
+
+    const rowsHtml = detailRows
+      .map((row) => {
+        const rowLabel = toNonEmptyString(row?.label);
+        const rowValue = toNonEmptyString(row?.value);
+        if (!rowLabel && !rowValue) return "";
+        if (!rowLabel) return `<li>${escapeHtml(rowValue)}</li>`;
+        return `<li><strong>${escapeHtml(rowLabel)}:</strong> ${escapeHtml(rowValue)}</li>`;
+      })
+      .filter(Boolean)
+      .join("");
+
+    if (!rowsHtml) return "";
+
+    return `<h2>${escapeHtml(detailsLabel)}</h2><ul>${rowsHtml}</ul>`;
   }
 
   function buildJournalEntryCreateDataFromPreview(journalPreview = {}) {
@@ -71,6 +96,13 @@
     const referenceBlockTitle = toNonEmptyString(journalPreview?.preset?.referenceBlockTitle);
     const referenceBlockSummary = toNonEmptyString(journalPreview?.preset?.referenceBlockSummary);
 
+    const summaryDetailsFrame = journalSummaryDetailsFraming.buildSummaryDetailsFrameFromPreview({
+      ...journalPreview,
+      name,
+      summary,
+      notes
+    });
+
     const referenceBlock = journalReferencePresentation.mapSharedReferencesToJournalReferenceBlock(
       journalPreview.linkedReferences,
       {
@@ -82,8 +114,8 @@
     const referenceBlockHtml = buildStructuredReferenceHtml(referenceBlock);
 
     const format = CONST?.JOURNAL_ENTRY_PAGE_FORMATS?.HTML ?? 1;
-    const overviewPageContent = buildOverviewPageContent(summary);
-    const detailsPageContent = buildDetailsPageContent({ notes });
+    const overviewPageContent = buildOverviewPageContent(summaryDetailsFrame);
+    const detailsPageContent = buildDetailsPageContent(summaryDetailsFrame);
     const pages = [
       {
         name: overviewPageName,
@@ -123,7 +155,12 @@
       flags: {
         [MODULE_ID]: {
           journalPresetKey: presetKey,
-          journalPresetLabel: toNonEmptyString(journalPreview?.preset?.label) || ""
+          journalPresetLabel: toNonEmptyString(journalPreview?.preset?.label) || "",
+          journalSummaryDetailsFrame: {
+            identityLabel: toNonEmptyString(summaryDetailsFrame?.identityLabel),
+            summaryLabel: toNonEmptyString(summaryDetailsFrame?.summaryLabel),
+            detailsLabel: toNonEmptyString(summaryDetailsFrame?.detailsLabel)
+          }
         }
       }
     };
@@ -153,6 +190,11 @@
       presetLabel,
       name: toNonEmptyString(createData.name),
       pageCount: pageRows.length,
+      summaryDetailsFrame: Object.freeze({
+        title: toNonEmptyString(createData?.flags?.[MODULE_ID]?.journalSummaryDetailsFrame?.summaryLabel) || "Summary",
+        identityLabel: toNonEmptyString(createData?.flags?.[MODULE_ID]?.journalSummaryDetailsFrame?.identityLabel) || "Journal Identity",
+        detailsLabel: toNonEmptyString(createData?.flags?.[MODULE_ID]?.journalSummaryDetailsFrame?.detailsLabel) || "Core Details"
+      }),
       pageRows: Object.freeze(pageRows),
       pageNames: Object.freeze(pageNames),
       includesDetailsPage: pageNames.includes(detailsPageName),

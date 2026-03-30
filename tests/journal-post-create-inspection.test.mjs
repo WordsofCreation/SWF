@@ -26,7 +26,7 @@ test('journal post-create inspection summarizes successful creation conservative
       statusMessage: 'Created Journal entry: Sample Journal Blueprint',
       createData: {
         name: 'Sample Journal Blueprint',
-        flags: { 'swf-module': { journalPresetKey: 'lore-entry' } },
+        flags: { 'swf-module': { journalPresetKey: 'lore-entry', journalSummaryDetailsFrame: { summaryLabel: 'Lore Summary', identityLabel: 'Lore Entry', detailsLabel: 'Lore Details' } } },
         pages: [
           { name: 'Overview', type: 'text' },
           { name: 'Details', type: 'text' },
@@ -59,7 +59,8 @@ test('journal post-create inspection summarizes successful creation conservative
     /structured References \(Deferred\) text page/
   );
   assert.match(inspection.fieldMapping.find((row) => row.key === 'preset')?.requested ?? '', /lore-entry/);
-  assert.equal(inspection.materializedClusters.length > 0, true);
+  assert.match(inspection.fieldMapping.find((row) => row.key === 'summary\/details frame')?.requested ?? '', /Lore Summary/);
+  assert.equal(inspection.materializedClusters.includes('summary/details frame labels'), true);
   assert.equal(inspection.deferredClusters.includes('cross-document references (actor/item)'), true);
 });
 

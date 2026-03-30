@@ -16,7 +16,8 @@
     journalPostCreateInspection,
     journalPresetDefinitions,
     journalDraftState,
-    journalValidation
+    journalValidation,
+    journalSummaryDetailsFraming
   } = globalThis.SWF;
   let builderShellApp = null;
 
@@ -74,6 +75,10 @@
         activeSurface?.key === "journal"
           ? journalDraftState.isJournalDraftDirty(this.#journalDraft ?? {}, journalPresetDefaultDraft ?? {})
           : false;
+      const journalSummaryDetailsFrame =
+        activeSurface?.key === "journal"
+          ? journalSummaryDetailsFraming.buildSummaryDetailsFrameFromPreview(journalPreview ?? {})
+          : null;
       const journalReferenceBlock =
         activeSurface?.key === "journal"
           ? journalReferencePresentation.mapSharedReferencesToJournalReferenceBlock(linkedReferences, {
@@ -116,6 +121,7 @@
         activePreviewJson: activePreviewWithPreset ? JSON.stringify(activePreviewWithPreset.preview, null, 2) : "",
         referenceRows: referencePresentation.buildReferenceDisplayRows(linkedReferences),
         journalReferenceBlock,
+        journalSummaryDetailsFrame,
         journalPresetOptions: journalPresetDefinitions.getJournalPresets().map((preset) => ({
           key: preset.key,
           label: preset.label,
