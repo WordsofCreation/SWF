@@ -122,23 +122,57 @@
                 <li>{{this}}</li>
               {{/each}}
             </ul>
+            <h6>Inspection Trace Summary</h6>
+            <ul class="swf-builder-shell__status">
+              <li>Attempted comparisons: {{itemCreateInspection.traceSummary.attempted}}</li>
+              <li>Materialized: {{itemCreateInspection.traceSummary.materialized}}</li>
+              <li>Needs review: {{itemCreateInspection.traceSummary.reviewNeeded}}</li>
+              <li>Deferred inspection: {{itemCreateInspection.traceSummary.deferredInspection}}</li>
+            </ul>
             <h6>Deferred Clusters</h6>
             <ul class="swf-builder-shell__status">
               {{#each itemCreateInspection.deferredClusters}}
                 <li>{{this}}</li>
               {{/each}}
             </ul>
-            <h6>Preview → Created Mapping</h6>
+            <h6>Cluster Comparison (Preview → Requested → Actual)</h6>
             <ul class="swf-builder-shell__status">
-              {{#each itemCreateInspection.fieldMapping}}
+              {{#each itemCreateInspection.clusterComparisons}}
                 <li>
-                  <strong>{{this.key}}</strong>:
+                  <strong>{{this.label}}</strong> [{{this.status}}]:
                   preview={{this.preview}} |
                   requested={{this.requested}} |
                   actual={{this.actual}}
                 </li>
               {{/each}}
             </ul>
+            <h6>Preview → Created Mapping</h6>
+            <ul class="swf-builder-shell__status">
+              {{#each itemCreateInspection.fieldMapping}}
+                <li>
+                  <strong>{{this.key}}</strong> [{{this.status}}]:
+                  preview={{this.preview}} |
+                  requested={{this.requested}} |
+                  actual={{this.actual}}
+                </li>
+              {{/each}}
+            </ul>
+            {{#if itemCreateInspection.warnings.length}}
+              <h6>Warnings / Review Notes</h6>
+              <ul class="swf-builder-shell__status">
+                {{#each itemCreateInspection.warnings}}
+                  <li>{{this}}</li>
+                {{/each}}
+              </ul>
+            {{/if}}
+            {{#if itemCreateInspection.notes.length}}
+              <h6>Notes</h6>
+              <ul class="swf-builder-shell__status">
+                {{#each itemCreateInspection.notes}}
+                  <li>{{this}}</li>
+                {{/each}}
+              </ul>
+            {{/if}}
           </section>
         {{/if}}
       {{/if}}
