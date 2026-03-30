@@ -25,6 +25,8 @@
   },
   "scripts": [
     "scripts/constants.js",
+    "scripts/authoring/shared/reference-model.js",
+    "scripts/authoring/shared/reference-presentation.js",
     "scripts/authoring/shared/authoring-preview-state.js",
     "scripts/data/manifest-validation.js",
     "scripts/data/canonical-field-inventory.js",
