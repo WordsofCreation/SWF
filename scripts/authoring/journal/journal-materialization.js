@@ -4,7 +4,7 @@
  * Scope: first controlled world-document creation path for JournalEntry only.
  */
 (() => {
-  const { journalReferencePresentation } = globalThis.SWF;
+  const { MODULE_ID, journalReferencePresentation } = globalThis.SWF;
 
   function escapeHtml(value) {
     return String(value ?? "")
@@ -21,7 +21,7 @@
   }
 
   function buildOverviewPageContent(summary) {
-    return `<p>${escapeHtml(summary)}</p>`;
+    return `<h2>Summary</h2><p>${escapeHtml(summary)}</p>`;
   }
 
   function buildStructuredReferenceHtml(referenceBlock) {
@@ -51,15 +51,10 @@
       .join("\n");
   }
 
-  function buildDetailsPageContent({ notes, referenceBlockHtml }) {
-    return [
-      notes.length > 0
-        ? `<h2>Preview Notes</h2><ul>${notes.map((note) => `<li>${escapeHtml(note)}</li>`).join("")}</ul>`
-        : "",
-      referenceBlockHtml
-    ]
-      .filter(Boolean)
-      .join("\n");
+  function buildDetailsPageContent({ notes }) {
+    return notes.length > 0
+      ? `<h2>Preview Notes</h2><ul>${notes.map((note) => `<li>${escapeHtml(note)}</li>`).join("")}</ul>`
+      : "";
   }
 
   function buildJournalEntryCreateDataFromPreview(journalPreview = {}) {
@@ -68,18 +63,24 @@
     const notes = Array.isArray(journalPreview.notes)
       ? journalPreview.notes.map((note) => toNonEmptyString(note)).filter(Boolean)
       : [];
+
+    const presetKey = toNonEmptyString(journalPreview?.preset?.key) || "lore-entry";
+    const overviewPageName = toNonEmptyString(journalPreview?.preset?.overviewPageName) || "Overview";
+    const detailsPageName = toNonEmptyString(journalPreview?.preset?.detailsPageName) || "Details";
+    const referencePageName = toNonEmptyString(journalPreview?.preset?.referencePageName) || "Deferred References";
+
     const referenceBlock = journalReferencePresentation.mapSharedReferencesToJournalReferenceBlock(
       journalPreview.linkedReferences,
-      { targetPageName: "Details" }
+      { targetPageName: detailsPageName }
     );
     const referenceBlockHtml = buildStructuredReferenceHtml(referenceBlock);
 
     const format = CONST?.JOURNAL_ENTRY_PAGE_FORMATS?.HTML ?? 1;
     const overviewPageContent = buildOverviewPageContent(summary);
-    const detailsPageContent = buildDetailsPageContent({ notes, referenceBlockHtml });
+    const detailsPageContent = buildDetailsPageContent({ notes });
     const pages = [
       {
-        name: "Overview",
+        name: overviewPageName,
         type: "text",
         text: {
           format,
@@ -90,7 +91,7 @@
 
     if (detailsPageContent) {
       pages.push({
-        name: "Details",
+        name: detailsPageName,
         type: "text",
         text: {
           format,
@@ -99,20 +100,25 @@
       });
     }
 
-    if (deferredReferencesPageContent) {
+    if (referenceBlockHtml) {
       pages.push({
-        name: "Deferred References",
+        name: referencePageName,
         type: "text",
         text: {
           format,
-          content: deferredReferencesPageContent
+          content: referenceBlockHtml
         }
       });
     }
 
     return {
       name,
-      pages
+      pages,
+      flags: {
+        [MODULE_ID]: {
+          journalPresetKey: presetKey
+        }
+      }
     };
   }
 

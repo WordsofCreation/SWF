@@ -13,7 +13,7 @@ function loadJournalMaterializationDependencies() {
   loadScript('scripts/authoring/journal/journal-materialization.js');
 }
 
-test('journal materialization builds explicit overview and details pages when details content exists', () => {
+test('journal materialization builds explicit overview, details, and deferred-reference pages when content exists', () => {
   globalThis.SWF = { MODULE_ID: 'swf-module' };
   globalThis.CONST = { JOURNAL_ENTRY_PAGE_FORMATS: { HTML: 1 } };
 
@@ -23,6 +23,12 @@ test('journal materialization builds explicit overview and details pages when de
     name: 'Sample Journal Blueprint',
     summary: 'Journal builder preview only',
     notes: ['Read-only preview model only.'],
+    preset: {
+      key: 'lore-entry',
+      overviewPageName: 'Overview',
+      detailsPageName: 'Details',
+      referencePageName: 'Deferred References'
+    },
     linkedReferences: [
       {
         kind: 'actor',
@@ -42,13 +48,46 @@ test('journal materialization builds explicit overview and details pages when de
   assert.equal(data.pages[0].text.format, 1);
   assert.match(data.pages[0].text.content, /Summary/);
   assert.match(data.pages[0].text.content, /Journal builder preview only/);
+
   assert.equal(data.pages[1].name, 'Details');
   assert.equal(data.pages[1].type, 'text');
   assert.equal(data.pages[1].text.format, 1);
-  assert.match(data.pages[1].text.content, /References \(Deferred\)/);
-  assert.match(data.pages[1].text.content, /SWF Vanguard Drill Sergeant/);
-  assert.match(data.pages[1].text.content, /Actor References/);
-  assert.match(data.pages[1].text.content, /Target page:/);
+  assert.match(data.pages[1].text.content, /Preview Notes/);
+
+  assert.equal(data.pages[2].name, 'Deferred References');
+  assert.equal(data.pages[2].type, 'text');
+  assert.equal(data.pages[2].text.format, 1);
+  assert.match(data.pages[2].text.content, /References \(Deferred\)/);
+  assert.match(data.pages[2].text.content, /SWF Vanguard Drill Sergeant/);
+  assert.match(data.pages[2].text.content, /Actor References/);
+  assert.match(data.pages[2].text.content, /Target page:/);
+
+  assert.equal(data.flags['swf-module'].journalPresetKey, 'lore-entry');
+});
+
+test('journal materialization applies preset page naming when provided', () => {
+  globalThis.SWF = { MODULE_ID: 'swf-module' };
+  globalThis.CONST = { JOURNAL_ENTRY_PAGE_FORMATS: { HTML: 1 } };
+
+  loadJournalMaterializationDependencies();
+
+  const data = globalThis.SWF.journalMaterialization.buildJournalEntryCreateDataFromPreview({
+    name: 'Quest Brief: The Broken Tower',
+    summary: 'Recover the missing sigil.',
+    notes: ['Objective: Recover the sigil.', 'Constraints: Return before dawn.'],
+    linkedReferences: [],
+    preset: {
+      key: 'quest-brief',
+      overviewPageName: 'Brief',
+      detailsPageName: 'Mission Details',
+      referencePageName: 'Deferred References'
+    }
+  });
+
+  assert.equal(data.pages.length, 2);
+  assert.equal(data.pages[0].name, 'Brief');
+  assert.equal(data.pages[1].name, 'Mission Details');
+  assert.equal(data.flags['swf-module'].journalPresetKey, 'quest-brief');
 });
 
 test('journal materialization creates only overview page when notes and references are absent', () => {

@@ -7,10 +7,17 @@
  * - No dnd5e sheet or document overrides.
  */
 (() => {
-  const { MODULE_ID, referenceModel, validationTraceModel, materializationReadinessModel } = globalThis.SWF;
+  const {
+    MODULE_ID,
+    referenceModel,
+    validationTraceModel,
+    materializationReadinessModel,
+    journalPresetDefinitions
+  } = globalThis.SWF;
   const { createReferenceModel } = referenceModel;
   const { createValidationTraceModel } = validationTraceModel;
   const { createMaterializationReadinessModel } = materializationReadinessModel;
+  const { DEFAULT_JOURNAL_PRESET_KEY, applyJournalPresetToPreview } = journalPresetDefinitions;
 
   const AUTHORING_SURFACES = Object.freeze([
     Object.freeze({ key: "item", label: "Item", documentName: "Item" }),
@@ -174,52 +181,61 @@
         notes: ["Read-only preview model only.", "No Item document is created."]
       }),
       actor: buildActorPreview(),
-      journal: buildSurfacePreview({
+      journal: Object.freeze({
         label: "Journal",
-        documentName: "JournalEntry",
-        sampleName: "Sample Journal Blueprint",
-        typeHint: "entry",
-        linkedReferences: [
-          createReferenceModel({
-            kind: "actor",
-            label: "SWF Vanguard Drill Sergeant",
-            role: "Mentioned entity",
-            source: "builder-placeholder",
-            status: "candidate",
-            provisionalNote: "Mention-style cross-reference only; no true relation is created in this slice.",
-            meta: { localId: "swf.actor.vanguard-drill-sergeant" }
-          }),
-          createReferenceModel({
-            kind: "item",
-            label: "Guardian Posture",
-            role: "Mentioned feature",
-            source: "builder-placeholder",
-            status: "candidate",
-            provisionalNote: "Item mention remains an in-memory preview reference.",
-            meta: { localId: "swf.item.guardian-posture" }
-          })
-        ],
-        validationTrace: {
-          warnings: ["Journal page structure is represented as summary text only in this preview."],
-          deferredFields: ["pages", "ownership"],
-          provisionalFields: ["name", "linkedReferences"],
-          readiness: {
-            status: "preview-ready",
-            summary: "Journal lane is preview-ready with explicit deferred page materialization."
+        status: "available",
+        readOnly: true,
+        nonMaterialized: true,
+        preview: applyJournalPresetToPreview(
+        buildSurfacePreview({
+          label: "Journal",
+          documentName: "JournalEntry",
+          sampleName: "Sample Journal Blueprint",
+          typeHint: "entry",
+          linkedReferences: [
+            createReferenceModel({
+              kind: "actor",
+              label: "SWF Vanguard Drill Sergeant",
+              role: "Mentioned entity",
+              source: "builder-placeholder",
+              status: "candidate",
+              provisionalNote: "Mention-style cross-reference only; no true relation is created in this slice.",
+              meta: { localId: "swf.actor.vanguard-drill-sergeant" }
+            }),
+            createReferenceModel({
+              kind: "item",
+              label: "Guardian Posture",
+              role: "Mentioned feature",
+              source: "builder-placeholder",
+              status: "candidate",
+              provisionalNote: "Item mention remains an in-memory preview reference.",
+              meta: { localId: "swf.item.guardian-posture" }
+            })
+          ],
+          validationTrace: {
+            warnings: ["Journal page structure is represented as summary text only in this preview."],
+            deferredFields: ["pages", "ownership"],
+            provisionalFields: ["name", "linkedReferences"],
+            readiness: {
+              status: "preview-ready",
+              summary: "Journal lane is preview-ready with explicit deferred page materialization."
+            },
+            traceNotes: ["Narrative links are inspectable but not embedded into documents."]
           },
-          traceNotes: ["Narrative links are inspectable but not embedded into documents."]
-        },
-        materializationReadiness: {
-          readyClusters: ["name", "summary", "linkedReferences"],
-          deferredClusters: ["pages payload", "ownership defaults", "embedded links"],
-          provisionalClusters: ["entry structure conventions"],
-          readiness: {
-            status: "partially-ready",
-            summary: "Journal lane preview is clear for review while page materialization remains explicitly deferred."
+          materializationReadiness: {
+            readyClusters: ["name", "summary", "linkedReferences"],
+            deferredClusters: ["pages payload", "ownership defaults", "embedded links"],
+            provisionalClusters: ["entry structure conventions"],
+            readiness: {
+              status: "partially-ready",
+              summary: "Journal lane preview is clear for review while page materialization remains explicitly deferred."
+            },
+            nextStepNote: "Define one minimal JournalEntry page payload contract before enabling journal document creation."
           },
-          nextStepNote: "Define one minimal JournalEntry page payload contract before enabling journal document creation."
-        },
-        notes: ["Read-only preview model only.", "No JournalEntry document is created."]
+          notes: ["Read-only preview model only.", "No JournalEntry document is created."]
+        }).preview,
+        DEFAULT_JOURNAL_PRESET_KEY
+      )
       })
     })
   });

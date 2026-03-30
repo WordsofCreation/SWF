@@ -12,6 +12,7 @@ function loadPreviewStateDependencies() {
   loadScript('scripts/authoring/shared/reference-model.js');
   loadScript('scripts/authoring/shared/validation-trace-model.js');
   loadScript('scripts/authoring/shared/materialization-readiness-model.js');
+  loadScript('scripts/authoring/journal/journal-preset-definitions.js');
   loadScript('scripts/authoring/shared/authoring-preview-state.js');
 }
 
@@ -70,4 +71,19 @@ test('actor surface exposes structured npc-oriented preview clusters', () => {
   assert.equal(actor.validationTrace.readiness.status, 'preview-ready');
   assert.equal(actor.materializationReadiness.readiness.status, 'partially-ready');
   assert.ok(actor.materializationReadiness.deferredClusters.includes('dnd5e.system.attributes'));
+});
+
+
+test('journal surface is initialized from the default journal preset', () => {
+  globalThis.SWF = { MODULE_ID: 'swf-module' };
+  globalThis.foundry = { utils: { deepClone: (value) => structuredClone(value) } };
+
+  loadPreviewStateDependencies();
+
+  const previewState = globalThis.SWF.authoringPreviewState.getDefaultPreviewState();
+  const journal = previewState.surfaces.journal.preview;
+
+  assert.equal(journal.preset.key, 'lore-entry');
+  assert.equal(journal.preset.detailsPageName, 'Details');
+  assert.match(journal.summary, /Summarize/);
 });
