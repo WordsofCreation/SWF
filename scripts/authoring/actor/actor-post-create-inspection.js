@@ -4,6 +4,16 @@
  * Scope: conservative GM-facing trust layer for one npc-only Actor creation attempt.
  */
 (() => {
+  // Allowlist is intentionally narrow for the current npc-core-v1 slice.
+  // Do not expand this into deep system-data diffing.
+  const INSPECTION_OUTCOME = Object.freeze({
+    MATCHED: "matched",
+    NORMALIZED: "normalized/defaulted",
+    OMITTED: "omitted by design",
+    DEFERRED: "unsupported/deferred",
+    MISMATCH: "mismatch/error"
+  });
+
   function toNonEmptyString(value) {
     if (typeof value !== "string") return "";
     return value.trim();
@@ -11,14 +21,6 @@
 
   function toArray(values) {
     return Array.isArray(values) ? values.filter(Boolean) : [];
-  }
-
-  function compareValue(requested, actual) {
-    if (!requested && !actual) return "deferred-inspection";
-    if (requested === actual) return "materialized";
-    if (requested && actual) return "mismatch";
-    if (requested && !actual) return "requested-not-observed";
-    return "deferred-inspection";
   }
 
   function getModuleFlagValue(documentOrData, key) {
@@ -29,88 +31,197 @@
     return toNonEmptyString(documentOrData?.flags?.[moduleId]?.[key]);
   }
 
-  function buildClusterComparisonRows({ preview, createData, actor }) {
-    const requestedName = toNonEmptyString(createData?.name);
-    const actualName = toNonEmptyString(actor?.name);
+  function toInspectableValue(value) {
+    if (value === null || value === undefined) return "";
+    if (typeof value === "string") return value.trim();
+    return String(value).trim();
+  }
 
-    const requestedType = toNonEmptyString(createData?.type);
-    const actualType = toNonEmptyString(actor?.type);
+  function resolveInspectionOutcome({ expected, actual, supportLevel }) {
+    if (supportLevel === "omitted") return INSPECTION_OUTCOME.OMITTED;
+    if (supportLevel === "deferred") return INSPECTION_OUTCOME.DEFERRED;
 
-    const requestedImg = toNonEmptyString(createData?.img);
-    const actualImg = toNonEmptyString(actor?.img);
+    if (expected && actual && expected === actual) return INSPECTION_OUTCOME.MATCHED;
+    if (!expected && !actual) return INSPECTION_OUTCOME.NORMALIZED;
+    if (!expected && actual) return INSPECTION_OUTCOME.NORMALIZED;
+    if (expected && !actual) return INSPECTION_OUTCOME.MISMATCH;
+    return INSPECTION_OUTCOME.MISMATCH;
+  }
 
-    const requestedPathFlag = getModuleFlagValue(createData, "actorBuilderPath");
-    const actualPathFlag = getModuleFlagValue(actor, "actorBuilderPath");
+  function safeReadValue(readFn, payload) {
+    try {
+      return {
+        value: toInspectableValue(readFn(payload)),
+        readError: ""
+      };
+    } catch (error) {
+      return {
+        value: "",
+        readError: error?.message || String(error)
+      };
+    }
+  }
+
+  function buildAllowlistedInspectionRows({ preview, createData, actor }) {
+    const fieldAllowlist = [
+      {
+        key: "document.id",
+        label: "Document id",
+        supportLevel: "materialized",
+        previewValue: "n/a",
+        expectedRead: () => "",
+        actualRead: ({ actor: document }) => document?.id,
+        note: "Generated at creation time; compared for presence only."
+      },
+      {
+        key: "name",
+        label: "Name",
+        supportLevel: "materialized",
+        previewValue: toNonEmptyString(preview?.name) || "(empty)",
+        expectedRead: ({ createData: requested }) => requested?.name,
+        actualRead: ({ actor: document }) => document?.name
+      },
+      {
+        key: "type",
+        label: "Type",
+        supportLevel: "materialized",
+        previewValue: toNonEmptyString(preview?.typeHint) || "(empty)",
+        expectedRead: ({ createData: requested }) => requested?.type,
+        actualRead: ({ actor: document }) => document?.type
+      },
+      {
+        key: "img",
+        label: "Image",
+        supportLevel: "materialized",
+        previewValue: toNonEmptyString(preview?.img) || "(empty)",
+        expectedRead: ({ createData: requested }) => requested?.img,
+        actualRead: ({ actor: document }) => document?.img
+      },
+      {
+        key: "folder",
+        label: "Folder",
+        supportLevel: "omitted",
+        previewValue: "(not in actor draft slice)",
+        expectedRead: () => "",
+        actualRead: ({ actor: document }) => document?.folder?.id ?? document?.folder
+      },
+      {
+        key: "system.details.biography.value",
+        label: "Biography/description",
+        supportLevel: "deferred",
+        previewValue: "(deferred in npc-core-v1)",
+        expectedRead: () => "",
+        actualRead: ({ actor: document }) => document?.system?.details?.biography?.value
+      },
+      {
+        key: "flags.swf.actorBuilderPath",
+        label: "Module actor path flag",
+        supportLevel: "materialized",
+        previewValue: "n/a",
+        expectedRead: ({ createData: requested }) => getModuleFlagValue(requested, "actorBuilderPath"),
+        actualRead: ({ actor: document }) => getModuleFlagValue(document, "actorBuilderPath")
+      }
+    ];
+
+    return fieldAllowlist.map((field) => {
+      const expectedRead = safeReadValue(field.expectedRead, { preview, createData, actor });
+      const actualRead = safeReadValue(field.actualRead, { preview, createData, actor });
+      const outcome =
+        expectedRead.readError || actualRead.readError
+          ? INSPECTION_OUTCOME.MISMATCH
+          : resolveInspectionOutcome({
+              expected: expectedRead.value,
+              actual: actualRead.value,
+              supportLevel: field.supportLevel
+            });
+
+      return {
+        key: field.key,
+        label: field.label,
+        preview: field.previewValue,
+        expected: expectedRead.value || "(empty/default)",
+        actual: actualRead.value || "(not observed)",
+        outcome,
+        supportLevel: field.supportLevel,
+        note: field.note || "",
+        readError: expectedRead.readError || actualRead.readError || ""
+      };
+    });
+  }
+
+  function buildClusterComparisonRows({ rows }) {
+    const rowByKey = Object.fromEntries(rows.map((row) => [row.key, row]));
 
     return [
       {
         key: "identity",
         label: "Identity",
-        status: compareValue(requestedName, actualName),
-        requested: requestedName || "(defaulted)",
-        actual: actualName || "(not observed)",
-        preview: toNonEmptyString(preview?.name) || "(empty)",
+        status: rowByKey.name?.outcome ?? INSPECTION_OUTCOME.MISMATCH,
+        requested: rowByKey.name?.expected ?? "(empty/default)",
+        actual: rowByKey.name?.actual ?? "(not observed)",
+        preview: rowByKey.name?.preview ?? "(empty)",
         note: "Preview name should map directly to created Actor name."
       },
       {
         key: "type",
         label: "Actor type",
-        status: compareValue(requestedType, actualType),
-        requested: requestedType || "(defaulted)",
-        actual: actualType || "(not observed)",
-        preview: toNonEmptyString(preview?.typeHint) || "(empty)",
+        status: rowByKey.type?.outcome ?? INSPECTION_OUTCOME.MISMATCH,
+        requested: rowByKey.type?.expected ?? "(empty/default)",
+        actual: rowByKey.type?.actual ?? "(not observed)",
+        preview: rowByKey.type?.preview ?? "(empty)",
         note: "Only npc actor type is in scope for this slice."
       },
       {
         key: "image",
         label: "Portrait image",
-        status: compareValue(requestedImg, actualImg),
-        requested: requestedImg || "(defaulted)",
-        actual: actualImg || "(not observed)",
-        preview: toNonEmptyString(preview?.img) || "(empty)",
+        status: rowByKey.img?.outcome ?? INSPECTION_OUTCOME.MISMATCH,
+        requested: rowByKey.img?.expected ?? "(empty/default)",
+        actual: rowByKey.img?.actual ?? "(not observed)",
+        preview: rowByKey.img?.preview ?? "(empty)",
         note: "Conservative check verifies top-level Actor img mapping only."
       },
       {
         key: "module-metadata",
         label: "Module creation metadata",
-        status: compareValue(requestedPathFlag, actualPathFlag),
-        requested: requestedPathFlag || "(missing)",
-        actual: actualPathFlag || "(not observed)",
+        status: rowByKey["flags.swf.actorBuilderPath"]?.outcome ?? INSPECTION_OUTCOME.MISMATCH,
+        requested: rowByKey["flags.swf.actorBuilderPath"]?.expected ?? "(missing)",
+        actual: rowByKey["flags.swf.actorBuilderPath"]?.actual ?? "(not observed)",
         preview: "n/a",
         note: "Flag confirms npc creation path lineage for this lane."
       }
     ];
   }
 
-  function mapMaterializedFieldRows({ preview, createData, actor }) {
+  function mapMaterializedFieldRows({ rows }) {
     return [
       {
         key: "name",
-        preview: toNonEmptyString(preview?.name) || "(empty)",
-        requested: toNonEmptyString(createData?.name) || "(defaulted)",
-        actual: toNonEmptyString(actor?.name) || "(unknown)",
-        status: actor?.name ? "materialized" : "unknown"
+        preview: rows.find((row) => row.key === "name")?.preview ?? "(empty)",
+        requested: rows.find((row) => row.key === "name")?.expected ?? "(empty/default)",
+        actual: rows.find((row) => row.key === "name")?.actual ?? "(not observed)",
+        status: rows.find((row) => row.key === "name")?.outcome ?? INSPECTION_OUTCOME.MISMATCH
       },
       {
         key: "type",
-        preview: toNonEmptyString(preview?.typeHint) || "(empty)",
-        requested: toNonEmptyString(createData?.type) || "(defaulted)",
-        actual: toNonEmptyString(actor?.type) || "(unknown)",
-        status: actor?.type ? "materialized" : "unknown"
+        preview: rows.find((row) => row.key === "type")?.preview ?? "(empty)",
+        requested: rows.find((row) => row.key === "type")?.expected ?? "(empty/default)",
+        actual: rows.find((row) => row.key === "type")?.actual ?? "(not observed)",
+        status: rows.find((row) => row.key === "type")?.outcome ?? INSPECTION_OUTCOME.MISMATCH
       },
       {
         key: "img",
-        preview: toNonEmptyString(preview?.img) || "(empty)",
-        requested: toNonEmptyString(createData?.img) || "(defaulted)",
-        actual: toNonEmptyString(actor?.img) || "(unknown)",
-        status: actor?.img ? "materialized" : "unknown"
+        preview: rows.find((row) => row.key === "img")?.preview ?? "(empty)",
+        requested: rows.find((row) => row.key === "img")?.expected ?? "(empty/default)",
+        actual: rows.find((row) => row.key === "img")?.actual ?? "(not observed)",
+        status: rows.find((row) => row.key === "img")?.outcome ?? INSPECTION_OUTCOME.MISMATCH
       },
       {
-        key: "module creation metadata",
+        key: "module actor path flag",
         preview: "n/a",
-        requested: toNonEmptyString(createData?.flags?.[globalThis.SWF?.MODULE_ID]?.actorBuilderPath) || "(missing)",
-        actual: actor ? "captured in module flag payload" : "not inspected",
-        status: createData?.flags?.[globalThis.SWF?.MODULE_ID]?.actorBuilderPath ? "materialized" : "deferred-inspection"
+        requested: rows.find((row) => row.key === "flags.swf.actorBuilderPath")?.expected ?? "(missing)",
+        actual: rows.find((row) => row.key === "flags.swf.actorBuilderPath")?.actual ?? "(not observed)",
+        status:
+          rows.find((row) => row.key === "flags.swf.actorBuilderPath")?.outcome ?? INSPECTION_OUTCOME.MISMATCH
       }
     ];
   }
@@ -121,17 +232,18 @@
     const createData = result?.createData ?? null;
     const validation = result?.validation ?? null;
 
-    const deferredClusters = [
+    const deferredClusters = Object.freeze([
       "dnd5e.system.attributes",
       "dnd5e.system.details",
       "embedded items/features",
       "prototype token automation",
       "active effects"
-    ];
+    ]);
 
-    const clusterComparisons = buildClusterComparisonRows({ preview, createData, actor });
+    const allowlistedRows = buildAllowlistedInspectionRows({ preview, createData, actor });
+    const clusterComparisons = buildClusterComparisonRows({ rows: allowlistedRows });
     const materializedClusters = success
-      ? clusterComparisons.filter((cluster) => cluster.status === "materialized").map((cluster) => cluster.label)
+      ? clusterComparisons.filter((cluster) => cluster.status === INSPECTION_OUTCOME.MATCHED).map((cluster) => cluster.label)
       : [];
 
     const warnings = [];
@@ -141,11 +253,12 @@
       warnings.push(...validation.warnings);
     }
     if (success) {
-      const mismatchRows = clusterComparisons.filter((cluster) =>
-        ["mismatch", "requested-not-observed"].includes(cluster.status)
-      );
+      const mismatchRows = clusterComparisons.filter((cluster) => cluster.status === INSPECTION_OUTCOME.MISMATCH);
       mismatchRows.forEach((cluster) => warnings.push(`${cluster.label} needs manual review (${cluster.status}).`));
     }
+    allowlistedRows
+      .filter((row) => row.readError)
+      .forEach((row) => warnings.push(`Inspection read failed for ${row.label}: ${row.readError}`));
     warnings.push("Inspection is conservative: no deep diff is performed against full dnd5e actor system defaults.");
 
     const notes = [
@@ -156,11 +269,9 @@
 
     const traceSummary = {
       attempted: clusterComparisons.length,
-      materialized: clusterComparisons.filter((cluster) => cluster.status === "materialized").length,
-      reviewNeeded: clusterComparisons.filter((cluster) =>
-        ["mismatch", "requested-not-observed"].includes(cluster.status)
-      ).length,
-      deferredInspection: clusterComparisons.filter((cluster) => cluster.status === "deferred-inspection").length
+      materialized: clusterComparisons.filter((cluster) => cluster.status === INSPECTION_OUTCOME.MATCHED).length,
+      reviewNeeded: clusterComparisons.filter((cluster) => cluster.status === INSPECTION_OUTCOME.MISMATCH).length,
+      deferredInspection: allowlistedRows.filter((row) => row.outcome === INSPECTION_OUTCOME.DEFERRED).length
     };
 
     return {
@@ -174,14 +285,17 @@
             id: toNonEmptyString(actor?.id) || "(unknown)",
             name: toNonEmptyString(actor?.name) || toNonEmptyString(createData?.name) || "(unnamed)",
             type: toNonEmptyString(actor?.type) || toNonEmptyString(createData?.type) || "(unknown)",
+            img: toNonEmptyString(actor?.img) || toNonEmptyString(createData?.img) || "(unknown)",
+            folder: toNonEmptyString(actor?.folder?.name ?? actor?.folder) || "(none)",
             uuid: toNonEmptyString(actor?.uuid) || ""
           }
         : null,
+      inspectionRows: allowlistedRows,
       materializedClusters,
       deferredClusters,
       traceSummary,
       clusterComparisons,
-      fieldMapping: mapMaterializedFieldRows({ preview, createData, actor }),
+      fieldMapping: mapMaterializedFieldRows({ rows: allowlistedRows }),
       validation: validation
         ? {
             ok: validation.ok === true,
@@ -201,8 +315,11 @@
     INTERNALS: {
       toArray,
       toNonEmptyString,
-      compareValue,
+      toInspectableValue,
+      resolveInspectionOutcome,
+      safeReadValue,
       getModuleFlagValue,
+      buildAllowlistedInspectionRows,
       buildClusterComparisonRows,
       mapMaterializedFieldRows
     }

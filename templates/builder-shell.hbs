@@ -273,6 +273,8 @@
               <ul class="swf-builder-shell__status">
                 <li>Name: {{actorCreateInspection.createdActor.name}}</li>
                 <li>Type: {{actorCreateInspection.createdActor.type}}</li>
+                <li>Image: <code>{{actorCreateInspection.createdActor.img}}</code></li>
+                <li>Folder: {{actorCreateInspection.createdActor.folder}}</li>
                 <li>ID: <code>{{actorCreateInspection.createdActor.id}}</code></li>
                 {{#if actorCreateInspection.createdActor.uuid}}
                   <li>UUID: <code>{{actorCreateInspection.createdActor.uuid}}</code></li>
@@ -310,6 +312,16 @@
                   <strong>{{this.label}}</strong> [{{this.status}}]:
                   preview={{this.preview}} |
                   requested={{this.requested}} |
+                  actual={{this.actual}}
+                </li>
+              {{/each}}
+            </ul>
+            <h6>Allowlisted Reconciliation (Normalized Draft ↔ Created Actor)</h6>
+            <ul class="swf-builder-shell__status">
+              {{#each actorCreateInspection.inspectionRows}}
+                <li>
+                  <strong>{{this.label}}</strong> [{{this.outcome}}]:
+                  expected={{this.expected}} |
                   actual={{this.actual}}
                 </li>
               {{/each}}

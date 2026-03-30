@@ -49,11 +49,20 @@ test('actor post-create inspection summarizes successful npc-only creation conse
 
   assert.equal(inspection.status.ok, true);
   assert.equal(inspection.createdActor.id, 'actor123');
+  assert.equal(inspection.createdActor.img, 'icons/svg/mystery-man.svg');
   assert.equal(inspection.materializedClusters.includes('Actor type'), true);
   assert.equal(inspection.deferredClusters.includes('dnd5e.system.attributes'), true);
   assert.equal(inspection.traceSummary.attempted, 4);
   assert.equal(inspection.traceSummary.materialized, 4);
   assert.equal(inspection.traceSummary.reviewNeeded, 0);
+  assert.equal(
+    inspection.inspectionRows.find((row) => row.key === 'folder')?.outcome,
+    'omitted by design'
+  );
+  assert.equal(
+    inspection.inspectionRows.find((row) => row.key === 'system.details.biography.value')?.outcome,
+    'unsupported/deferred'
+  );
 });
 
 test('actor post-create inspection flags conservative review when requested and observed values diverge', () => {
@@ -96,5 +105,9 @@ test('actor post-create inspection flags conservative review when requested and 
   assert.equal(
     inspection.warnings.some((warning) => warning.includes('needs manual review')),
     true
+  );
+  assert.equal(
+    inspection.clusterComparisons.find((row) => row.key === 'type')?.status,
+    'mismatch/error'
   );
 });
