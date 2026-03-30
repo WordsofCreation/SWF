@@ -154,6 +154,13 @@
           classification: Object.freeze({
             featSubtype: "class",
             requirements: "Vanguard training"
+          }),
+          sourceDetails: Object.freeze({
+            custom: "SWF Builder",
+            book: "SW5e Conversion Notes",
+            page: "Item Lane 1",
+            license: "CC-BY-4.0",
+            rules: "2024"
           })
         },
         linkedReferences: [
@@ -169,8 +176,8 @@
         ],
         validationTrace: {
           warnings: ["Only one feat-only world Item creation path is enabled; activities remain deferred."],
-          deferredFields: ["dnd5e.system.activities", "dnd5e.system.source"],
-          provisionalFields: ["classification.featSubtype", "classification.requirements"],
+          deferredFields: ["dnd5e.system.activities"],
+          provisionalFields: ["classification.featSubtype", "classification.requirements", "sourceDetails.*"],
           readiness: {
             status: "partially-ready",
             summary: "Item lane supports one conservative feat-only creation path; broader dnd5e item system mapping remains deferred."
@@ -178,9 +185,9 @@
           traceNotes: ["One explicit GM-only Item document write path is enabled for feat previews."]
         },
         materializationReadiness: {
-          readyClusters: ["name", "summary", "classification", "linkedReferences"],
-          deferredClusters: ["dnd5e.system.activities", "dnd5e.system.source", "item ownership defaults"],
-          provisionalClusters: ["feat subtype allow-list coverage"],
+          readyClusters: ["name", "summary", "classification", "sourceDetails", "linkedReferences"],
+          deferredClusters: ["dnd5e.system.activities", "item ownership defaults"],
+          provisionalClusters: ["feat subtype allow-list coverage", "sourceDetails optional field population"],
           readiness: {
             status: "partially-ready",
             summary: "Item lane can now materialize one feat-style document path while complex item fields remain deferred."

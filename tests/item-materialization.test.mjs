@@ -25,7 +25,14 @@ test('item materialization builds conservative feat create payload from item pre
     classification: {
       featSubtype: 'class',
       requirements: 'Vanguard training'
-    }
+    },
+    sourceDetails: {
+      custom: 'SWF Builder QA',
+      book: 'SW5e Conversion Notes',
+      page: '12',
+      license: 'CC-BY-4.0',
+      rules: '2024'
+    },
   });
 
   assert.equal(pipeline.stages.validation.ok, true);
@@ -35,6 +42,11 @@ test('item materialization builds conservative feat create payload from item pre
   assert.equal(pipeline.createData.system.type.subtype, 'class');
   assert.match(pipeline.createData.system.description.value, /Gain disciplined defensive posture fundamentals/);
   assert.equal(pipeline.createData.system.requirements, 'Vanguard training');
+  assert.equal(pipeline.createData.system.source.custom, 'SWF Builder QA');
+  assert.equal(pipeline.createData.system.source.book, 'SW5e Conversion Notes');
+  assert.equal(pipeline.createData.system.source.page, '12');
+  assert.equal(pipeline.createData.system.source.license, 'CC-BY-4.0');
+  assert.equal(pipeline.createData.system.source.rules, '2024');
   assert.equal(pipeline.createData.flags['swf-module'].itemBuilderPath, 'feat-only-v1');
 });
 

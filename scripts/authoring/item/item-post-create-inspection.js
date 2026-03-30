@@ -42,6 +42,20 @@
 
     const requestedRequirements = toNonEmptyString(createData?.system?.requirements);
     const actualRequirements = toNonEmptyString(item?.system?.requirements);
+    const requestedSource = JSON.stringify({
+      custom: toNonEmptyString(createData?.system?.source?.custom),
+      book: toNonEmptyString(createData?.system?.source?.book),
+      page: toNonEmptyString(createData?.system?.source?.page),
+      license: toNonEmptyString(createData?.system?.source?.license),
+      rules: toNonEmptyString(createData?.system?.source?.rules)
+    });
+    const actualSource = JSON.stringify({
+      custom: toNonEmptyString(item?.system?.source?.custom),
+      book: toNonEmptyString(item?.system?.source?.book),
+      page: toNonEmptyString(item?.system?.source?.page),
+      license: toNonEmptyString(item?.system?.source?.license),
+      rules: toNonEmptyString(item?.system?.source?.rules)
+    });
 
     const requestedPathFlag = getModuleFlagValue(createData, "itemBuilderPath");
     const actualPathFlag = getModuleFlagValue(item, "itemBuilderPath");
@@ -80,6 +94,21 @@
           ? `subtype=${actualSubtype || "(unknown)"}; requirements=${actualRequirements || "(empty)"}`
           : "(not observed)",
         preview: `featSubtype=${toNonEmptyString(preview?.classification?.featSubtype) || "(default)"}`
+      },
+      {
+        key: "source",
+        label: "Source details cluster",
+        status: compareValue(requestedSource, actualSource),
+        requested: requestedSource,
+        actual: item ? actualSource : "(not observed)",
+        preview: JSON.stringify({
+          custom: toNonEmptyString(preview?.sourceDetails?.custom),
+          book: toNonEmptyString(preview?.sourceDetails?.book),
+          page: toNonEmptyString(preview?.sourceDetails?.page),
+          license: toNonEmptyString(preview?.sourceDetails?.license),
+          rules: toNonEmptyString(preview?.sourceDetails?.rules)
+        }),
+        note: "Conservative source pass-through maps preview sourceDetails into system.source."
       },
       {
         key: "module-metadata",
@@ -126,6 +155,34 @@
       requested: `system.type.value=${toNonEmptyString(createData?.system?.type?.value)}; system.type.subtype=${toNonEmptyString(createData?.system?.type?.subtype)}; system.requirements=${toNonEmptyString(createData?.system?.requirements) || "(empty)"}`,
       actual: item
         ? `system.type.value=${toNonEmptyString(item?.system?.type?.value) || toNonEmptyString(item?.type) || "(unknown)"}; system.type.subtype=${toNonEmptyString(item?.system?.type?.subtype) || "(unknown)"}; system.requirements=${toNonEmptyString(item?.system?.requirements) || "(empty)"}`
+        : "not inspected",
+      status: item ? "materialized" : "unknown"
+    });
+
+    rows.push({
+      key: "source details",
+      preview: JSON.stringify({
+        custom: toNonEmptyString(preview?.sourceDetails?.custom),
+        book: toNonEmptyString(preview?.sourceDetails?.book),
+        page: toNonEmptyString(preview?.sourceDetails?.page),
+        license: toNonEmptyString(preview?.sourceDetails?.license),
+        rules: toNonEmptyString(preview?.sourceDetails?.rules)
+      }),
+      requested: JSON.stringify({
+        custom: toNonEmptyString(createData?.system?.source?.custom),
+        book: toNonEmptyString(createData?.system?.source?.book),
+        page: toNonEmptyString(createData?.system?.source?.page),
+        license: toNonEmptyString(createData?.system?.source?.license),
+        rules: toNonEmptyString(createData?.system?.source?.rules)
+      }),
+      actual: item
+        ? JSON.stringify({
+            custom: toNonEmptyString(item?.system?.source?.custom),
+            book: toNonEmptyString(item?.system?.source?.book),
+            page: toNonEmptyString(item?.system?.source?.page),
+            license: toNonEmptyString(item?.system?.source?.license),
+            rules: toNonEmptyString(item?.system?.source?.rules)
+          })
         : "not inspected",
       status: item ? "materialized" : "unknown"
     });
