@@ -32,6 +32,7 @@
     "scripts/authoring/shared/materialization-readiness-model.js",
     "scripts/authoring/shared/materialization-readiness-presentation.js",
     "scripts/authoring/journal/journal-preset-definitions.js",
+    "scripts/authoring/journal/journal-draft-state.js",
     "scripts/authoring/shared/authoring-preview-state.js",
     "scripts/authoring/journal/journal-reference-presentation.js",
     "scripts/authoring/journal/journal-materialization.js",

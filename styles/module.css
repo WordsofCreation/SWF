@@ -88,6 +88,24 @@
   margin-bottom: 0.35rem;
 }
 
+.swf-builder-shell__draft-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.35rem;
+  margin: 0.35rem 0 0.6rem;
+}
+
+.swf-builder-shell__draft-grid label {
+  display: grid;
+  gap: 0.15rem;
+  font-weight: 600;
+}
+
+.swf-builder-shell__draft-grid input,
+.swf-builder-shell__draft-grid textarea {
+  font-weight: 400;
+}
+
 .swf-builder-shell__status-note {
   margin: 0.2rem 0 0.5rem;
   font-size: 0.9em;
