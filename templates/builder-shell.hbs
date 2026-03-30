@@ -1,7 +1,7 @@
 <section class="swf-builder-shell__body">
   <p>
     Safe stage-1 builder shell for GM preview workflows.
-    This window is read-only and does not create or mutate Item, Actor, or Journal documents.
+    Item and Actor lanes remain read-only. Journal lane includes one controlled GM-only create action.
   </p>
 
   <ul class="swf-builder-shell__status">
@@ -37,6 +37,19 @@
 
       <h4>Summary</h4>
       <p>{{activePreview.preview.summary}}</p>
+
+      {{#if canCreateJournal}}
+        <h4>Journal Materialization (Controlled Slice)</h4>
+        <p>Creates one world JournalEntry from the current Journal preview using minimal v13-safe fields.</p>
+        <button type="button" class="swf-builder-shell__action" data-action="create-journal">
+          Create Journal Entry
+        </button>
+        {{#if journalCreateStatus}}
+          <p class="swf-builder-shell__status-note swf-builder-shell__status-note--{{journalCreateStatus.type}}">
+            {{journalCreateStatus.message}}
+          </p>
+        {{/if}}
+      {{/if}}
 
 
       <h4>Validation &amp; Trace</h4>
