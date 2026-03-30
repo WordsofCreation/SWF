@@ -5,6 +5,7 @@
  */
 (() => {
   const { MODULE_ID, log, authoringPreviewState } = globalThis.SWF;
+  let builderShellApp = null;
 
   class SWFBuilderShellApp extends FormApplication {
     #activeSurface = "item";
@@ -72,6 +73,12 @@
     }
   }
 
+  function openBuilderShell() {
+    if (!game.user?.isGM) return;
+    builderShellApp ??= new SWFBuilderShellApp();
+    void builderShellApp.render(true, { focus: true });
+  }
+
   function registerBuilderShellMenu() {
     game.settings.registerMenu(MODULE_ID, "builderShell", {
       name: "Open Builder Shell",
@@ -85,5 +92,28 @@
     log("Registered GM builder shell menu.");
   }
 
+  function registerBuilderShellKeybinding() {
+    game.keybindings.register(MODULE_ID, "openBuilderShell", {
+      name: "Open Builder Shell",
+      hint: "Launches the SWF GM-only read-only builder shell.",
+      editable: [
+        {
+          key: "KeyB",
+          modifiers: ["Shift"]
+        }
+      ],
+      onDown: () => {
+        openBuilderShell();
+        return true;
+      },
+      restricted: true,
+      precedence: CONST.KEYBINDING_PRECEDENCE.NORMAL
+    });
+
+    log("Registered GM builder shell keybinding.");
+  }
+
+  globalThis.SWF.openBuilderShell = openBuilderShell;
   globalThis.SWF.registerBuilderShellMenu = registerBuilderShellMenu;
+  globalThis.SWF.registerBuilderShellKeybinding = registerBuilderShellKeybinding;
 })();
