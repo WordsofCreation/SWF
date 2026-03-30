@@ -85,22 +85,21 @@
   }
 
   function buildJournalMaterializationInputModelFromPreview(journalPreview = {}) {
-    const name = toNonEmptyString(journalPreview.name) || "SWF Journal Draft";
-    const summary = toNonEmptyString(journalPreview.summary) || "No summary provided.";
-    const notes = Array.isArray(journalPreview.notes)
+    const name = toNonEmptyString(journalPreview?.name) || "SWF Journal Draft";
+    const summary = toNonEmptyString(journalPreview?.summary) || "No summary provided.";
+    const notes = Array.isArray(journalPreview?.notes)
       ? journalPreview.notes.map((note) => toNonEmptyString(note)).filter(Boolean)
       : [];
-
     const presetKey = toNonEmptyString(journalPreview?.preset?.key) || "lore-entry";
-    const shapingStage = journalBuildPipeline.buildJournalShapingStageFromPreview(
-      {
-        ...journalPreview,
-        name,
-        summary,
-        notes
-      },
-      { referenceInclusionMode: "linked" }
-    );
+    const normalizedPreview = {
+      ...journalPreview,
+      name,
+      summary,
+      notes
+    };
+    const shapingStage = journalBuildPipeline.buildJournalShapingStageFromPreview(normalizedPreview, {
+      referenceInclusionMode: "linked"
+    });
     const summaryDetailsFrame = shapingStage.summaryDetailsFrame;
     const sectionPlan = shapingStage.sectionPlan;
     const referenceBlock = shapingStage.referenceBlock;
@@ -116,8 +115,7 @@
     });
   }
 
-  function buildJournalEntryCreateDataFromPreview(journalPreview = {}) {
-    const materializationInput = buildJournalMaterializationInputModelFromPreview(journalPreview);
+  function buildJournalEntryCreateDataFromMaterializationInput(materializationInput = {}, journalPreview = {}) {
     const { name, presetKey, sectionPlan, summaryDetailsFrame, referenceBlock } = materializationInput;
     const referenceBlockHtml = buildStructuredReferenceHtml(referenceBlock);
 
@@ -180,8 +178,38 @@
     };
   }
 
+  function buildJournalMaterializationPipelineFromPreview(journalPreview = {}) {
+    const materializationInput = buildJournalMaterializationInputModelFromPreview(journalPreview);
+    const buildPipeline = journalBuildPipeline.buildJournalBuildPipelineFromPreview(
+      {
+        ...journalPreview,
+        name: materializationInput.name,
+        summary: materializationInput.summary,
+        notes: materializationInput.notes
+      },
+      { referenceInclusionMode: "linked" }
+    );
+    const createData = buildJournalEntryCreateDataFromMaterializationInput(materializationInput, journalPreview);
+
+    return Object.freeze({
+      stages: Object.freeze({
+        presetSelection: buildPipeline.preset,
+        authoringModel: buildPipeline.authoring,
+        previewShaping: buildPipeline.shaping,
+        validation: buildPipeline.validation,
+        materializationInput
+      }),
+      createData
+    });
+  }
+
+  function buildJournalEntryCreateDataFromPreview(journalPreview = {}) {
+    return buildJournalMaterializationPipelineFromPreview(journalPreview).createData;
+  }
+
   function buildJournalCreateIntentSummaryFromPreview(journalPreview = {}) {
-    const createData = buildJournalEntryCreateDataFromPreview(journalPreview);
+    const materializationPipeline = buildJournalMaterializationPipelineFromPreview(journalPreview);
+    const createData = materializationPipeline.createData;
     const presetKey = toNonEmptyString(journalPreview?.preset?.key) || "lore-entry";
     const presetLabel = toNonEmptyString(journalPreview?.preset?.label) || "(unlabeled preset)";
     const fullSectionPlan = journalSectionStructure.buildJournalSectionPlanFromPreview(journalPreview, {
@@ -282,7 +310,9 @@
       };
     }
 
-    const validation = validateJournalPreview(journalPreview);
+    const materializationPipeline =
+      options?.materializationPipeline ?? buildJournalMaterializationPipelineFromPreview(journalPreview);
+    const validation = materializationPipeline?.stages?.validation ?? validateJournalPreview(journalPreview);
     if (!validation.ok) {
       return {
         ok: false,
@@ -293,7 +323,7 @@
     }
 
     try {
-      const createData = buildJournalEntryCreateDataFromPreview(journalPreview);
+      const createData = materializationPipeline.createData;
       const entry = await JournalEntry.create(createData, {
         renderSheet: options.renderSheet ?? true
       });
@@ -317,10 +347,12 @@
 
   globalThis.SWF.journalMaterialization = {
     buildJournalMaterializationInputModelFromPreview,
+    buildJournalMaterializationPipelineFromPreview,
     buildJournalEntryCreateDataFromPreview,
     buildJournalCreateIntentSummaryFromPreview,
     materializeJournalPreviewAsWorldEntry,
     INTERNALS: {
+      buildJournalEntryCreateDataFromMaterializationInput,
       buildOverviewPageContent,
       buildDetailsPageContent,
       buildStructuredReferenceHtml,
