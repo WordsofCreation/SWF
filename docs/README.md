@@ -3,6 +3,7 @@
 Project documentation for SWF module architecture, research notes, and vertical-slice plans.
 
 ## Current architecture planning docs
+- `swf-gm-builder-architecture-stage1-2026-03-30.md` — architecture-first stage-1 plan for a safe GM-facing builder pipeline.
 - `swf-authoring-architecture-next-step-2026-03-30.md` — next-step architecture for item/actor/journal authoring paths (non-destructive).
 
 ## Additional references
