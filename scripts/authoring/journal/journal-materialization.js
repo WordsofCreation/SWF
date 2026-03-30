@@ -33,20 +33,27 @@
   }
 
   function buildOverviewPageContent(summary) {
-    return `<p>${escapeHtml(summary)}</p>`;
+    return [`<h1>Summary</h1>`, `<p>${escapeHtml(summary)}</p>`].join("\n");
   }
 
-  function buildDetailsPageContent({ notes, deferredReferenceLines }) {
+  function buildDetailsPageContent(notes) {
+    if (!Array.isArray(notes) || notes.length === 0) return "";
+
     return [
-      notes.length > 0
-        ? `<h2>Preview Notes</h2><ul>${notes.map((note) => `<li>${escapeHtml(note)}</li>`).join("")}</ul>`
-        : "",
-      deferredReferenceLines.length > 0
-        ? `<h2>Deferred References</h2><p>These references remain preview-only in this slice.</p><ul>${deferredReferenceLines.join("")}</ul>`
-        : ""
-    ]
-      .filter(Boolean)
-      .join("\n");
+      `<h1>Details</h1>`,
+      `<p>These notes are carried from the Journal preview model.</p>`,
+      `<ul>${notes.map((note) => `<li>${escapeHtml(note)}</li>`).join("")}</ul>`
+    ].join("\n");
+  }
+
+  function buildDeferredReferencesPageContent(deferredReferenceLines) {
+    if (!Array.isArray(deferredReferenceLines) || deferredReferenceLines.length === 0) return "";
+
+    return [
+      `<h1>Deferred References</h1>`,
+      `<p>These references remain preview-only in this Journal materialization slice.</p>`,
+      `<ul>${deferredReferenceLines.join("")}</ul>`
+    ].join("\n");
   }
 
   function buildJournalEntryCreateDataFromPreview(journalPreview = {}) {
@@ -59,7 +66,8 @@
 
     const format = CONST?.JOURNAL_ENTRY_PAGE_FORMATS?.HTML ?? 1;
     const overviewPageContent = buildOverviewPageContent(summary);
-    const detailsPageContent = buildDetailsPageContent({ notes, deferredReferenceLines });
+    const detailsPageContent = buildDetailsPageContent(notes);
+    const deferredReferencesPageContent = buildDeferredReferencesPageContent(deferredReferenceLines);
     const pages = [
       {
         name: "Overview",
@@ -78,6 +86,17 @@
         text: {
           format,
           content: detailsPageContent
+        }
+      });
+    }
+
+    if (deferredReferencesPageContent) {
+      pages.push({
+        name: "Deferred References",
+        type: "text",
+        text: {
+          format,
+          content: deferredReferencesPageContent
         }
       });
     }
@@ -133,6 +152,7 @@
     INTERNALS: {
       buildOverviewPageContent,
       buildDetailsPageContent,
+      buildDeferredReferencesPageContent,
       toDeferredReferenceLines,
       escapeHtml,
       toNonEmptyString

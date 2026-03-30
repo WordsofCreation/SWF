@@ -8,7 +8,7 @@ function loadScript(path) {
   vm.runInThisContext(source, { filename: path });
 }
 
-test('journal materialization builds explicit overview and details pages when details content exists', () => {
+test('journal materialization builds explicit overview, details, and deferred references pages when supported by preview', () => {
   globalThis.SWF = { MODULE_ID: 'swf-module' };
   globalThis.CONST = { JOURNAL_ENTRY_PAGE_FORMATS: { HTML: 1 } };
 
@@ -31,16 +31,21 @@ test('journal materialization builds explicit overview and details pages when de
   const data = globalThis.SWF.journalMaterialization.buildJournalEntryCreateDataFromPreview(preview);
   assert.equal(data.name, 'Sample Journal Blueprint');
   assert.equal(Array.isArray(data.pages), true);
-  assert.equal(data.pages.length, 2);
+  assert.equal(data.pages.length, 3);
   assert.equal(data.pages[0].name, 'Overview');
   assert.equal(data.pages[0].type, 'text');
   assert.equal(data.pages[0].text.format, 1);
+  assert.match(data.pages[0].text.content, /Summary/);
   assert.match(data.pages[0].text.content, /Journal builder preview only/);
   assert.equal(data.pages[1].name, 'Details');
   assert.equal(data.pages[1].type, 'text');
   assert.equal(data.pages[1].text.format, 1);
-  assert.match(data.pages[1].text.content, /Deferred References/);
-  assert.match(data.pages[1].text.content, /SWF Vanguard Drill Sergeant/);
+  assert.match(data.pages[1].text.content, /Read-only preview model only/);
+  assert.equal(data.pages[2].name, 'Deferred References');
+  assert.equal(data.pages[2].type, 'text');
+  assert.equal(data.pages[2].text.format, 1);
+  assert.match(data.pages[2].text.content, /Deferred References/);
+  assert.match(data.pages[2].text.content, /SWF Vanguard Drill Sergeant/);
 });
 
 test('journal materialization creates only overview page when notes and references are absent', () => {
