@@ -53,6 +53,13 @@
             <strong>{{selectedSample.key}}:</strong> {{selectedSample.description}}
           </p>
         {{/if}}
+        {{#if activeSampleState}}
+          <ul class="swf-builder-shell__status">
+            <li>Active Sample: <strong>{{activeSampleState.activeSampleLabel}}</strong> (<code>{{activeSampleState.activeSampleKey}}</code>)</li>
+            <li>State Origin: <strong>{{activeSampleState.activeStateOrigin}}</strong></li>
+            <li>{{activeSampleState.activeStateOriginLabel}}</li>
+          </ul>
+        {{/if}}
       {{/if}}
 
       {{#if itemValidation}}

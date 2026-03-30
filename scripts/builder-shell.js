@@ -17,7 +17,8 @@
     journalPostCreateInspection,
     journalPresetDefinitions,
     journalDraftState,
-    sampleContentRegistry
+    sampleContentRegistry,
+    builderSampleState
   } = globalThis.SWF;
   let builderShellApp = null;
 
@@ -27,11 +28,7 @@
     #journalCreateInspection = null;
     #journalPresetKey = journalPresetDefinitions.DEFAULT_JOURNAL_PRESET_KEY;
     #journalDraft = null;
-    #selectedSampleKeys = {
-      item: sampleContentRegistry.getDefaultSampleKeyForSurface("item"),
-      actor: sampleContentRegistry.getDefaultSampleKeyForSurface("actor"),
-      journal: sampleContentRegistry.getDefaultSampleKeyForSurface("journal")
-    };
+    #sampleSelectionState = builderSampleState.createBuilderSampleSelectionState();
 
     static get defaultOptions() {
       return foundry.utils.mergeObject(super.defaultOptions, {
@@ -63,14 +60,16 @@
 
     getData() {
       const surfaces = authoringPreviewState.getAuthoringSurfaces();
-      const previewState = this.#getPreviewStateWithSamples();
+      const sampleProjection = this.#buildPreviewStateWithSamples();
+      const previewState = sampleProjection.previewState;
       const activeSurface = surfaces.find((surface) => surface.key === this.#activeSurface) ?? surfaces[0];
       const activePreview = activeSurface ? previewState.surfaces[activeSurface.key] ?? null : null;
       const sampleRows = sampleContentRegistry.getSamplesForSurface(activeSurface?.key);
       const selectedSample = sampleContentRegistry.getSampleByKey(
         activeSurface?.key,
-        this.#selectedSampleKeys[activeSurface?.key]
+        this.#sampleSelectionState.selectedSampleKeys?.[activeSurface?.key]
       );
+      const activeSurfaceSampleState = sampleProjection.surfaceSampleState[activeSurface?.key] ?? null;
       const linkedReferences = activePreview?.preview?.linkedReferences ?? [];
       const validationTrace = activePreview?.preview?.validationTrace ?? {};
       const materializationReadiness = activePreview?.preview?.materializationReadiness ?? {};
@@ -120,6 +119,14 @@
               preview: journalPreview
             }
           : activePreview;
+      const activeStateOrigin =
+        activeSurface?.key === "journal" && isJournalDraftDirty
+          ? "manual-draft-overrides"
+          : activeSurfaceSampleState?.sourceType ?? "default";
+      const activeStateOriginLabel =
+        activeSurface?.key === "journal" && isJournalDraftDirty
+          ? "Manual edits on top of loaded sample/preset defaults"
+          : activeSurfaceSampleState?.sourceLabel ?? "Default builder preview";
 
       return {
         shell: {
@@ -146,9 +153,15 @@
           key: sample.key,
           label: sample.label,
           description: sample.description,
-          isSelected: sample.key === this.#selectedSampleKeys[activeSurface?.key]
+          isSelected: sample.key === this.#sampleSelectionState.selectedSampleKeys?.[activeSurface?.key]
         })),
         selectedSample,
+        activeSampleState: {
+          activeSampleKey: activeSurfaceSampleState?.selectedSampleKey ?? "",
+          activeSampleLabel: builderSampleState.getActiveSampleLabel(activeSurfaceSampleState),
+          activeStateOrigin,
+          activeStateOriginLabel
+        },
         activePreviewJson: activePreviewWithPreset ? JSON.stringify(activePreviewWithPreset.preview, null, 2) : "",
         referenceRows: referencePresentation.buildReferenceDisplayRows(linkedReferences),
         journalReferenceBlock,
@@ -346,9 +359,8 @@
       const sampleKey = event.currentTarget?.value;
       if (!surfaceKey || !sampleKey) return;
 
-      this.#selectedSampleKeys[surfaceKey] = sampleKey;
-      this.#itemCreateInspection = null;
-      this.#journalCreateInspection = null;
+      this.#sampleSelectionState = builderSampleState.setSelectedSampleForSurface(this.#sampleSelectionState, surfaceKey, sampleKey);
+      this.#clearStateForSampleLoad();
 
       if (surfaceKey === "journal") {
         const previewState = this.#getPreviewStateWithSamples();
@@ -373,26 +385,23 @@
       return journalDraftState.createJournalDraftFromPreset(journalPreview, this.#journalDraft?.selectedPresetKey ?? this.#journalPresetKey);
     }
 
+    #clearStateForSampleLoad() {
+      const resetPolicy = builderSampleState.getSampleLoadResetPolicy();
+      if (!resetPolicy.clearPostCreationInspection) return;
+
+      this.#itemCreateInspection = null;
+      this.#journalCreateInspection = null;
+    }
+
+    #buildPreviewStateWithSamples() {
+      return builderSampleState.buildPreviewStateWithSamples(
+        authoringPreviewState.getDefaultPreviewState(),
+        this.#sampleSelectionState
+      );
+    }
+
     #getPreviewStateWithSamples() {
-      const previewState = authoringPreviewState.getDefaultPreviewState();
-      const nextSurfaces = { ...(previewState?.surfaces ?? {}) };
-
-      for (const surface of authoringPreviewState.getAuthoringSurfaces()) {
-        const surfacePreview = nextSurfaces[surface.key];
-        if (!surfacePreview) continue;
-
-        const sampleKey = this.#selectedSampleKeys[surface.key];
-        nextSurfaces[surface.key] = sampleContentRegistry.applySampleToSurfacePreview(
-          surfacePreview,
-          surface.key,
-          sampleKey
-        );
-      }
-
-      return {
-        ...previewState,
-        surfaces: nextSurfaces
-      };
+      return this.#buildPreviewStateWithSamples().previewState;
     }
   }
 
