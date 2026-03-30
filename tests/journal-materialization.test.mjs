@@ -9,6 +9,8 @@ function loadScript(path) {
 }
 
 function loadJournalMaterializationDependencies() {
+  loadScript('scripts/authoring/journal/journal-preset-definitions.js');
+  loadScript('scripts/authoring/journal/journal-summary-details-framing.js');
   loadScript('scripts/authoring/journal/journal-reference-presentation.js');
   loadScript('scripts/authoring/journal/journal-materialization.js');
 }
@@ -46,13 +48,13 @@ test('journal materialization builds explicit overview, details, and deferred-re
   assert.equal(data.pages[0].name, 'Overview');
   assert.equal(data.pages[0].type, 'text');
   assert.equal(data.pages[0].text.format, 1);
-  assert.match(data.pages[0].text.content, /Summary/);
+  assert.match(data.pages[0].text.content, /Lore Summary/);
   assert.match(data.pages[0].text.content, /Journal builder preview only/);
 
   assert.equal(data.pages[1].name, 'Details');
   assert.equal(data.pages[1].type, 'text');
   assert.equal(data.pages[1].text.format, 1);
-  assert.match(data.pages[1].text.content, /Preview Notes/);
+  assert.match(data.pages[1].text.content, /Lore Details/);
 
   assert.equal(data.pages[2].name, 'Deferred References');
   assert.equal(data.pages[2].type, 'text');
@@ -63,6 +65,7 @@ test('journal materialization builds explicit overview, details, and deferred-re
   assert.match(data.pages[2].text.content, /Target page:/);
 
   assert.equal(data.flags['swf-module'].journalPresetKey, 'lore-entry');
+  assert.equal(data.flags['swf-module'].journalSummaryDetailsFrame.summaryLabel, 'Lore Summary');
 });
 
 test('journal materialization applies preset page naming when provided', () => {

@@ -106,6 +106,17 @@
       status: requestedPresetKey ? "materialized" : "deferred-inspection"
     });
 
+    const requestedFrame = createData?.flags?.[globalThis.SWF?.MODULE_ID]?.journalSummaryDetailsFrame;
+    rows.push({
+      key: "summary/details frame",
+      preview: `summary label=${toNonEmptyString(preview?.summary) ? "set" : "defaulted"}; details rows=${toArray(preview?.notes).length}`,
+      requested: requestedFrame
+        ? `labels captured (summary=${toNonEmptyString(requestedFrame?.summaryLabel) || "Summary"}, identity=${toNonEmptyString(requestedFrame?.identityLabel) || "Journal Identity"}, details=${toNonEmptyString(requestedFrame?.detailsLabel) || "Core Details"})`
+        : "no explicit frame labels captured",
+      actual: requestedFrame ? "captured in module flag payload" : "not inspected",
+      status: requestedFrame ? "materialized" : "deferred-inspection"
+    });
+
     const previewNotesCount = toArray(preview?.notes).length;
     const detailsPageName = toNonEmptyString(preview?.preset?.detailsPageName) || "Details";
     const detailsPageRequested = Boolean(findPageByName(createData?.pages, detailsPageName));
@@ -142,7 +153,7 @@
     ];
 
     const materializedClusters = success
-      ? ["name", "preset flag", "overview text page", "details text page when notes are present", "deferred references text page when references are present"]
+      ? ["name", "preset flag", "summary/details frame labels", "overview text page", "details text page when notes are present", "deferred references text page when references are present"]
       : [];
 
     const warnings = [];

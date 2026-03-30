@@ -38,6 +38,26 @@
       <h4>Summary</h4>
       <p>{{activePreview.preview.summary}}</p>
 
+      {{#if journalSummaryDetailsFrame}}
+        <section class="swf-builder-shell__inspection">
+          <h5>{{journalSummaryDetailsFrame.frameTitle}}</h5>
+          <ul class="swf-builder-shell__status">
+            <li><strong>{{journalSummaryDetailsFrame.identityLabel}}:</strong> {{journalSummaryDetailsFrame.identityValue}}</li>
+            <li><strong>{{journalSummaryDetailsFrame.summaryLabel}}:</strong> {{journalSummaryDetailsFrame.summaryValue}}</li>
+          </ul>
+          <h6>{{journalSummaryDetailsFrame.detailsLabel}}</h6>
+          {{#if journalSummaryDetailsFrame.detailRows.length}}
+            <ul class="swf-builder-shell__status">
+              {{#each journalSummaryDetailsFrame.detailRows}}
+                <li><strong>{{this.label}}:</strong> {{this.value}}</li>
+              {{/each}}
+            </ul>
+          {{else}}
+            <p class="swf-builder-shell__empty">{{journalSummaryDetailsFrame.detailsEmptyText}}</p>
+          {{/if}}
+        </section>
+      {{/if}}
+
       {{#if selectedJournalPreset}}
         <h4>Journal Preset</h4>
         <label>
@@ -148,6 +168,9 @@
               <li>Preset: <code>{{journalCreateIntentSummary.presetKey}}</code> ({{journalCreateIntentSummary.presetLabel}})</li>
               <li>Name: {{journalCreateIntentSummary.name}}</li>
               <li>Requested Pages: {{journalCreateIntentSummary.pageCount}}</li>
+              <li>Frame Summary Label: {{journalCreateIntentSummary.summaryDetailsFrame.title}}</li>
+              <li>Frame Identity Label: {{journalCreateIntentSummary.summaryDetailsFrame.identityLabel}}</li>
+              <li>Frame Details Label: {{journalCreateIntentSummary.summaryDetailsFrame.detailsLabel}}</li>
               <li>Details Page Included: {{#if journalCreateIntentSummary.includesDetailsPage}}yes{{else}}no{{/if}}</li>
               <li>Deferred References Page Included: {{#if journalCreateIntentSummary.includesDeferredReferencesPage}}yes{{else}}no{{/if}}</li>
             </ul>
