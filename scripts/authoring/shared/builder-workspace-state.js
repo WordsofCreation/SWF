@@ -5,9 +5,17 @@
  * client settings. Keep this shape intentionally small and lane-agnostic.
  */
 (() => {
-  const { MODULE_ID, log, authoringPreviewState, builderSampleState, journalDraftState, journalPresetDefinitions } = globalThis.SWF;
+  const {
+    MODULE_ID,
+    log,
+    authoringPreviewState,
+    builderSampleState,
+    journalDraftState,
+    journalPresetDefinitions,
+    laneDraftState
+  } = globalThis.SWF;
 
-  const WORKSPACE_STATE_VERSION = 1;
+  const WORKSPACE_STATE_VERSION = 2;
   const WORKSPACE_STATE_SETTING_KEY = "builderWorkspaceState";
 
   function toNonEmptyString(value) {
@@ -25,7 +33,7 @@
       version: WORKSPACE_STATE_VERSION,
       activeSurface: "item",
       journalPresetKey: journalPresetDefinitions.DEFAULT_JOURNAL_PRESET_KEY,
-      journalDraft: null,
+      laneDrafts: Object.freeze({}),
       sampleSelectionState: builderSampleState.createBuilderSampleSelectionState(),
       // Reserved for future lightweight display toggles; intentionally minimal for now.
       displayPreferences: Object.freeze({
@@ -77,18 +85,22 @@
       ? requestedPresetKey
       : journalPresetDefinitions.DEFAULT_JOURNAL_PRESET_KEY;
 
-    const normalizedJournalDraft = candidateState?.journalDraft
-      ? {
-          ...journalDraftState.INTERNALS.normalizeDraftForDirtyComparison(candidateState.journalDraft),
-          selectedPresetKey: resolvedPresetKey
-        }
-      : journalDraftState.createJournalDraftFromPreset(journalPreview, resolvedPresetKey);
+    const coordinatedDraftState = laneDraftState.buildLaneDraftCoordination({
+      previewState: previewProjection?.previewState ?? {},
+      laneDrafts: {
+        ...(candidateState?.laneDrafts ?? {}),
+        // Backward-compatibility for state written before lane-aware drafts.
+        ...(candidateState?.journalDraft ? { journal: candidateState.journalDraft } : {})
+      },
+      activeLane: activeSurface,
+      journalPresetKey: resolvedPresetKey
+    });
 
     return Object.freeze({
       version: WORKSPACE_STATE_VERSION,
       activeSurface,
       journalPresetKey: resolvedPresetKey,
-      journalDraft: normalizedJournalDraft,
+      laneDrafts: coordinatedDraftState.laneDrafts,
       sampleSelectionState,
       displayPreferences: normalizeDisplayPreferences(candidateState?.displayPreferences, defaultState)
     });
@@ -109,12 +121,17 @@
     }
 
     const storedVersion = Number(storedState?.version ?? 0);
-    if (storedVersion !== WORKSPACE_STATE_VERSION) {
-      // Migration guard: unknown versions reset to conservative defaults.
+    if (storedVersion > WORKSPACE_STATE_VERSION) {
+      // Migration guard: unknown future versions reset to conservative defaults.
       log(
-        `Builder workspace state version mismatch (${storedVersion} !== ${WORKSPACE_STATE_VERSION}); defaults restored.`
+        `Builder workspace state version mismatch (${storedVersion} > ${WORKSPACE_STATE_VERSION}); defaults restored.`
       );
       return buildDefaultWorkspaceState();
+    }
+
+    if (storedVersion < WORKSPACE_STATE_VERSION) {
+      // Conservative migration path: normalize through current contract.
+      return normalizeWorkspaceState(storedState);
     }
 
     return normalizeWorkspaceState(storedState);

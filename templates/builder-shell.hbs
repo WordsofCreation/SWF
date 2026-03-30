@@ -36,6 +36,7 @@
         <li>Type Hint: {{activePreview.preview.typeHint}}</li>
         <li>Read-Only: {{#if selectedJournalPreset}}mostly (tiny Journal draft fields are editable){{else}}{{#if activePreview.readOnly}}yes{{else}}no{{/if}}{{/if}}</li>
         <li>Materialization: {{#if activePreview.nonMaterialized}}deferred{{else}}active{{/if}}</li>
+        <li>Lane Draft: <strong>{{activeLaneDraftStatus}}</strong></li>
       </ul>
 
       <h4>Summary</h4>

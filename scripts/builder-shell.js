@@ -17,6 +17,7 @@
     journalPostCreateInspection,
     journalPresetDefinitions,
     journalDraftState,
+    laneDraftState,
     sampleContentRegistry,
     builderSampleState,
     builderWorkspaceState
@@ -28,7 +29,7 @@
     #itemCreateInspection = null;
     #journalCreateInspection = null;
     #journalPresetKey = journalPresetDefinitions.DEFAULT_JOURNAL_PRESET_KEY;
-    #journalDraft = null;
+    #laneDrafts = Object.freeze({});
     #sampleSelectionState = builderSampleState.createBuilderSampleSelectionState();
     #displayPreferences = { showValidation: true, showMaterializationReadiness: true };
 
@@ -70,6 +71,13 @@
       const surfaces = authoringPreviewState.getAuthoringSurfaces();
       const sampleProjection = this.#buildPreviewStateWithSamples();
       const previewState = sampleProjection.previewState;
+      const laneDraftCoordination = laneDraftState.buildLaneDraftCoordination({
+        previewState,
+        laneDrafts: this.#laneDrafts,
+        activeLane: this.#activeSurface,
+        journalPresetKey: this.#journalPresetKey
+      });
+      this.#laneDrafts = laneDraftCoordination.laneDrafts;
       const activeSurface = surfaces.find((surface) => surface.key === this.#activeSurface) ?? surfaces[0];
       const activePreview = activeSurface ? previewState.surfaces[activeSurface.key] ?? null : null;
       const sampleRows = sampleContentRegistry.getSamplesForSurface(activeSurface?.key);
@@ -81,10 +89,10 @@
       const linkedReferences = activePreview?.preview?.linkedReferences ?? [];
       const validationTrace = activePreview?.preview?.validationTrace ?? {};
       const materializationReadiness = activePreview?.preview?.materializationReadiness ?? {};
-      if (activeSurface?.key === "journal" && !this.#journalDraft) this.#resetJournalDraftFromPreset(this.#journalPresetKey);
+      if (activeSurface?.key === "journal" && !this.#getJournalDraft()) this.#resetJournalDraftFromPreset(this.#journalPresetKey);
       const journalPreview =
         activeSurface?.key === "journal"
-          ? journalDraftState.applyJournalDraftToPreview(activePreview?.preview ?? {}, this.#journalDraft ?? {})
+          ? journalDraftState.applyJournalDraftToPreview(activePreview?.preview ?? {}, this.#getJournalDraft() ?? {})
           : null;
       const journalMaterializationPipeline =
         activeSurface?.key === "journal"
@@ -94,11 +102,11 @@
       const journalValidationResult = journalPipeline?.validation ?? null;
       const journalPresetDefaultDraft =
         activeSurface?.key === "journal"
-          ? this.#buildJournalPresetDefaultDraft(activePreview?.preview ?? {})
+          ? laneDraftCoordination.baselines.journal ?? this.#buildJournalPresetDefaultDraft(activePreview?.preview ?? {})
           : null;
       const isJournalDraftDirty =
         activeSurface?.key === "journal"
-          ? journalDraftState.isJournalDraftDirty(this.#journalDraft ?? {}, journalPresetDefaultDraft ?? {})
+          ? laneDraftCoordination.laneDirty.journal === true
           : false;
       const journalSummaryDetailsFrame = journalPipeline?.shaping?.summaryDetailsFrame ?? null;
       const journalReferenceBlock = journalPipeline?.shaping?.referenceBlock ?? null;
@@ -184,7 +192,8 @@
         selectedJournalPreset: journalPreview?.preset ?? null,
         journalDraftStatus: activeSurface?.key === "journal" ? (isJournalDraftDirty ? "modified" : "clean") : null,
         isJournalDraftDirty,
-        journalDraft: this.#journalDraft ?? null,
+        journalDraft: this.#getJournalDraft() ?? null,
+        activeLaneDraftStatus: laneDraftCoordination.isActiveLaneDirty ? "modified" : "clean",
         displayPreferences: this.#displayPreferences,
         journalValidation: journalValidationResult,
         journalCreateIntentSummary,
@@ -280,7 +289,14 @@
       const field = event.currentTarget?.dataset?.journalDraftField;
       if (!field) return;
 
-      this.#journalDraft = journalDraftState.updateDraftField(this.#journalDraft ?? {}, field, event.currentTarget?.value);
+      this.#laneDrafts = laneDraftState.updateLaneDraftField(
+        this.#laneDrafts,
+        "journal",
+        field,
+        event.currentTarget?.value,
+        this.#getPreviewStateWithSamples(),
+        { journalPresetKey: this.#journalPresetKey }
+      );
       this.#journalCreateInspection = null;
       await this.#persistWorkspaceState();
       await this.render(false);
@@ -288,7 +304,7 @@
 
     async #onResetJournalDraft(event) {
       event.preventDefault();
-      this.#resetJournalDraftFromPreset(this.#journalDraft?.selectedPresetKey ?? this.#journalPresetKey);
+      this.#resetJournalDraftFromPreset(this.#getJournalDraft()?.selectedPresetKey ?? this.#journalPresetKey);
       this.#journalCreateInspection = null;
       await this.#persistWorkspaceState();
       await this.render(false);
@@ -300,10 +316,10 @@
 
       const previewState = this.#getPreviewStateWithSamples();
       const journalPresetDefaultDraft = this.#buildJournalPresetDefaultDraft(previewState?.surfaces?.journal?.preview ?? {});
-      const isJournalDraftDirty = journalDraftState.isJournalDraftDirty(this.#journalDraft ?? {}, journalPresetDefaultDraft);
+      const isJournalDraftDirty = journalDraftState.isJournalDraftDirty(this.#getJournalDraft() ?? {}, journalPresetDefaultDraft);
       const journalPreview = journalDraftState.applyJournalDraftToPreview(
         previewState?.surfaces?.journal?.preview ?? {},
-        this.#journalDraft ?? {}
+        this.#getJournalDraft() ?? {}
       );
       const materializationPipeline = journalMaterialization.buildJournalMaterializationPipelineFromPreview(journalPreview);
       const journalValidationResult = materializationPipeline.stages.validation;
@@ -380,6 +396,12 @@
         const journalPreview = previewState?.surfaces?.journal?.preview ?? {};
         const nextPresetKey = journalPreview?.preset?.key ?? this.#journalPresetKey;
         this.#resetJournalDraftFromPreset(nextPresetKey);
+      } else {
+        this.#laneDrafts = laneDraftState.resetLaneDraft(
+          this.#laneDrafts,
+          surfaceKey,
+          this.#getPreviewStateWithSamples()
+        );
       }
 
       await this.#persistWorkspaceState();
@@ -397,15 +419,24 @@
 
     #resetJournalDraftFromPreset(presetKey) {
       const previewState = this.#getPreviewStateWithSamples();
-      this.#journalDraft = journalDraftState.createJournalDraftFromPreset(
-        previewState?.surfaces?.journal?.preview ?? {},
-        presetKey
+      this.#laneDrafts = laneDraftState.resetLaneDraft(
+        this.#laneDrafts,
+        "journal",
+        previewState,
+        { journalPresetKey: presetKey }
       );
-      this.#journalPresetKey = this.#journalDraft.selectedPresetKey;
+      this.#journalPresetKey = this.#getJournalDraft()?.selectedPresetKey ?? presetKey;
     }
 
     #buildJournalPresetDefaultDraft(journalPreview = {}) {
-      return journalDraftState.createJournalDraftFromPreset(journalPreview, this.#journalDraft?.selectedPresetKey ?? this.#journalPresetKey);
+      return journalDraftState.createJournalDraftFromPreset(
+        journalPreview,
+        this.#getJournalDraft()?.selectedPresetKey ?? this.#journalPresetKey
+      );
+    }
+
+    #getJournalDraft() {
+      return this.#laneDrafts?.journal ?? null;
     }
 
     #clearStateForSampleLoad() {
@@ -432,7 +463,7 @@
         version: builderWorkspaceState.WORKSPACE_STATE_VERSION,
         activeSurface: this.#activeSurface,
         journalPresetKey: this.#journalPresetKey,
-        journalDraft: this.#journalDraft,
+        laneDrafts: this.#laneDrafts,
         sampleSelectionState: this.#sampleSelectionState,
         displayPreferences: this.#displayPreferences
       };
@@ -442,7 +473,7 @@
       const normalizedState = builderWorkspaceState.normalizeWorkspaceState(workspaceState);
       this.#activeSurface = normalizedState.activeSurface;
       this.#journalPresetKey = normalizedState.journalPresetKey;
-      this.#journalDraft = normalizedState.journalDraft;
+      this.#laneDrafts = normalizedState.laneDrafts ?? Object.freeze({});
       this.#sampleSelectionState = normalizedState.sampleSelectionState;
       this.#displayPreferences = normalizedState.displayPreferences;
     }
