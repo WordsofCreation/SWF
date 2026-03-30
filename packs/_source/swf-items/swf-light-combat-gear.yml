@@ -1,0 +1,61 @@
+_id: swfEqLightGear01
+name: Light Combat Gear
+type: equipment
+img: icons/equipment/chest/breastplate-scale-leather.webp
+system:
+  description:
+    value: >-
+      <p>Layered combat clothing reinforced for mobility. In this conversion, treat it as a leather-armor equivalent.</p>
+    chat: ''
+    unidentified: ''
+  source:
+    custom: SWF
+  quantity: 1
+  weight:
+    value: 10
+    units: lb
+  price:
+    value: 10
+    denomination: gp
+  rarity: ''
+  identified: true
+  attunement: ''
+  attuned: false
+  equipped: false
+  uses:
+    max: ''
+    spent: 0
+    recovery: []
+  armor:
+    value: 11
+    magicalBonus: null
+    dex: null
+    hp:
+      value: null
+      max: null
+      dt: null
+      conditions: ''
+    type:
+      value: light
+      baseItem: leather
+    properties: []
+  speed:
+    value: null
+    conditions: ''
+  strength: null
+  proficient: null
+  activities: {}
+  identifier: swf-light-combat-gear
+effects: []
+folder: null
+sort: 0
+ownership:
+  default: 0
+flags: {}
+_stats:
+  coreVersion: '13.350'
+  systemId: dnd5e
+  systemVersion: '5.3.0'
+  createdTime: 0
+  modifiedTime: 0
+  lastModifiedBy: ''

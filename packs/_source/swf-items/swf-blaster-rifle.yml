@@ -1,0 +1,100 @@
+_id: swfEqBlasterRfl1
+name: Blaster Rifle
+type: weapon
+img: icons/weapons/guns/rifle-brown.webp
+system:
+  description:
+    value: >-
+      <p>A long blaster built for battlefield range. In this conversion, treat it as a straightforward martial-style ranged weapon equivalent.</p>
+    chat: ''
+    unidentified: ''
+  source:
+    custom: SWF
+  quantity: 1
+  weight:
+    value: 8
+    units: lb
+  price:
+    value: 50
+    denomination: gp
+  attunement: 0
+  equipped: true
+  rarity: ''
+  identified: true
+  type:
+    value: martialR
+    subtype: ''
+  baseItem: heavycrossbow
+  damage:
+    base:
+      number: 1
+      denomination: 10
+      bonus: ''
+      types:
+        - piercing
+      custom:
+        enabled: false
+      scaling:
+        mode: ''
+        number: null
+        formula: ''
+    versatile: ''
+  magicalBonus: null
+  properties:
+    - amm
+    - hvy
+    - lod
+    - two
+  range:
+    value: 100
+    long: 400
+    units: ft
+    reach: null
+  activities:
+    dnd5eactivity000:
+      type: attack
+      _id: dnd5eactivity000
+      name: ''
+      sort: 0
+      activation:
+        type: action
+        value: null
+        condition: ''
+      consumption:
+        spellSlot: false
+        targets: []
+      target:
+        template:
+          contiguous: false
+        affects:
+          choice: false
+          count: '1'
+          type: creature
+          special: ''
+        prompt: true
+      range:
+        value: '100'
+        units: ft
+        special: ''
+      attack:
+        ability: ''
+        bonus: ''
+        critical:
+          threshold: null
+      damage:
+        includeBase: true
+        parts: []
+  identifier: swf-blaster-rifle
+effects: []
+folder: null
+sort: 0
+ownership:
+  default: 0
+flags: {}
+_stats:
+  coreVersion: '13.350'
+  systemId: dnd5e
+  systemVersion: '5.3.0'
+  createdTime: 0
+  modifiedTime: 0
+  lastModifiedBy: ''
