@@ -4,7 +4,7 @@
  * The shell is intentionally read-only and preview-oriented.
  */
 (() => {
-  const { MODULE_ID, log, authoringPreviewState } = globalThis.SWF;
+  const { MODULE_ID, log, authoringPreviewState, referencePresentation } = globalThis.SWF;
   let builderShellApp = null;
 
   class SWFBuilderShellApp extends FormApplication {
@@ -35,6 +35,7 @@
       const previewState = authoringPreviewState.getDefaultPreviewState();
       const activeSurface = surfaces.find((surface) => surface.key === this.#activeSurface) ?? surfaces[0];
       const activePreview = activeSurface ? previewState.surfaces[activeSurface.key] ?? null : null;
+      const linkedReferences = activePreview?.preview?.linkedReferences ?? [];
 
       return {
         shell: {
@@ -50,10 +51,12 @@
         activeSurface,
         activePreview,
         activePreviewJson: activePreview ? JSON.stringify(activePreview.preview, null, 2) : "",
+        referenceRows: referencePresentation.buildReferenceDisplayRows(linkedReferences),
         assumptions: [
           "Preview state is module-local and ephemeral in memory.",
           "No world or compendium documents are created or updated.",
           "Item/Actor/Journal tabs share one read-only preview state contract.",
+          "Linked references use one shared preview-only reference model.",
           "This shell is additive and does not override dnd5e sheets."
         ]
       };

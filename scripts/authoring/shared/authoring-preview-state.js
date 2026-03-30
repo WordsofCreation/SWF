@@ -7,7 +7,8 @@
  * - No dnd5e sheet or document overrides.
  */
 (() => {
-  const { MODULE_ID } = globalThis.SWF;
+  const { MODULE_ID, referenceModel } = globalThis.SWF;
+  const { createReferenceModel } = referenceModel;
 
   const AUTHORING_SURFACES = Object.freeze([
     Object.freeze({ key: "item", label: "Item", documentName: "Item" }),
@@ -39,17 +40,23 @@
           encounterRole: "controller-support"
         }),
         linkedReferences: Object.freeze([
-          Object.freeze({
+          createReferenceModel({
             kind: "journal",
-            localId: "swf.journal.vanguard-field-briefing",
             label: "Vanguard Field Briefing",
-            status: "deferred"
+            role: "Encounter context",
+            source: "builder-placeholder",
+            status: "deferred",
+            provisionalNote: "Journal linkage target remains preview-only until materialization rules are finalized.",
+            meta: { localId: "swf.journal.vanguard-field-briefing" }
           }),
-          Object.freeze({
+          createReferenceModel({
             kind: "item",
-            localId: "swf.item.guardian-posture",
-            label: "Guardian Posture (planned feature link)",
-            status: "deferred"
+            label: "Guardian Posture",
+            role: "Planned feature link",
+            source: "builder-placeholder",
+            status: "deferred",
+            provisionalNote: "Feature linkage path is intentionally deferred to a future document-creation slice.",
+            meta: { localId: "swf.item.guardian-posture" }
           })
         ]),
         previewMeta: Object.freeze({
@@ -69,7 +76,7 @@
     });
   }
 
-  function buildSurfacePreview({ label, documentName, sampleName, typeHint, notes }) {
+  function buildSurfacePreview({ label, documentName, sampleName, typeHint, notes, linkedReferences = [] }) {
     return Object.freeze({
       label,
       status: "available",
@@ -80,6 +87,7 @@
         documentName,
         typeHint,
         summary: `${label} builder preview only`,
+        linkedReferences: Object.freeze(linkedReferences),
         notes: Object.freeze(notes)
       })
     });
@@ -96,6 +104,17 @@
         documentName: "Item",
         sampleName: "Sample Item Blueprint",
         typeHint: "feat",
+        linkedReferences: [
+          createReferenceModel({
+            kind: "actor",
+            label: "SWF Vanguard Drill Sergeant",
+            role: "Expected user",
+            source: "builder-placeholder",
+            status: "candidate",
+            provisionalNote: "Candidate user reference for preview only; no ownership link is materialized.",
+            meta: { localId: "swf.actor.vanguard-drill-sergeant" }
+          })
+        ],
         notes: ["Read-only preview model only.", "No Item document is created."]
       }),
       actor: buildActorPreview(),
@@ -104,6 +123,26 @@
         documentName: "JournalEntry",
         sampleName: "Sample Journal Blueprint",
         typeHint: "entry",
+        linkedReferences: [
+          createReferenceModel({
+            kind: "actor",
+            label: "SWF Vanguard Drill Sergeant",
+            role: "Mentioned entity",
+            source: "builder-placeholder",
+            status: "candidate",
+            provisionalNote: "Mention-style cross-reference only; no true relation is created in this slice.",
+            meta: { localId: "swf.actor.vanguard-drill-sergeant" }
+          }),
+          createReferenceModel({
+            kind: "item",
+            label: "Guardian Posture",
+            role: "Mentioned feature",
+            source: "builder-placeholder",
+            status: "candidate",
+            provisionalNote: "Item mention remains an in-memory preview reference.",
+            meta: { localId: "swf.item.guardian-posture" }
+          })
+        ],
         notes: ["Read-only preview model only.", "No JournalEntry document is created."]
       })
     })
