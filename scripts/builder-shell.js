@@ -16,7 +16,8 @@
     journalMaterialization,
     journalPostCreateInspection,
     journalPresetDefinitions,
-    journalDraftState
+    journalDraftState,
+    sampleContentRegistry
   } = globalThis.SWF;
   let builderShellApp = null;
 
@@ -26,6 +27,11 @@
     #journalCreateInspection = null;
     #journalPresetKey = journalPresetDefinitions.DEFAULT_JOURNAL_PRESET_KEY;
     #journalDraft = null;
+    #selectedSampleKeys = {
+      item: sampleContentRegistry.getDefaultSampleKeyForSurface("item"),
+      actor: sampleContentRegistry.getDefaultSampleKeyForSurface("actor"),
+      journal: sampleContentRegistry.getDefaultSampleKeyForSurface("journal")
+    };
 
     static get defaultOptions() {
       return foundry.utils.mergeObject(super.defaultOptions, {
@@ -50,15 +56,21 @@
       html.find('[data-action="create-journal"]').on("click", this.#onCreateJournal.bind(this));
       html.find('[data-action="open-created-journal"]').on("click", this.#onOpenCreatedJournal.bind(this));
       html.find('[data-action="select-journal-preset"]').on("change", this.#onSelectJournalPreset.bind(this));
+      html.find('[data-action="select-sample"]').on("change", this.#onSelectSample.bind(this));
       html.find('[data-action="reset-journal-draft"]').on("click", this.#onResetJournalDraft.bind(this));
       html.find("[data-journal-draft-field]").on("change", this.#onEditJournalDraftField.bind(this));
     }
 
     getData() {
       const surfaces = authoringPreviewState.getAuthoringSurfaces();
-      const previewState = authoringPreviewState.getDefaultPreviewState();
+      const previewState = this.#getPreviewStateWithSamples();
       const activeSurface = surfaces.find((surface) => surface.key === this.#activeSurface) ?? surfaces[0];
       const activePreview = activeSurface ? previewState.surfaces[activeSurface.key] ?? null : null;
+      const sampleRows = sampleContentRegistry.getSamplesForSurface(activeSurface?.key);
+      const selectedSample = sampleContentRegistry.getSampleByKey(
+        activeSurface?.key,
+        this.#selectedSampleKeys[activeSurface?.key]
+      );
       const linkedReferences = activePreview?.preview?.linkedReferences ?? [];
       const validationTrace = activePreview?.preview?.validationTrace ?? {};
       const materializationReadiness = activePreview?.preview?.materializationReadiness ?? {};
@@ -130,6 +142,13 @@
         })),
         activeSurface,
         activePreview: activePreviewWithPreset,
+        sampleOptions: sampleRows.map((sample) => ({
+          key: sample.key,
+          label: sample.label,
+          description: sample.description,
+          isSelected: sample.key === this.#selectedSampleKeys[activeSurface?.key]
+        })),
+        selectedSample,
         activePreviewJson: activePreviewWithPreset ? JSON.stringify(activePreviewWithPreset.preview, null, 2) : "",
         referenceRows: referencePresentation.buildReferenceDisplayRows(linkedReferences),
         journalReferenceBlock,
@@ -177,8 +196,7 @@
       event.preventDefault();
       if (!game.user?.isGM) return;
 
-      const previewState = authoringPreviewState.getDefaultPreviewState();
-      const itemPreview = previewState?.surfaces?.item?.preview ?? {};
+      const itemPreview = this.#getPreviewStateWithSamples()?.surfaces?.item?.preview ?? {};
       const materializationPipeline = itemMaterialization.buildItemMaterializationPipelineFromPreview(itemPreview);
       const itemValidationResult = materializationPipeline.stages.validation;
 
@@ -254,7 +272,7 @@
       event.preventDefault();
       if (!game.user?.isGM) return;
 
-      const previewState = authoringPreviewState.getDefaultPreviewState();
+      const previewState = this.#getPreviewStateWithSamples();
       const journalPresetDefaultDraft = this.#buildJournalPresetDefaultDraft(previewState?.surfaces?.journal?.preview ?? {});
       const isJournalDraftDirty = journalDraftState.isJournalDraftDirty(this.#journalDraft ?? {}, journalPresetDefaultDraft);
       const journalPreview = journalDraftState.applyJournalDraftToPreview(
@@ -322,8 +340,28 @@
       // Intentionally empty: stage-1 builder shell has no persistence.
     }
 
+    async #onSelectSample(event) {
+      event.preventDefault();
+      const surfaceKey = event.currentTarget?.dataset?.sampleSurface;
+      const sampleKey = event.currentTarget?.value;
+      if (!surfaceKey || !sampleKey) return;
+
+      this.#selectedSampleKeys[surfaceKey] = sampleKey;
+      this.#itemCreateInspection = null;
+      this.#journalCreateInspection = null;
+
+      if (surfaceKey === "journal") {
+        const previewState = this.#getPreviewStateWithSamples();
+        const journalPreview = previewState?.surfaces?.journal?.preview ?? {};
+        const nextPresetKey = journalPreview?.preset?.key ?? this.#journalPresetKey;
+        this.#resetJournalDraftFromPreset(nextPresetKey);
+      }
+
+      await this.render(false);
+    }
+
     #resetJournalDraftFromPreset(presetKey) {
-      const previewState = authoringPreviewState.getDefaultPreviewState();
+      const previewState = this.#getPreviewStateWithSamples();
       this.#journalDraft = journalDraftState.createJournalDraftFromPreset(
         previewState?.surfaces?.journal?.preview ?? {},
         presetKey
@@ -333,6 +371,28 @@
 
     #buildJournalPresetDefaultDraft(journalPreview = {}) {
       return journalDraftState.createJournalDraftFromPreset(journalPreview, this.#journalDraft?.selectedPresetKey ?? this.#journalPresetKey);
+    }
+
+    #getPreviewStateWithSamples() {
+      const previewState = authoringPreviewState.getDefaultPreviewState();
+      const nextSurfaces = { ...(previewState?.surfaces ?? {}) };
+
+      for (const surface of authoringPreviewState.getAuthoringSurfaces()) {
+        const surfacePreview = nextSurfaces[surface.key];
+        if (!surfacePreview) continue;
+
+        const sampleKey = this.#selectedSampleKeys[surface.key];
+        nextSurfaces[surface.key] = sampleContentRegistry.applySampleToSurfacePreview(
+          surfacePreview,
+          surface.key,
+          sampleKey
+        );
+      }
+
+      return {
+        ...previewState,
+        surfaces: nextSurfaces
+      };
     }
   }
 
