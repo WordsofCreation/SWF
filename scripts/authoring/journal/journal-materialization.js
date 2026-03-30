@@ -68,10 +68,16 @@
     const overviewPageName = toNonEmptyString(journalPreview?.preset?.overviewPageName) || "Overview";
     const detailsPageName = toNonEmptyString(journalPreview?.preset?.detailsPageName) || "Details";
     const referencePageName = toNonEmptyString(journalPreview?.preset?.referencePageName) || "Deferred References";
+    const referenceBlockTitle = toNonEmptyString(journalPreview?.preset?.referenceBlockTitle);
+    const referenceBlockSummary = toNonEmptyString(journalPreview?.preset?.referenceBlockSummary);
 
     const referenceBlock = journalReferencePresentation.mapSharedReferencesToJournalReferenceBlock(
       journalPreview.linkedReferences,
-      { targetPageName: detailsPageName }
+      {
+        targetPageName: referencePageName,
+        title: referenceBlockTitle,
+        summary: referenceBlockSummary
+      }
     );
     const referenceBlockHtml = buildStructuredReferenceHtml(referenceBlock);
 
@@ -116,7 +122,8 @@
       pages,
       flags: {
         [MODULE_ID]: {
-          journalPresetKey: presetKey
+          journalPresetKey: presetKey,
+          journalPresetLabel: toNonEmptyString(journalPreview?.preset?.label) || ""
         }
       }
     };
