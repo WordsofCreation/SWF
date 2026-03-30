@@ -4,7 +4,7 @@
  * Scope: first controlled world-document creation path for JournalEntry only.
  */
 (() => {
-  const { MODULE_ID, journalReferencePresentation } = globalThis.SWF;
+  const { MODULE_ID, journalReferencePresentation, journalValidation } = globalThis.SWF;
 
   function escapeHtml(value) {
     return String(value ?? "")
@@ -146,6 +146,16 @@
       };
     }
 
+    const validation = journalValidation.validateJournalPreviewForCreate(journalPreview);
+    if (!validation.ok) {
+      return {
+        ok: false,
+        reason: "validation-failed",
+        validation,
+        errorMessage: "Journal draft failed validation. Fix errors before creating."
+      };
+    }
+
     try {
       const createData = buildJournalEntryCreateDataFromPreview(journalPreview);
       const entry = await JournalEntry.create(createData, {
@@ -156,6 +166,7 @@
         ok: true,
         entry,
         createData,
+        validation,
         statusMessage: `Created Journal entry: ${entry?.name ?? createData.name}`
       };
     } catch (error) {

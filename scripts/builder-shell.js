@@ -15,7 +15,8 @@
     journalMaterialization,
     journalPostCreateInspection,
     journalPresetDefinitions,
-    journalDraftState
+    journalDraftState,
+    journalValidation
   } = globalThis.SWF;
   let builderShellApp = null;
 
@@ -62,6 +63,8 @@
         activeSurface?.key === "journal"
           ? journalDraftState.applyJournalDraftToPreview(activePreview?.preview ?? {}, this.#journalDraft ?? {})
           : null;
+      const journalValidationResult =
+        activeSurface?.key === "journal" ? journalValidation.validateJournalPreviewForCreate(journalPreview) : null;
       const journalReferenceBlock =
         activeSurface?.key === "journal"
           ? journalReferencePresentation.mapSharedReferencesToJournalReferenceBlock(linkedReferences, {
@@ -71,7 +74,8 @@
             })
           : null;
 
-      const canCreateJournal = game.user?.isGM === true && activeSurface?.key === "journal";
+      const canCreateJournal =
+        game.user?.isGM === true && activeSurface?.key === "journal" && journalValidationResult?.ok === true;
       const activePreviewWithPreset =
         activeSurface?.key === "journal" && activePreview
           ? {
@@ -107,6 +111,7 @@
         })),
         selectedJournalPreset: journalPreview?.preset ?? null,
         journalDraft: this.#journalDraft ?? null,
+        journalValidation: journalValidationResult,
         validationTrace: validationTracePresentation.buildValidationTraceDisplay(validationTrace),
         materializationReadiness:
           materializationReadinessPresentation.buildMaterializationReadinessDisplay(materializationReadiness),
@@ -160,11 +165,23 @@
         previewState?.surfaces?.journal?.preview ?? {},
         this.#journalDraft ?? {}
       );
+      const journalValidationResult = journalValidation.validateJournalPreviewForCreate(journalPreview);
       if (!journalPreview) {
         const message = "Journal preview is unavailable; creation was skipped.";
         this.#journalCreateInspection = journalPostCreateInspection.buildJournalPostCreateInspection({
           preview: {},
-          result: { ok: false, errorMessage: message }
+          result: { ok: false, errorMessage: message, validation: journalValidationResult }
+        });
+        ui.notifications?.error(message);
+        await this.render(false);
+        return;
+      }
+
+      if (!journalValidationResult.ok) {
+        const message = "Journal draft failed validation. Fix errors before creating a Journal entry.";
+        this.#journalCreateInspection = journalPostCreateInspection.buildJournalPostCreateInspection({
+          preview: journalPreview,
+          result: { ok: false, reason: "validation-failed", errorMessage: message, validation: journalValidationResult }
         });
         ui.notifications?.error(message);
         await this.render(false);
