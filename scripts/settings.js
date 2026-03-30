@@ -32,6 +32,15 @@
       default: false
     });
 
+    game.settings.register(MODULE_ID, "builderWorkspaceState", {
+      name: "Builder Workspace State (Internal)",
+      hint: "Internal client-scoped state snapshot for SWF builder workspace continuity.",
+      scope: "client",
+      config: false,
+      type: Object,
+      default: {}
+    });
+
     registerToolShellMenu();
     registerBuilderShellMenu();
     registerBuilderShellKeybinding();
