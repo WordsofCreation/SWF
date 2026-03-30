@@ -85,6 +85,10 @@
 
       const canCreateJournal =
         game.user?.isGM === true && activeSurface?.key === "journal" && journalValidationResult?.ok === true;
+      const journalCreateIntentSummary =
+        activeSurface?.key === "journal"
+          ? journalMaterialization.buildJournalCreateIntentSummaryFromPreview(journalPreview ?? {})
+          : null;
       const activePreviewWithPreset =
         activeSurface?.key === "journal" && activePreview
           ? {
@@ -123,6 +127,7 @@
         isJournalDraftDirty,
         journalDraft: this.#journalDraft ?? null,
         journalValidation: journalValidationResult,
+        journalCreateIntentSummary,
         validationTrace: validationTracePresentation.buildValidationTraceDisplay(validationTrace),
         materializationReadiness:
           materializationReadinessPresentation.buildMaterializationReadinessDisplay(materializationReadiness),

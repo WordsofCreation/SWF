@@ -129,6 +129,43 @@
     };
   }
 
+  function buildJournalCreateIntentSummaryFromPreview(journalPreview = {}) {
+    const createData = buildJournalEntryCreateDataFromPreview(journalPreview);
+    const presetKey = toNonEmptyString(journalPreview?.preset?.key) || "lore-entry";
+    const presetLabel = toNonEmptyString(journalPreview?.preset?.label) || "(unlabeled preset)";
+    const detailsPageName = toNonEmptyString(journalPreview?.preset?.detailsPageName) || "Details";
+    const referencePageName = toNonEmptyString(journalPreview?.preset?.referencePageName) || "Deferred References";
+    const pageRows = Array.isArray(createData.pages)
+      ? createData.pages.map((page, index) => {
+          const pageName = toNonEmptyString(page?.name) || `Page ${index + 1}`;
+          const pageType = toNonEmptyString(page?.type) || "unknown";
+          return {
+            index: index + 1,
+            name: pageName,
+            type: pageType
+          };
+        })
+      : [];
+    const pageNames = pageRows.map((row) => row.name);
+
+    return Object.freeze({
+      presetKey,
+      presetLabel,
+      name: toNonEmptyString(createData.name),
+      pageCount: pageRows.length,
+      pageRows: Object.freeze(pageRows),
+      pageNames: Object.freeze(pageNames),
+      includesDetailsPage: pageNames.includes(detailsPageName),
+      includesDeferredReferencesPage: pageNames.includes(referencePageName),
+      hasDetailsContent: pageNames.includes(detailsPageName),
+      hasDeferredReferenceContent: pageNames.includes(referencePageName),
+      notes: Object.freeze([
+        "Summary values are derived from the same normalized JournalEntry create payload used by Create Journal Entry.",
+        "Deferred references are rendered as descriptive text only; cross-document links remain out of scope."
+      ])
+    });
+  }
+
   async function materializeJournalPreviewAsWorldEntry(journalPreview = {}, options = {}) {
     if (!game.user?.isGM) {
       return {
@@ -181,6 +218,7 @@
 
   globalThis.SWF.journalMaterialization = {
     buildJournalEntryCreateDataFromPreview,
+    buildJournalCreateIntentSummaryFromPreview,
     materializeJournalPreviewAsWorldEntry,
     INTERNALS: {
       buildOverviewPageContent,

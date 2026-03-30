@@ -138,6 +138,37 @@
             </ul>
           {{/if}}
         </section>
+        {{#if journalCreateIntentSummary}}
+          <section class="swf-builder-shell__inspection">
+            <h5>Journal Creation Summary</h5>
+            <p class="swf-builder-shell__status-note">
+              Exact normalized create intent derived from the current Journal preview/draft state.
+            </p>
+            <ul class="swf-builder-shell__status">
+              <li>Preset: <code>{{journalCreateIntentSummary.presetKey}}</code> ({{journalCreateIntentSummary.presetLabel}})</li>
+              <li>Name: {{journalCreateIntentSummary.name}}</li>
+              <li>Requested Pages: {{journalCreateIntentSummary.pageCount}}</li>
+              <li>Details Page Included: {{#if journalCreateIntentSummary.includesDetailsPage}}yes{{else}}no{{/if}}</li>
+              <li>Deferred References Page Included: {{#if journalCreateIntentSummary.includesDeferredReferencesPage}}yes{{else}}no{{/if}}</li>
+            </ul>
+            {{#if journalCreateIntentSummary.pageRows.length}}
+              <h6>Requested Page Names</h6>
+              <ul class="swf-builder-shell__status">
+                {{#each journalCreateIntentSummary.pageRows}}
+                  <li>{{this.index}}. {{this.name}} ({{this.type}})</li>
+                {{/each}}
+              </ul>
+            {{/if}}
+            {{#if journalCreateIntentSummary.notes.length}}
+              <h6>Create-Path Notes</h6>
+              <ul class="swf-builder-shell__status">
+                {{#each journalCreateIntentSummary.notes}}
+                  <li>{{this}}</li>
+                {{/each}}
+              </ul>
+            {{/if}}
+          </section>
+        {{/if}}
         <p>Creates one world JournalEntry from the current Journal preview using minimal v13-safe fields.</p>
         <button
           type="button"
