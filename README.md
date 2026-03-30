@@ -24,6 +24,20 @@ Image-aligned item-type coverage planning now has an explicit capability tracker
 - Public manifest URL (`manifest`): `https://raw.githubusercontent.com/WordsofCreation/SWF/main/module.json`
 - Package download URL (`download`): `https://github.com/WordsofCreation/SWF/archive/refs/heads/main.zip`
 
+### Foundry install error troubleshooting
+If Foundry Setup shows:
+`The SWF Module (Scaffold) module does not provide a download URL that can be installed`
+
+it usually means the URL entered into **Install Module** is not the raw `module.json` manifest URL.
+
+Use this exact install URL:
+- `https://raw.githubusercontent.com/WordsofCreation/SWF/main/module.json`
+
+Common causes:
+- You pasted the repository page URL instead of the raw manifest URL.
+- Foundry fetched an older/cached manifest from another location that did not include `download`.
+- The URL returned HTML (e.g., GitHub page) instead of JSON, so Foundry could not parse package metadata.
+
 Compatibility baseline in `module.json`:
 - Foundry compatibility: `minimum: 13`, `verified: 13`
 - dnd5e relationship compatibility: `minimum: 5.2.4`, `verified: 5.2.4`
